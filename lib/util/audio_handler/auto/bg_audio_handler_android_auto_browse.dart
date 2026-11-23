@@ -190,17 +190,27 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
       return _aaosLibraryTabNodes(this, libraryId);
     }
     final tabs = await _androidAutoTabsForLibrary(libraryId);
-    return tabs
-        .map(
-          (tab) => _androidAutoBrowsableItem(
+    final nodes = await Future.wait(
+      tabs.map((tab) async {
+        if (!kIsWeb && Platform.isIOS) {
+          final ranges = await _carPlayListRanges(libraryId, tab);
+          if (ranges != null) {
+            return ranges;
+          }
+        }
+
+        return [
+          _androidAutoBrowsableItem(
             id: _androidAutoLibraryTabNodeId(libraryId, tab),
             title: tab.label,
             subtitle: tab.subtitle,
             artUri: _androidAutoLibraryTabIconUri(tab),
             categoryStyle: true,
           ),
-        )
-        .toList(growable: false);
+        ];
+      }),
+    );
+    return nodes.expand((items) => items).toList(growable: false);
   }
 
   Future<List<MediaItem>> _androidAutoLibraryTabChildren(

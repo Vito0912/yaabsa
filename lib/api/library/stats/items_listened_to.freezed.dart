@@ -29,16 +29,21 @@ $ItemsListenedToCopyWith<ItemsListenedTo> get copyWith => _$ItemsListenedToCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ItemsListenedTo&&(identical(other.id, id) || other.id == id)&&(identical(other.timeListening, timeListening) || other.timeListening == timeListening)&&(identical(other.mediaMetadata, mediaMetadata) || other.mediaMetadata == mediaMetadata));
+  final _this = this as ItemsListenedTo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ItemsListenedTo&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.timeListening, _this.timeListening) || other.timeListening == _this.timeListening)&&(identical(other.mediaMetadata, _this.mediaMetadata) || other.mediaMetadata == _this.mediaMetadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,timeListening,mediaMetadata);
+int get hashCode {
+  final _this = this as ItemsListenedTo;
+  return Object.hash(runtimeType,_this.id,_this.timeListening,_this.mediaMetadata);
+}
 
 @override
 String toString() {
-  return 'ItemsListenedTo(id: $id, timeListening: $timeListening, mediaMetadata: $mediaMetadata)';
+  final _this = this as ItemsListenedTo;
+  return 'ItemsListenedTo(id: ${_this.id}, timeListening: ${_this.timeListening}, mediaMetadata: ${_this.mediaMetadata})';
 }
 
 
@@ -244,16 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ItemsListenedTo&&(identical(other.id, id) || other.id == id)&&(identical(other.timeListening, timeListening) || other.timeListening == timeListening)&&(identical(other.mediaMetadata, mediaMetadata) || other.mediaMetadata == mediaMetadata));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ItemsListenedTo&&(identical(other.id, id) || other.id == id)&&(identical(other.timeListening, timeListening) || other.timeListening == timeListening)&&(identical(other.mediaMetadata, mediaMetadata) || other.mediaMetadata == mediaMetadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,timeListening,mediaMetadata);
+int get hashCode {
+    return Object.hash(runtimeType,id,timeListening,mediaMetadata);
+}
 
 @override
 String toString() {
-  return 'ItemsListenedTo(id: $id, timeListening: $timeListening, mediaMetadata: $mediaMetadata)';
+    return 'ItemsListenedTo(id: $id, timeListening: $timeListening, mediaMetadata: $mediaMetadata)';
 }
 
 

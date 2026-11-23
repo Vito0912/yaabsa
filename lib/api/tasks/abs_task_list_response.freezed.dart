@@ -29,16 +29,21 @@ $AbsTaskListResponseCopyWith<AbsTaskListResponse> get copyWith => _$AbsTaskListR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskListResponse&&const DeepCollectionEquality().equals(other.tasks, tasks)&&(identical(other.queuedTaskData, queuedTaskData) || other.queuedTaskData == queuedTaskData));
+  final _this = this as AbsTaskListResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskListResponse&&const DeepCollectionEquality().equals(other.tasks, _this.tasks)&&(identical(other.queuedTaskData, _this.queuedTaskData) || other.queuedTaskData == _this.queuedTaskData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(tasks),queuedTaskData);
+int get hashCode {
+  final _this = this as AbsTaskListResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.tasks),_this.queuedTaskData);
+}
 
 @override
 String toString() {
-  return 'AbsTaskListResponse(tasks: $tasks, queuedTaskData: $queuedTaskData)';
+  final _this = this as AbsTaskListResponse;
+  return 'AbsTaskListResponse(tasks: ${_this.tasks}, queuedTaskData: ${_this.queuedTaskData})';
 }
 
 
@@ -248,16 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskListResponse&&const DeepCollectionEquality().equals(other._tasks, _tasks)&&(identical(other.queuedTaskData, queuedTaskData) || other.queuedTaskData == queuedTaskData));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskListResponse&&const DeepCollectionEquality().equals(other.tasks, _tasks)&&(identical(other.queuedTaskData, queuedTaskData) || other.queuedTaskData == queuedTaskData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_tasks),queuedTaskData);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_tasks),queuedTaskData);
+}
 
 @override
 String toString() {
-  return 'AbsTaskListResponse(tasks: $tasks, queuedTaskData: $queuedTaskData)';
+    return 'AbsTaskListResponse(tasks: $tasks, queuedTaskData: $queuedTaskData)';
 }
 
 
@@ -325,16 +332,21 @@ $AbsQueuedTaskDataCopyWith<AbsQueuedTaskData> get copyWith => _$AbsQueuedTaskDat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsQueuedTaskData&&const DeepCollectionEquality().equals(other.embedMetadata, embedMetadata));
+  final _this = this as AbsQueuedTaskData;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsQueuedTaskData&&const DeepCollectionEquality().equals(other.embedMetadata, _this.embedMetadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(embedMetadata));
+int get hashCode {
+  final _this = this as AbsQueuedTaskData;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.embedMetadata));
+}
 
 @override
 String toString() {
-  return 'AbsQueuedTaskData(embedMetadata: $embedMetadata)';
+  final _this = this as AbsQueuedTaskData;
+  return 'AbsQueuedTaskData(embedMetadata: ${_this.embedMetadata})';
 }
 
 
@@ -530,16 +542,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsQueuedTaskData&&const DeepCollectionEquality().equals(other._embedMetadata, _embedMetadata));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsQueuedTaskData&&const DeepCollectionEquality().equals(other.embedMetadata, _embedMetadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_embedMetadata));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_embedMetadata));
+}
 
 @override
 String toString() {
-  return 'AbsQueuedTaskData(embedMetadata: $embedMetadata)';
+    return 'AbsQueuedTaskData(embedMetadata: $embedMetadata)';
 }
 
 
@@ -594,16 +608,21 @@ $AbsQueuedEmbedMetadataTaskDataCopyWith<AbsQueuedEmbedMetadataTaskData> get copy
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsQueuedEmbedMetadataTaskData&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId));
+  final _this = this as AbsQueuedEmbedMetadataTaskData;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsQueuedEmbedMetadataTaskData&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItemId,libraryId);
+int get hashCode {
+  final _this = this as AbsQueuedEmbedMetadataTaskData;
+  return Object.hash(runtimeType,_this.libraryItemId,_this.libraryId);
+}
 
 @override
 String toString() {
-  return 'AbsQueuedEmbedMetadataTaskData(libraryItemId: $libraryItemId, libraryId: $libraryId)';
+  final _this = this as AbsQueuedEmbedMetadataTaskData;
+  return 'AbsQueuedEmbedMetadataTaskData(libraryItemId: ${_this.libraryItemId}, libraryId: ${_this.libraryId})';
 }
 
 
@@ -795,16 +814,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsQueuedEmbedMetadataTaskData&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsQueuedEmbedMetadataTaskData&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItemId,libraryId);
+int get hashCode {
+    return Object.hash(runtimeType,libraryItemId,libraryId);
+}
 
 @override
 String toString() {
-  return 'AbsQueuedEmbedMetadataTaskData(libraryItemId: $libraryItemId, libraryId: $libraryId)';
+    return 'AbsQueuedEmbedMetadataTaskData(libraryItemId: $libraryItemId, libraryId: $libraryId)';
 }
 
 

@@ -29,16 +29,21 @@ $UpdateLibraryRequestCopyWith<UpdateLibraryRequest> get copyWith => _$UpdateLibr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLibraryRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other.folders, folders));
+  final _this = this as UpdateLibraryRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLibraryRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.displayOrder, _this.displayOrder) || other.displayOrder == _this.displayOrder)&&(identical(other.icon, _this.icon) || other.icon == _this.icon)&&(identical(other.mediaType, _this.mediaType) || other.mediaType == _this.mediaType)&&(identical(other.provider, _this.provider) || other.provider == _this.provider)&&(identical(other.settings, _this.settings) || other.settings == _this.settings)&&const DeepCollectionEquality().equals(other.folders, _this.folders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,displayOrder,icon,mediaType,provider,settings,const DeepCollectionEquality().hash(folders));
+int get hashCode {
+  final _this = this as UpdateLibraryRequest;
+  return Object.hash(runtimeType,_this.name,_this.displayOrder,_this.icon,_this.mediaType,_this.provider,_this.settings,const DeepCollectionEquality().hash(_this.folders));
+}
 
 @override
 String toString() {
-  return 'UpdateLibraryRequest(name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, settings: $settings, folders: $folders)';
+  final _this = this as UpdateLibraryRequest;
+  return 'UpdateLibraryRequest(name: ${_this.name}, displayOrder: ${_this.displayOrder}, icon: ${_this.icon}, mediaType: ${_this.mediaType}, provider: ${_this.provider}, settings: ${_this.settings}, folders: ${_this.folders})';
 }
 
 
@@ -260,16 +265,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLibraryRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other._folders, _folders));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLibraryRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other.folders, _folders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,displayOrder,icon,mediaType,provider,settings,const DeepCollectionEquality().hash(_folders));
+int get hashCode {
+    return Object.hash(runtimeType,name,displayOrder,icon,mediaType,provider,settings,const DeepCollectionEquality().hash(_folders));
+}
 
 @override
 String toString() {
-  return 'UpdateLibraryRequest(name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, settings: $settings, folders: $folders)';
+    return 'UpdateLibraryRequest(name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, settings: $settings, folders: $folders)';
 }
 
 

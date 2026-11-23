@@ -1,8 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
+import 'package:yaabsa/features/player/widgets/player_collection_empty_presentation.dart';
+import 'package:yaabsa/features/player/widgets/player_queue_item_presentation.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayerQueueView extends StatefulWidget {
   const PlayerQueueView({super.key, this.showEmptyIcon = true, this.emptyMode = PlayerCollectionEmptyMode.full});
@@ -65,10 +68,19 @@ class _PlayerQueueViewState extends State<PlayerQueueView> {
           }
 
           if (widget.emptyMode == PlayerCollectionEmptyMode.compact) {
-            return const _QueueCompactEmptyState();
+            return const PlayerCollectionEmptyPresentation(
+              icon: Icons.queue_music_rounded,
+              title: 'Queue is empty',
+              density: PlayerCollectionEmptyDensity.compact,
+            );
           }
 
-          return _QueueEmptyState(showIcon: widget.showEmptyIcon, isLoading: queueSnapshot.autoQueueLoading);
+          return PlayerCollectionEmptyPresentation(
+            icon: Icons.queue_music_rounded,
+            title: 'Queue is empty',
+            showIcon: widget.showEmptyIcon,
+            isLoading: queueSnapshot.autoQueueLoading,
+          );
         }
 
         return Column(
@@ -102,34 +114,11 @@ class _PlayerQueueViewState extends State<PlayerQueueView> {
             if (queueSnapshot.autoQueueLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
-                child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                child: SizedBox(width: 20, height: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
               ),
           ],
         );
       },
-    );
-  }
-}
-
-class _QueueCompactEmptyState extends StatelessWidget {
-  const _QueueCompactEmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.queue_music_rounded, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          const SizedBox(width: 6),
-          Text(
-            'Queue is empty',
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -146,91 +135,39 @@ class _QueueTile extends StatelessWidget {
     final subtitleFromQueue = entry.displayInfo.subtitle;
     final authorFromQueue = entry.displayInfo.author;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 3),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-        leading: ReorderableDragStartListener(
-          index: index,
-          child: Icon(Icons.drag_handle_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-        title: titleFromQueue != null
-            ? Text(titleFromQueue, maxLines: 1, overflow: TextOverflow.ellipsis)
-            : FutureBuilder<LibraryItem?>(
-                future: audioHandler.resolveQueueLibraryItem(entry.item.itemId),
-                builder: (context, snapshot) {
-                  final resolvedTitle = snapshot.data?.title;
-                  if (resolvedTitle != null && resolvedTitle.isNotEmpty) {
-                    return Text(resolvedTitle, maxLines: 1, overflow: TextOverflow.ellipsis);
-                  }
+    final subtitle = subtitleFromQueue ?? authorFromQueue;
+    if (titleFromQueue != null && titleFromQueue.isNotEmpty) {
+      return _buildQueueItem(context, titleFromQueue, subtitle);
+    }
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text(
-                      'Loading title...',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    );
-                  }
+    return FutureBuilder<LibraryItem?>(
+      future: audioHandler.resolveQueueLibraryItem(entry.item.itemId),
+      builder: (context, snapshot) {
+        final resolvedTitle = snapshot.data?.title;
+        final String title;
+        if (resolvedTitle != null && resolvedTitle.isNotEmpty) {
+          title = resolvedTitle;
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          title = 'Loading title...';
+        } else {
+          title = entry.item.itemId;
+        }
 
-                  return Text(entry.item.itemId, maxLines: 1, overflow: TextOverflow.ellipsis);
-                },
-              ),
-        subtitle: subtitleFromQueue != null || authorFromQueue != null
-            ? Text(
-                subtitleFromQueue ?? authorFromQueue!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-              )
-            : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (entry.autoQueued)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Icon(Icons.playlist_add_check_rounded, size: 18, color: Theme.of(context).colorScheme.secondary),
-              ),
-            IconButton(
-              tooltip: 'Remove from queue',
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () {
-                audioHandler.removeQueueEntry(entry.id);
-              },
-            ),
-          ],
-        ),
-      ),
+        return _buildQueueItem(context, title, subtitle);
+      },
     );
   }
-}
 
-class _QueueEmptyState extends StatelessWidget {
-  const _QueueEmptyState({required this.showIcon, required this.isLoading});
-
-  final bool showIcon;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (showIcon)
-              Icon(Icons.queue_music_rounded, size: 36, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            if (showIcon) const SizedBox(height: 10),
-            Text('Queue is empty', style: Theme.of(context).textTheme.titleMedium),
-            if (isLoading) ...[
-              const SizedBox(height: 8),
-              const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-            ],
-          ],
-        ),
+  Widget _buildQueueItem(BuildContext context, String title, String? subtitle) {
+    return PlayerQueueItemPresentation(
+      title: title,
+      subtitle: subtitle,
+      leading: ReorderableDragStartListener(
+        index: index,
+        child: Icon(Icons.drag_handle_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
+      autoQueued: entry.autoQueued,
+      onRemove: () => audioHandler.removeQueueEntry(entry.id),
     );
   }
 }

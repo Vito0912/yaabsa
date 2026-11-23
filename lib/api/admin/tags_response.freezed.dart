@@ -29,16 +29,21 @@ $TagsResponseCopyWith<TagsResponse> get copyWith => _$TagsResponseCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TagsResponse&&const DeepCollectionEquality().equals(other.tags, tags));
+  final _this = this as TagsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TagsResponse&&const DeepCollectionEquality().equals(other.tags, _this.tags));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(tags));
+int get hashCode {
+  final _this = this as TagsResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.tags));
+}
 
 @override
 String toString() {
-  return 'TagsResponse(tags: $tags)';
+  final _this = this as TagsResponse;
+  return 'TagsResponse(tags: ${_this.tags})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TagsResponse&&const DeepCollectionEquality().equals(other._tags, _tags));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TagsResponse&&const DeepCollectionEquality().equals(other.tags, _tags));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_tags));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_tags));
+}
 
 @override
 String toString() {
-  return 'TagsResponse(tags: $tags)';
+    return 'TagsResponse(tags: $tags)';
 }
 
 

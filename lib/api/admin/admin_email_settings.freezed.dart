@@ -29,16 +29,21 @@ $AdminEmailEreaderDeviceCopyWith<AdminEmailEreaderDevice> get copyWith => _$Admi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailEreaderDevice&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.availabilityOption, availabilityOption) || other.availabilityOption == availabilityOption)&&const DeepCollectionEquality().equals(other.users, users));
+  final _this = this as AdminEmailEreaderDevice;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailEreaderDevice&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.availabilityOption, _this.availabilityOption) || other.availabilityOption == _this.availabilityOption)&&const DeepCollectionEquality().equals(other.users, _this.users));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,email,availabilityOption,const DeepCollectionEquality().hash(users));
+int get hashCode {
+  final _this = this as AdminEmailEreaderDevice;
+  return Object.hash(runtimeType,_this.name,_this.email,_this.availabilityOption,const DeepCollectionEquality().hash(_this.users));
+}
 
 @override
 String toString() {
-  return 'AdminEmailEreaderDevice(name: $name, email: $email, availabilityOption: $availabilityOption, users: $users)';
+  final _this = this as AdminEmailEreaderDevice;
+  return 'AdminEmailEreaderDevice(name: ${_this.name}, email: ${_this.email}, availabilityOption: ${_this.availabilityOption}, users: ${_this.users})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailEreaderDevice&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.availabilityOption, availabilityOption) || other.availabilityOption == availabilityOption)&&const DeepCollectionEquality().equals(other._users, _users));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailEreaderDevice&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.availabilityOption, availabilityOption) || other.availabilityOption == availabilityOption)&&const DeepCollectionEquality().equals(other.users, _users));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,email,availabilityOption,const DeepCollectionEquality().hash(_users));
+int get hashCode {
+    return Object.hash(runtimeType,name,email,availabilityOption,const DeepCollectionEquality().hash(_users));
+}
 
 @override
 String toString() {
-  return 'AdminEmailEreaderDevice(name: $name, email: $email, availabilityOption: $availabilityOption, users: $users)';
+    return 'AdminEmailEreaderDevice(name: $name, email: $email, availabilityOption: $availabilityOption, users: $users)';
 }
 
 
@@ -307,16 +314,21 @@ $AdminEmailSettingsCopyWith<AdminEmailSettings> get copyWith => _$AdminEmailSett
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailSettings&&(identical(other.id, id) || other.id == id)&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&(identical(other.secure, secure) || other.secure == secure)&&(identical(other.rejectUnauthorized, rejectUnauthorized) || other.rejectUnauthorized == rejectUnauthorized)&&(identical(other.user, user) || other.user == user)&&(identical(other.pass, pass) || other.pass == pass)&&(identical(other.testAddress, testAddress) || other.testAddress == testAddress)&&(identical(other.fromAddress, fromAddress) || other.fromAddress == fromAddress)&&const DeepCollectionEquality().equals(other.ereaderDevices, ereaderDevices));
+  final _this = this as AdminEmailSettings;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailSettings&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.host, _this.host) || other.host == _this.host)&&(identical(other.port, _this.port) || other.port == _this.port)&&(identical(other.secure, _this.secure) || other.secure == _this.secure)&&(identical(other.rejectUnauthorized, _this.rejectUnauthorized) || other.rejectUnauthorized == _this.rejectUnauthorized)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.pass, _this.pass) || other.pass == _this.pass)&&(identical(other.testAddress, _this.testAddress) || other.testAddress == _this.testAddress)&&(identical(other.fromAddress, _this.fromAddress) || other.fromAddress == _this.fromAddress)&&const DeepCollectionEquality().equals(other.ereaderDevices, _this.ereaderDevices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,host,port,secure,rejectUnauthorized,user,pass,testAddress,fromAddress,const DeepCollectionEquality().hash(ereaderDevices));
+int get hashCode {
+  final _this = this as AdminEmailSettings;
+  return Object.hash(runtimeType,_this.id,_this.host,_this.port,_this.secure,_this.rejectUnauthorized,_this.user,_this.pass,_this.testAddress,_this.fromAddress,const DeepCollectionEquality().hash(_this.ereaderDevices));
+}
 
 @override
 String toString() {
-  return 'AdminEmailSettings(id: $id, host: $host, port: $port, secure: $secure, rejectUnauthorized: $rejectUnauthorized, user: $user, pass: $pass, testAddress: $testAddress, fromAddress: $fromAddress, ereaderDevices: $ereaderDevices)';
+  final _this = this as AdminEmailSettings;
+  return 'AdminEmailSettings(id: ${_this.id}, host: ${_this.host}, port: ${_this.port}, secure: ${_this.secure}, rejectUnauthorized: ${_this.rejectUnauthorized}, user: ${_this.user}, pass: ${_this.pass}, testAddress: ${_this.testAddress}, fromAddress: ${_this.fromAddress}, ereaderDevices: ${_this.ereaderDevices})';
 }
 
 
@@ -530,16 +542,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailSettings&&(identical(other.id, id) || other.id == id)&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&(identical(other.secure, secure) || other.secure == secure)&&(identical(other.rejectUnauthorized, rejectUnauthorized) || other.rejectUnauthorized == rejectUnauthorized)&&(identical(other.user, user) || other.user == user)&&(identical(other.pass, pass) || other.pass == pass)&&(identical(other.testAddress, testAddress) || other.testAddress == testAddress)&&(identical(other.fromAddress, fromAddress) || other.fromAddress == fromAddress)&&const DeepCollectionEquality().equals(other._ereaderDevices, _ereaderDevices));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailSettings&&(identical(other.id, id) || other.id == id)&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&(identical(other.secure, secure) || other.secure == secure)&&(identical(other.rejectUnauthorized, rejectUnauthorized) || other.rejectUnauthorized == rejectUnauthorized)&&(identical(other.user, user) || other.user == user)&&(identical(other.pass, pass) || other.pass == pass)&&(identical(other.testAddress, testAddress) || other.testAddress == testAddress)&&(identical(other.fromAddress, fromAddress) || other.fromAddress == fromAddress)&&const DeepCollectionEquality().equals(other.ereaderDevices, _ereaderDevices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,host,port,secure,rejectUnauthorized,user,pass,testAddress,fromAddress,const DeepCollectionEquality().hash(_ereaderDevices));
+int get hashCode {
+    return Object.hash(runtimeType,id,host,port,secure,rejectUnauthorized,user,pass,testAddress,fromAddress,const DeepCollectionEquality().hash(_ereaderDevices));
+}
 
 @override
 String toString() {
-  return 'AdminEmailSettings(id: $id, host: $host, port: $port, secure: $secure, rejectUnauthorized: $rejectUnauthorized, user: $user, pass: $pass, testAddress: $testAddress, fromAddress: $fromAddress, ereaderDevices: $ereaderDevices)';
+    return 'AdminEmailSettings(id: $id, host: $host, port: $port, secure: $secure, rejectUnauthorized: $rejectUnauthorized, user: $user, pass: $pass, testAddress: $testAddress, fromAddress: $fromAddress, ereaderDevices: $ereaderDevices)';
 }
 
 

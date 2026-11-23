@@ -163,7 +163,7 @@ extension _ReaderChrome on _ReaderState {
                       icon: const Icon(Icons.text_fields_rounded),
                       onPressed: () => unawaited(_showReaderSettingsSheet(isEpubMode: isEpubMode)),
                     ),
-                    PopupMenuButton<String>(
+                    YaabsaContextMenuButton<String>(
                       tooltip: 'More reading options',
                       icon: const Icon(Icons.more_vert_rounded),
                       enabled: _isBookReady,

@@ -29,16 +29,21 @@ $BookmarksResponseCopyWith<BookmarksResponse> get copyWith => _$BookmarksRespons
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookmarksResponse&&const DeepCollectionEquality().equals(other.bookmarks, bookmarks));
+  final _this = this as BookmarksResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookmarksResponse&&const DeepCollectionEquality().equals(other.bookmarks, _this.bookmarks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(bookmarks));
+int get hashCode {
+  final _this = this as BookmarksResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.bookmarks));
+}
 
 @override
 String toString() {
-  return 'BookmarksResponse(bookmarks: $bookmarks)';
+  final _this = this as BookmarksResponse;
+  return 'BookmarksResponse(bookmarks: ${_this.bookmarks})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookmarksResponse&&const DeepCollectionEquality().equals(other._bookmarks, _bookmarks));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookmarksResponse&&const DeepCollectionEquality().equals(other.bookmarks, _bookmarks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_bookmarks));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_bookmarks));
+}
 
 @override
 String toString() {
-  return 'BookmarksResponse(bookmarks: $bookmarks)';
+    return 'BookmarksResponse(bookmarks: $bookmarks)';
 }
 
 

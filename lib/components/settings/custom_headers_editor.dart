@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 class CustomHeadersEditor extends StatelessWidget {
   const CustomHeadersEditor({
@@ -93,11 +94,7 @@ class _HeaderCard extends StatelessWidget {
             onPressed: enabled ? () => onEdit(entry.key) : null,
             icon: const Icon(Icons.edit_outlined),
           ),
-          IconButton(
-            tooltip: 'Remove header',
-            onPressed: enabled ? () => onRemove(entry.key) : null,
-            icon: const Icon(Icons.delete_outline_rounded),
-          ),
+          YaabsaDeleteIconButton(tooltip: 'Remove header', onPressed: enabled ? () => onRemove(entry.key) : null),
         ],
       ),
     );

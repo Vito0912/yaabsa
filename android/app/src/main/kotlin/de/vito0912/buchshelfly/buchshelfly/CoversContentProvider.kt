@@ -28,44 +28,44 @@ class CoversContentProvider : ContentProvider() {
 
     @Throws(FileNotFoundException::class)
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
-        if (uri.pathSegments.firstOrNull() == "drawable") {
-            if (mode != "r") {
-                throw FileNotFoundException("Icons are read only")
-            }
+        if (mode != "r") {
+            throw FileNotFoundException("Artwork is read only")
+        }
 
-            val providerContext = context ?: throw FileNotFoundException("Icon provider is unavailable")
+        val providerContext = context ?: throw FileNotFoundException("Artwork provider is unavailable")
+        if (uri.pathSegments.size == 2 && uri.pathSegments[0] == "drawable") {
             val name = uri.lastPathSegment ?: throw FileNotFoundException("No icon name")
             return DrawableIconCache.open(providerContext, name)
+        }
+
+        if (uri.pathSegments.size == 2 && uri.pathSegments[0] == "local") {
+            val name = uri.pathSegments[1]
+            if (!name.matches(Regex("[a-f0-9]{64}"))) {
+                throw FileNotFoundException("Invalid artwork name")
+            }
+
+            val directory = File(providerContext.cacheDir, "shared_covers").canonicalFile
+            val file = File(directory, name).canonicalFile
+            if (file.parentFile != directory || !file.isFile) {
+                throw FileNotFoundException("Artwork file not found")
+            }
+
+            return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
         }
 
         val lastSegment = uri.lastPathSegment ?: throw FileNotFoundException("No URI path segment")
         val source = try {
             val decodedBytes = Base64.decode(lastSegment, Base64.URL_SAFE or Base64.NO_PADDING)
             String(decodedBytes, Charsets.UTF_8)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to decode base64 segment: $lastSegment", e)
-            throw FileNotFoundException("Invalid encoded URI: ${e.message}")
+        } catch (_: IllegalArgumentException) {
+            throw FileNotFoundException("Invalid encoded URI")
         }
 
         if (source.isEmpty()) {
             throw FileNotFoundException("Decoded source URI is empty")
         }
 
-        Log.d(TAG, "Resolving cover for source: $source")
-
-        if (source.startsWith("file://") || source.startsWith("/")) {
-            val filePath = if (source.startsWith("file://")) {
-                Uri.parse(source).path ?: throw FileNotFoundException("Invalid file URI path")
-            } else {
-                source
-            }
-            val file = File(filePath)
-            if (!file.exists()) {
-                Log.w(TAG, "File does not exist: $filePath")
-                throw FileNotFoundException("File not found: $filePath")
-            }
-            return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-        } else if (source.startsWith("http://") || source.startsWith("https://")) {
+        if (source.startsWith("http://") || source.startsWith("https://")) {
             val cacheDir = File(context?.cacheDir, "covers")
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs()
@@ -86,12 +86,11 @@ class CoversContentProvider : ContentProvider() {
             if (cacheFile.exists()) {
                 return ParcelFileDescriptor.open(cacheFile, ParcelFileDescriptor.MODE_READ_ONLY)
             } else {
-                Log.w(TAG, "Failed to download cover from $source")
-                throw FileNotFoundException("Failed to download cover: $source")
+                throw FileNotFoundException("Failed to download artwork")
             }
         }
 
-        throw FileNotFoundException("Unsupported scheme/source: $source")
+        throw FileNotFoundException("Unsupported artwork source")
     }
 
     private fun downloadFile(urlStr: String, destFile: File): Boolean {
@@ -106,7 +105,7 @@ class CoversContentProvider : ContentProvider() {
             connection.connect()
 
             if (connection.responseCode !in 200..299) {
-                Log.w(TAG, "HTTP error code: ${connection.responseCode} for $urlStr")
+                Log.w(TAG, "Artwork HTTP error code: ${connection.responseCode}")
                 return false
             }
 
@@ -124,7 +123,7 @@ class CoversContentProvider : ContentProvider() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error downloading cover: $urlStr", e)
+            Log.e(TAG, "Error downloading artwork")
             if (tempFile.exists()) {
                 tempFile.delete()
             }
@@ -152,9 +151,12 @@ class CoversContentProvider : ContentProvider() {
         if (uri.pathSegments.firstOrNull() == "drawable") {
             return "image/png"
         }
+        if (uri.pathSegments.firstOrNull() == "local") {
+            return "image/*"
+        }
 
-        val lastSegment = uri.lastPathSegment ?: return "image/*"
         val source = try {
+            val lastSegment = uri.lastPathSegment ?: return "image/*"
             val decodedBytes = Base64.decode(lastSegment, Base64.URL_SAFE or Base64.NO_PADDING)
             String(decodedBytes, Charsets.UTF_8)
         } catch (e: Exception) {

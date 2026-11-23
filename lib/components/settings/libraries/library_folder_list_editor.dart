@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 @immutable
 class LibraryFolderEditorEntry {
@@ -110,7 +111,7 @@ class LibraryFolderListEditor extends StatelessWidget {
                   ? () => onBrowseFolderPressed!.call()
                   : null,
               icon: isBrowsing
-                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.folder_open_rounded),
               label: const Text('Browse server folders'),
             ),

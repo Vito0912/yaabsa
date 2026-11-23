@@ -8,6 +8,7 @@ import 'sleep_timer_modal.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 void showSleepTimerSheet(BuildContext context, WidgetRef ref) {
   showModalBottomSheet<void>(
@@ -29,22 +30,21 @@ class SleepTimerButton extends ConsumerWidget {
     final sleepTimer = ref.watch(sleepTimerHandlerProvider);
     final isActive = sleepTimer.isActive;
 
-    return SizedBox(
-      width: _buttonSize,
-      height: _buttonSize,
-      child: IconButton(
-        onPressed: () => showSleepTimerSheet(context, ref),
-        onLongPress: () => _toggleSleepTimerMarker(ref),
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        icon: isActive
-            ? Text(
-                sleepTimer.isChapterTimer
-                    ? '${sleepTimer.remainingChapters} ch'
-                    : sleepTimer.remainingTime.toLargestUnitCompactString(),
-                style: TextStyle(color: Colors.lightGreenAccent.withValues(alpha: 0.8)),
-              )
-            : const Icon(Icons.bedtime_rounded),
-      ),
+    return YaabsaActionIconButton(
+      iconWidget: isActive
+          ? Text(
+              sleepTimer.isChapterTimer
+                  ? '${sleepTimer.remainingChapters} ch'
+                  : sleepTimer.remainingTime.toLargestUnitCompactString(),
+              style: TextStyle(color: Colors.lightGreenAccent.withValues(alpha: 0.8)),
+            )
+          : const Icon(Icons.bedtime_rounded),
+      iconSize: 24,
+      buttonSize: _buttonSize,
+      compact: false,
+      tooltip: 'Sleep timer',
+      onPressed: () => showSleepTimerSheet(context, ref),
+      onLongPress: () => _toggleSleepTimerMarker(ref),
     );
   }
 

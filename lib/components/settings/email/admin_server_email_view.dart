@@ -14,6 +14,7 @@ import 'package:yaabsa/components/settings/email/admin_email_settings_panel.dart
 import 'package:yaabsa/components/settings/email/admin_email_settings_validation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerEmailView extends ConsumerStatefulWidget {
   const AdminServerEmailView({super.key});
@@ -670,7 +671,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
             children: [
               if (_isLoading && _devices.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                const LinearProgressIndicator(minHeight: 2),
+                const YaabsaLinearProgressIndicator(minHeight: 2),
               ],
               const SizedBox(height: 10),
               _buildErrorCard(),
@@ -745,7 +746,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

@@ -23,7 +23,7 @@ bool hasRandomPlaybackTarget(List<LibraryItem> items) {
 bool hasRandomPlaylistPlaybackTarget(List<PlaylistItem> playlistItems) {
   return playlistItems.any((entry) {
     final item = entry.libraryItem;
-    if (item == null) {
+    if (item == null || item.hasIssue) {
       return false;
     }
 
@@ -58,7 +58,7 @@ Future<bool> playRandomPlaylistItemOrEpisode(
   final playableItems = playlistItems
       .where((entry) {
         final item = entry.libraryItem;
-        if (item == null) {
+        if (item == null || item.hasIssue) {
           return false;
         }
 
@@ -98,6 +98,10 @@ Future<bool> playRandomPlaylistItemOrEpisode(
 }
 
 bool _hasRandomPlaybackTarget(LibraryItem item) {
+  if (item.hasIssue) {
+    return false;
+  }
+
   if (isPodcastLibraryItem(item)) {
     return playablePodcastEpisodes(item).isNotEmpty;
   }

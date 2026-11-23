@@ -29,16 +29,21 @@ $InternalAnnotationCopyWith<InternalAnnotation> get copyWith => _$InternalAnnota
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalAnnotation&&(identical(other.cfi, cfi) || other.cfi == cfi)&&(identical(other.text, text) || other.text == text)&&(identical(other.color, color) || other.color == color)&&(identical(other.opacity, opacity) || other.opacity == opacity)&&(identical(other.thickness, thickness) || other.thickness == thickness)&&(identical(other.type, type) || other.type == type));
+  final _this = this as InternalAnnotation;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalAnnotation&&(identical(other.cfi, _this.cfi) || other.cfi == _this.cfi)&&(identical(other.text, _this.text) || other.text == _this.text)&&(identical(other.color, _this.color) || other.color == _this.color)&&(identical(other.opacity, _this.opacity) || other.opacity == _this.opacity)&&(identical(other.thickness, _this.thickness) || other.thickness == _this.thickness)&&(identical(other.type, _this.type) || other.type == _this.type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,cfi,text,color,opacity,thickness,type);
+int get hashCode {
+  final _this = this as InternalAnnotation;
+  return Object.hash(runtimeType,_this.cfi,_this.text,_this.color,_this.opacity,_this.thickness,_this.type);
+}
 
 @override
 String toString() {
-  return 'InternalAnnotation(cfi: $cfi, text: $text, color: $color, opacity: $opacity, thickness: $thickness, type: $type)';
+  final _this = this as InternalAnnotation;
+  return 'InternalAnnotation(cfi: ${_this.cfi}, text: ${_this.text}, color: ${_this.color}, opacity: ${_this.opacity}, thickness: ${_this.thickness}, type: ${_this.type})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalAnnotation&&(identical(other.cfi, cfi) || other.cfi == cfi)&&(identical(other.text, text) || other.text == text)&&(identical(other.color, color) || other.color == color)&&(identical(other.opacity, opacity) || other.opacity == opacity)&&(identical(other.thickness, thickness) || other.thickness == thickness)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalAnnotation&&(identical(other.cfi, cfi) || other.cfi == cfi)&&(identical(other.text, text) || other.text == text)&&(identical(other.color, color) || other.color == color)&&(identical(other.opacity, opacity) || other.opacity == opacity)&&(identical(other.thickness, thickness) || other.thickness == thickness)&&(identical(other.type, type) || other.type == type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,cfi,text,color,opacity,thickness,type);
+int get hashCode {
+    return Object.hash(runtimeType,cfi,text,color,opacity,thickness,type);
+}
 
 @override
 String toString() {
-  return 'InternalAnnotation(cfi: $cfi, text: $text, color: $color, opacity: $opacity, thickness: $thickness, type: $type)';
+    return 'InternalAnnotation(cfi: $cfi, text: $text, color: $color, opacity: $opacity, thickness: $thickness, type: $type)';
 }
 
 

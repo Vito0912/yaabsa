@@ -29,15 +29,34 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
-            android:theme="@android:style/Theme.DeviceDefault.Light"
+            android:theme="@style/WearLaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true">
+
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/WearNormalTheme" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- Phone-only components inherited from the main manifest. Without
+             this the watch shows a second launcher icon that opens the phone
+             UI, whose wear_data channel has no requestCredentials handler. -->
+        <activity
+            android:name="de.vito0912.yaabsa.MainActivity"
+            tools:node="remove" />
+
+        <activity-alias
+            android:name="de.vito0912.yaabsa.SignInActivity"
+            tools:node="remove" />
+
+        <service
+            android:name="de.vito0912.yaabsa.WearSignInListenerService"
+            tools:node="remove" />
 
         <service
             android:name="com.ryanheise.audioservice.AudioService"

@@ -29,16 +29,21 @@ $RemoveLibraryMetadataResponseCopyWith<RemoveLibraryMetadataResponse> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RemoveLibraryMetadataResponse&&(identical(other.found, found) || other.found == found)&&(identical(other.numRemoved, numRemoved) || other.numRemoved == numRemoved)&&(identical(other.error, error) || other.error == error));
+  final _this = this as RemoveLibraryMetadataResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RemoveLibraryMetadataResponse&&(identical(other.found, _this.found) || other.found == _this.found)&&(identical(other.numRemoved, _this.numRemoved) || other.numRemoved == _this.numRemoved)&&(identical(other.error, _this.error) || other.error == _this.error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,found,numRemoved,error);
+int get hashCode {
+  final _this = this as RemoveLibraryMetadataResponse;
+  return Object.hash(runtimeType,_this.found,_this.numRemoved,_this.error);
+}
 
 @override
 String toString() {
-  return 'RemoveLibraryMetadataResponse(found: $found, numRemoved: $numRemoved, error: $error)';
+  final _this = this as RemoveLibraryMetadataResponse;
+  return 'RemoveLibraryMetadataResponse(found: ${_this.found}, numRemoved: ${_this.numRemoved}, error: ${_this.error})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RemoveLibraryMetadataResponse&&(identical(other.found, found) || other.found == found)&&(identical(other.numRemoved, numRemoved) || other.numRemoved == numRemoved)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RemoveLibraryMetadataResponse&&(identical(other.found, found) || other.found == found)&&(identical(other.numRemoved, numRemoved) || other.numRemoved == numRemoved)&&(identical(other.error, error) || other.error == error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,found,numRemoved,error);
+int get hashCode {
+    return Object.hash(runtimeType,found,numRemoved,error);
+}
 
 @override
 String toString() {
-  return 'RemoveLibraryMetadataResponse(found: $found, numRemoved: $numRemoved, error: $error)';
+    return 'RemoveLibraryMetadataResponse(found: $found, numRemoved: $numRemoved, error: $error)';
 }
 
 

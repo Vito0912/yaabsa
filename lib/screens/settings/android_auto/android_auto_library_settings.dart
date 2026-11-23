@@ -9,6 +9,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 const String _sortFieldTitle = 'title';
 const String _sortFieldAuthor = 'author';
@@ -120,7 +121,7 @@ class _AndroidAutoLibrarySettingsState extends ConsumerState<AndroidAutoLibraryS
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, _) =>
               Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),

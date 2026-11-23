@@ -1,4 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:yaabsa/api/library/library.dart';
+import 'package:yaabsa/api/library/personalized_library.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -9,8 +12,11 @@ import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 
 part 'queue_source_provider.g.dart';
+part 'queue_source_continue.dart';
 
 const int queueSourcePageSize = 20;
 
@@ -26,6 +32,8 @@ class QueueSourceRepository {
   final Map<String, List<QueueCandidate>> _expandedSourceCache = <String, List<QueueCandidate>>{};
   final Map<String, int?> _sourceRevisionCache = <String, int?>{};
   final Map<String, Future<_ExpandedSourceResult>> _expandedSourceRequests = <String, Future<_ExpandedSourceResult>>{};
+  final Map<String, Future<PersonalizedLibrary?>> _personalizedRequests = {};
+  final Map<String, Future<List<Library>>> _libraryRequests = {};
   int _cacheGeneration = 0;
 
   void clearCache() {
@@ -33,15 +41,32 @@ class QueueSourceRepository {
     _expandedSourceCache.clear();
     _sourceRevisionCache.clear();
     _expandedSourceRequests.clear();
+    _personalizedRequests.clear();
+    _libraryRequests.clear();
   }
 
   Future<CandidatePage> page(MediaSourceDescriptor source, {int page = 0, int pageSize = queueSourcePageSize}) async {
+    final isContinueSource =
+        source.type == MediaSourceType.continueListening ||
+        source.type == MediaSourceType.continueSeries ||
+        source.type == MediaSourceType.continueReading;
+    if (isContinueSource) {
+      final expanded = await _expandedSource(source, () => _expandContinueSource(source));
+      return _slice(expanded.candidates, page: page, pageSize: pageSize, revision: expanded.revision);
+    }
+
     final api = _ref.read(absApiProvider);
     if (api == null) {
       throw StateError('No API available for queue source');
     }
 
     switch (source.type) {
+      case MediaSourceType.continueListening:
+      case MediaSourceType.continueSeries:
+      case MediaSourceType.continueReading:
+        throw StateError('Continue source was not expanded.');
+      case MediaSourceType.listeningThreshold:
+        throw StateError('Listening thresholds require the local smart-download progress snapshot.');
       case MediaSourceType.latestEpisodes:
         final response = await api.getLibraryApi().getRecentEpisodes(
           source.libraryId,

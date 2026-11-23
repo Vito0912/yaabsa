@@ -26,16 +26,21 @@ $AdminListeningSessionsPageCopyWith<AdminListeningSessionsPage> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminListeningSessionsPage&&(identical(other.total, total) || other.total == total)&&(identical(other.numPages, numPages) || other.numPages == numPages)&&(identical(other.page, page) || other.page == page)&&(identical(other.itemsPerPage, itemsPerPage) || other.itemsPerPage == itemsPerPage)&&const DeepCollectionEquality().equals(other.sessions, sessions));
+  final _this = this as AdminListeningSessionsPage;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminListeningSessionsPage&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.numPages, _this.numPages) || other.numPages == _this.numPages)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.itemsPerPage, _this.itemsPerPage) || other.itemsPerPage == _this.itemsPerPage)&&const DeepCollectionEquality().equals(other.sessions, _this.sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,total,numPages,page,itemsPerPage,const DeepCollectionEquality().hash(sessions));
+int get hashCode {
+  final _this = this as AdminListeningSessionsPage;
+  return Object.hash(runtimeType,_this.total,_this.numPages,_this.page,_this.itemsPerPage,const DeepCollectionEquality().hash(_this.sessions));
+}
 
 @override
 String toString() {
-  return 'AdminListeningSessionsPage(total: $total, numPages: $numPages, page: $page, itemsPerPage: $itemsPerPage, sessions: $sessions)';
+  final _this = this as AdminListeningSessionsPage;
+  return 'AdminListeningSessionsPage(total: ${_this.total}, numPages: ${_this.numPages}, page: ${_this.page}, itemsPerPage: ${_this.itemsPerPage}, sessions: ${_this.sessions})';
 }
 
 
@@ -236,16 +241,18 @@ _$AdminListeningSessionsPageCopyWith<_AdminListeningSessionsPage> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminListeningSessionsPage&&(identical(other.total, total) || other.total == total)&&(identical(other.numPages, numPages) || other.numPages == numPages)&&(identical(other.page, page) || other.page == page)&&(identical(other.itemsPerPage, itemsPerPage) || other.itemsPerPage == itemsPerPage)&&const DeepCollectionEquality().equals(other._sessions, _sessions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminListeningSessionsPage&&(identical(other.total, total) || other.total == total)&&(identical(other.numPages, numPages) || other.numPages == numPages)&&(identical(other.page, page) || other.page == page)&&(identical(other.itemsPerPage, itemsPerPage) || other.itemsPerPage == itemsPerPage)&&const DeepCollectionEquality().equals(other.sessions, _sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,total,numPages,page,itemsPerPage,const DeepCollectionEquality().hash(_sessions));
+int get hashCode {
+    return Object.hash(runtimeType,total,numPages,page,itemsPerPage,const DeepCollectionEquality().hash(_sessions));
+}
 
 @override
 String toString() {
-  return 'AdminListeningSessionsPage(total: $total, numPages: $numPages, page: $page, itemsPerPage: $itemsPerPage, sessions: $sessions)';
+    return 'AdminListeningSessionsPage(total: $total, numPages: $numPages, page: $page, itemsPerPage: $itemsPerPage, sessions: $sessions)';
 }
 
 

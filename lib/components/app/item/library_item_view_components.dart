@@ -10,6 +10,8 @@ import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/buttons/playback_action_button.dart';
 
 export 'package:yaabsa/components/app/item/library_item_media_sections.dart';
 
@@ -126,13 +128,16 @@ Widget buildItemActionButtons({
   required VoidCallback onDownload,
   required VoidCallback onDeleteDownload,
   Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
+  bool showMarkAsFinished = true,
   bool showMarkAsUnfinished = false,
+  bool showSetProgress = false,
   bool showMarkAction = true,
   bool showEditItem = false,
   bool showQuickMatch = false,
   bool showManualMatch = false,
   bool showAddToPlaylist = false,
   bool showAddToCollection = false,
+  bool manageMemberships = false,
   bool showDeleteItem = false,
   bool showPinAction = false,
   bool isPinned = false,
@@ -156,19 +161,11 @@ Widget buildItemActionButtons({
             ),
           if (hasBook && hasAudio && !prominentPlayback) const SizedBox(height: 8),
           if (hasAudio)
-            FilledButton.icon(
+            YaabsaPlaybackActionButton(
+              label: playbackDetail ?? playLabel,
+              isPlaying: isPlayingCurrentItem,
+              isLoading: isLoadingCurrentItem,
               onPressed: isLoadingCurrentItem ? null : (isPlayingCurrentItem ? onPause : onPlay),
-              icon: isLoadingCurrentItem
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-                  : Icon(isPlayingCurrentItem ? Icons.pause_rounded : Icons.play_arrow_rounded),
-              style: prominentPlayback
-                  ? FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    )
-                  : null,
-              label: Text(playbackDetail ?? playLabel),
             ),
         ],
       );
@@ -191,13 +188,16 @@ Widget buildItemActionButtons({
         onQueueToggle: onQueueToggle,
         showMoreActions: onMoreActionSelected != null,
         onMoreActionSelected: onMoreActionSelected,
+        showMarkAsFinished: showMarkAsFinished,
         showMarkAsUnfinished: showMarkAsUnfinished,
+        showSetProgress: showSetProgress,
         showMarkAction: showMarkAction,
         showEditItem: showEditItem,
         showQuickMatch: showQuickMatch,
         showManualMatch: showManualMatch,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        manageMemberships: manageMemberships,
         showDeleteItem: showDeleteItem,
         showPinAction: showPinAction,
         isPinned: isPinned,
@@ -271,13 +271,16 @@ Widget _buildSmallActionButtons(
   required VoidCallback onQueueToggle,
   required bool showMoreActions,
   required Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
+  required bool showMarkAsFinished,
   required bool showMarkAsUnfinished,
+  required bool showSetProgress,
   required bool showMarkAction,
   required bool showEditItem,
   required bool showQuickMatch,
   required bool showManualMatch,
   required bool showAddToPlaylist,
   required bool showAddToCollection,
+  required bool manageMemberships,
   required bool showDeleteItem,
   required bool showPinAction,
   required bool isPinned,
@@ -292,22 +295,27 @@ Widget _buildSmallActionButtons(
         onDeleteDownload: onDeleteDownload,
       ),
     if (showQueue)
-      IconButton.filledTonal(
-        onPressed: queueEnabled ? onQueueToggle : null,
+      YaabsaActionIconButton(
+        icon: isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded,
+        variant: YaabsaActionButtonVariant.filledTonal,
+        shape: YaabsaActionButtonShape.rounded,
         tooltip: queueEnabled ? (isQueued ? 'Remove from queue' : 'Add to queue') : 'Currently playing',
-        icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
-        visualDensity: VisualDensity.compact,
+        onPressed: queueEnabled ? onQueueToggle : null,
       ),
     if (showMoreActions && onMoreActionSelected != null)
       ItemMoreActionsButton(
         onActionSelected: onMoreActionSelected,
+        shape: YaabsaActionButtonShape.rounded,
         showMarkAction: showMarkAction,
         showEditItem: showEditItem,
         showQuickMatch: showQuickMatch,
         showManualMatch: showManualMatch,
+        showMarkAsFinished: showMarkAsFinished,
         showMarkAsUnfinished: showMarkAsUnfinished,
+        showSetProgress: showSetProgress,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        manageMemberships: manageMemberships,
         showDeleteItem: showDeleteItem,
         showPinAction: showPinAction,
         isPinned: isPinned,

@@ -23,6 +23,7 @@ import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
 import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
 import 'package:yaabsa/screens/reader/reader.dart';
+import 'package:yaabsa/screens/settings/settings_backup_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
@@ -73,6 +74,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/desktop_navigation_history.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 const String _bootRoutePath = '/boot';
 
@@ -303,6 +305,10 @@ final globalRouter = GoRouter(
                       builder: (context, state) => const LibraryOrderSettings(),
                     ),
                     GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
+                    GoRoute(
+                      path: SettingsBackupSettings.routeName,
+                      builder: (context, state) => const SettingsBackupSettings(),
+                    ),
                     GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
                     GoRoute(
                       path: ServerConnectionSettings.routeName,
@@ -440,6 +446,7 @@ final globalRouter = GoRouter(
                         final initialEntry = extra is MultiBookEntryData ? extra : null;
                         return CollectionDetailView(
                           collectionId: state.pathParameters['id']!,
+                          libraryId: state.uri.queryParameters['libraryId'],
                           initialEntry: initialEntry,
                         );
                       },
@@ -449,7 +456,11 @@ final globalRouter = GoRouter(
                       builder: (context, state) {
                         final extra = state.extra;
                         final initialEntry = extra is MultiBookEntryData ? extra : null;
-                        return PlaylistDetailView(playlistId: state.pathParameters['id']!, initialEntry: initialEntry);
+                        return PlaylistDetailView(
+                          playlistId: state.pathParameters['id']!,
+                          libraryId: state.uri.queryParameters['libraryId'],
+                          initialEntry: initialEntry,
+                        );
                       },
                     ),
                     GoRoute(
@@ -478,7 +489,9 @@ class _AppStartupScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Center(child: const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6))),
+        child: Center(
+          child: const SizedBox(width: 28, height: 28, child: YaabsaCircularProgressIndicator(strokeWidth: 2.6)),
+        ),
       ),
     );
   }

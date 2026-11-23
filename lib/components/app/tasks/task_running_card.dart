@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/tasks/abs_task.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class TaskRunningCard extends StatelessWidget {
   const TaskRunningCard({super.key, required this.task, this.progressLabel});
@@ -78,7 +79,9 @@ class TaskRunningCard extends StatelessWidget {
 
   Widget _buildLeadingIcon(BuildContext context, {required bool isFinished, required bool isFailed}) {
     if (!isFinished) {
-      return const Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2)));
+      return const Center(
+        child: SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2)),
+      );
     }
 
     if (isFailed) {

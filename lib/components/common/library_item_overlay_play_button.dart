@@ -1,13 +1,19 @@
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/provider/common/stored_downloads_provider.dart';
+import 'package:yaabsa/components/common/library_item_issue_indicator.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/ui/components/buttons/media_play_button.dart';
 
-class LibraryItemOverlayPlayButton extends StatelessWidget {
+class LibraryItemOverlayPlayButton extends ConsumerWidget {
   static const double size = 36;
 
   const LibraryItemOverlayPlayButton({
@@ -23,6 +29,7 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
     required this.isEbook,
     this.isLoading = false,
     this.onPlay,
+    this.playbackStateHandler,
   }) : assert(libraryItem != null || libraryItemId != null);
 
   final LibraryItem? libraryItem;
@@ -34,148 +41,140 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
   final bool isCurrentItem;
   final bool isPlayingCurrentItem;
   final VoidCallback? onPlay;
+  final BGAudioHandler? playbackStateHandler;
   final bool isEbook;
   final bool isLoading;
 
   @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
     final resolvedLibraryItemId = libraryItem?.id ?? libraryItemId!;
+    final resolvedPlaybackStateHandler = playbackStateHandler ?? audioHandler;
 
-    return StreamBuilder<bool>(
-      stream: audioHandler.queueTransitionLoadingStream,
-      initialData: audioHandler.queueTransitionLoading,
-      builder: (context, queueTransitionSnapshot) {
-        final isQueueTransitionLoading = queueTransitionSnapshot.data ?? audioHandler.queueTransitionLoading;
-        final isLoadingCurrentItem =
-            isLoading ||
-            (isQueueTransitionLoading &&
-                audioHandler.isQueueTransitionForItem(resolvedLibraryItemId, episodeId: shelfEpisode?.id));
-
+    if (libraryItem?.hasIssue ?? false) {
+      final download = ref.watch(storedDownloadForItemProvider(resolvedLibraryItemId, episodeId: shelfEpisode?.id));
+      final downloadType = isEbook ? 'ebook' : 'audiobook';
+      if (download == null || !download.isCompleteForType(downloadType)) {
         return SizedBox(
           width: size,
           height: size,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (showProgressRing)
-                SizedBox(
-                  width: size - 2,
-                  height: size - 2,
-                  child: CircularProgressIndicator(
-                    value: progressValue,
-                    strokeWidth: 3,
-                    backgroundColor: Colors.white24,
-                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                  ),
-                ),
-              IconButton(
-                tooltip: isEbook
-                    ? (isFinished ? 'Read Again' : 'Read')
-                    : (isLoadingCurrentItem
-                          ? 'Loading...'
-                          : (isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play'))),
-                icon: isEbook
-                    ? Icon(
-                        isFinished ? Icons.replay : Icons.book,
-                        size: isFinished ? 18 : 16,
-                        color: isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-                      )
-                    : (isLoadingCurrentItem
-                          ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSurfaceVariant),
-                              ),
-                            )
-                          : Icon(
-                              isPlayingCurrentItem ? Icons.pause : (isFinished ? Icons.replay : Icons.play_arrow),
-                              size: isFinished ? 18 : 16,
-                              color: isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-                            )),
-                iconSize: isFinished ? 20 : 16,
-                onPressed: isEbook
-                    ? () {
-                        final item = libraryItem;
-                        if (item == null) {
-                          return;
-                        }
-                        if (!kIsWeb && Platform.isLinux) {
-                          final bookMedia = item.media?.bookMedia;
-                          final candidates = <String?>[
-                            bookMedia?.ebookFile?.ebookFormat,
-                            bookMedia?.ebookFormat,
-                            bookMedia?.ebookFile?.metadata.ext,
-                          ];
-                          bool isPdf = false;
-                          for (final candidate in candidates) {
-                            final normalized = candidate?.trim().toLowerCase() ?? '';
-                            if (normalized == 'pdf') {
-                              isPdf = true;
-                              break;
-                            }
-                          }
-                          if (!isPdf) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Only PDF reading is currently supported on Linux')),
-                            );
-                            return;
-                          }
-                        }
-                        context.push('/ebook/${item.id}');
-                      }
-                    : (isLoadingCurrentItem
-                          ? null
-                          : () {
-                              if (isPlayingCurrentItem) {
-                                audioHandler.pause();
-                                return;
-                              }
+          child: LibraryItemIssueIndicator(item: libraryItem!),
+        );
+      }
+    }
 
-                              if (isCurrentItem) {
-                                audioHandler.play();
-                                return;
-                              }
+    return StreamBuilder<bool>(
+      stream: resolvedPlaybackStateHandler.queueTransitionLoadingStream,
+      initialData: resolvedPlaybackStateHandler.queueTransitionLoading,
+      builder: (context, queueTransitionSnapshot) {
+        final isQueueTransitionLoading =
+            queueTransitionSnapshot.data ?? resolvedPlaybackStateHandler.queueTransitionLoading;
+        final isLoadingCurrentItem =
+            isLoading ||
+            (isQueueTransitionLoading &&
+                resolvedPlaybackStateHandler.isQueueTransitionForItem(
+                  resolvedLibraryItemId,
+                  episodeId: shelfEpisode?.id,
+                ));
+        final tooltip = isEbook
+            ? (isFinished ? 'Read Again' : 'Read')
+            : (isLoadingCurrentItem
+                  ? 'Loading...'
+                  : (isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play')));
 
-                              if (onPlay != null) {
-                                onPlay!();
-                                return;
-                              }
+        return YaabsaMediaPlayButton(
+          size: size,
+          tooltip: tooltip,
+          isPlaying: isPlayingCurrentItem,
+          isFinished: isFinished,
+          isLoading: !isEbook && isLoadingCurrentItem,
+          progress: showProgressRing ? progressValue : null,
+          iconOverride: isEbook && !isFinished ? Icons.book : null,
+          onPressed: isEbook || !isLoadingCurrentItem
+              ? () {
+                  if (isEbook) {
+                    _openEbook(context);
+                    return;
+                  }
 
-                              final item = libraryItem;
-                              if (item == null) {
-                                return;
-                              }
-
-                              if (item.mediaType == 'podcast') {
-                                final podcastEpisodes = _playablePodcastEpisodes(item);
-                                final episodeToPlay = shelfEpisode ?? podcastEpisodes.firstOrNull;
-
-                                if (episodeToPlay != null) {
-                                  final episodeIndex = podcastEpisodes.indexWhere(
-                                    (episode) => episode.id == episodeToPlay.id,
-                                  );
-                                  audioHandler.playPodcastEpisode(
-                                    item,
-                                    episodeToPlay,
-                                    episodeIndex: episodeIndex < 0 ? null : episodeIndex,
-                                    orderedEpisodes: podcastEpisodes,
-                                  );
-                                }
-                                return;
-                              }
-
-                              audioHandler.playLibraryItem(item);
-                            }),
-                splashRadius: 8,
-              ),
-            ],
-          ),
+                  _playOrToggle(resolvedPlaybackStateHandler);
+                }
+              : null,
         );
       },
     );
+  }
+
+  void _openEbook(BuildContext context) {
+    final item = libraryItem;
+    if (item == null) {
+      return;
+    }
+
+    if (!kIsWeb && Platform.isLinux) {
+      final bookMedia = item.media?.bookMedia;
+      final candidates = <String?>[
+        bookMedia?.ebookFile?.ebookFormat,
+        bookMedia?.ebookFormat,
+        bookMedia?.ebookFile?.metadata.ext,
+      ];
+      var isPdf = false;
+      for (final candidate in candidates) {
+        final normalized = candidate?.trim().toLowerCase() ?? '';
+        if (normalized == 'pdf') {
+          isPdf = true;
+          break;
+        }
+      }
+
+      if (!isPdf) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Only PDF reading is currently supported on Linux')));
+        return;
+      }
+    }
+
+    context.push('/ebook/${item.id}');
+  }
+
+  void _playOrToggle(BGAudioHandler playbackHandler) {
+    if (isPlayingCurrentItem) {
+      playbackHandler.pause();
+      return;
+    }
+
+    if (isCurrentItem) {
+      playbackHandler.play();
+      return;
+    }
+
+    if (onPlay != null) {
+      onPlay!();
+      return;
+    }
+
+    final item = libraryItem;
+    if (item == null) {
+      return;
+    }
+
+    if (item.mediaType == 'podcast') {
+      final podcastEpisodes = _playablePodcastEpisodes(item);
+      final episodeToPlay = shelfEpisode ?? podcastEpisodes.firstOrNull;
+      if (episodeToPlay == null) {
+        return;
+      }
+
+      final episodeIndex = podcastEpisodes.indexWhere((episode) => episode.id == episodeToPlay.id);
+      playbackHandler.playPodcastEpisode(
+        item,
+        episodeToPlay,
+        episodeIndex: episodeIndex < 0 ? null : episodeIndex,
+        orderedEpisodes: podcastEpisodes,
+      );
+      return;
+    }
+
+    playbackHandler.playLibraryItem(item);
   }
 
   List<Episode> _playablePodcastEpisodes(LibraryItem item) {

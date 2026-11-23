@@ -32,7 +32,6 @@ class Init {
     logger('Logger initialized', tag: 'Init', level: InfoLevel.info);
   }
 
-  static BGAudioHandler? _audioHandler;
   static Future<BGAudioHandler>? _audioHandlerInitialization;
   static bool _sleepTimerKeepAliveAttached = false;
 
@@ -144,30 +143,25 @@ class Init {
     return null;
   }
 
-  static Future<BGAudioHandler> initAudioHandler() async {
-    if (_audioHandler != null) return _audioHandler!;
-
-    final activeInitialization = _audioHandlerInitialization;
-    if (activeInitialization != null) {
-      return activeInitialization;
-    }
-
-    final initialization = _initAudioHandler();
-    _audioHandlerInitialization = initialization;
-
-    try {
-      return await initialization;
-    } catch (_) {
-      if (identical(_audioHandlerInitialization, initialization)) {
-        _audioHandlerInitialization = null;
-      }
-      rethrow;
-    }
+  static Future<BGAudioHandler> initAudioHandler() {
+    return _audioHandlerInitialization ??= _initAudioHandler();
   }
 
   static Future<BGAudioHandler> _initAudioHandler() async {
     if (!kIsWeb && Platform.isLinux) {
       AudioServiceMpris.registerWith();
+      AudioServiceMpris.init(
+        dBusName: 'de.vito0912.yaabsa.audio',
+        identity: appName,
+        desktopEntry: 'de.vito0912.yaabsa',
+        canControl: true,
+        canPlay: true,
+        canPause: true,
+        canGoNext: true,
+        canGoPrevious: true,
+        minimumRate: 0.25,
+        maximumRate: 3.0,
+      );
     }
 
     final settingsManager = containerRef.read(settingsManagerProvider.notifier);
@@ -206,7 +200,7 @@ class Init {
     final ffSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.fastForwardInterval, defaultValue: 10);
     final rwSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.rewindInterval, defaultValue: 10);
 
-    _audioHandler = await AudioService.init(
+    final handler = await AudioService.init(
       builder: () => BGAudioHandler(containerRef),
       config: AudioServiceConfig(
         androidNotificationChannelId: 'de.vito0912.yaabsa.audio',
@@ -229,7 +223,7 @@ class Init {
     );
 
     logger('AudioHandler initialized', tag: 'Init', level: InfoLevel.info);
-    return _audioHandler!;
+    return handler;
   }
 
   static Future<void> globals() async {

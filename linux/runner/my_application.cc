@@ -25,6 +25,71 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
+static GtkWidget* find_subsurface_renderer(GtkWidget* widget) {
+  if (widget == nullptr) {
+    return nullptr;
+  }
+
+  if (g_strcmp0(G_OBJECT_TYPE_NAME(widget), "FlViewRendererSubsurface") == 0) {
+    return widget;
+  }
+
+  if (!GTK_IS_CONTAINER(widget)) {
+    return nullptr;
+  }
+
+  g_autoptr(GList) children =
+      gtk_container_get_children(GTK_CONTAINER(widget));
+  for (GList* iter = children; iter != nullptr; iter = iter->next) {
+    GtkWidget* found = find_subsurface_renderer(GTK_WIDGET(iter->data));
+    if (found != nullptr) {
+      return found;
+    }
+  }
+
+  return nullptr;
+}
+
+static void subsurface_renderer_scale_factor_changed_cb(
+    GtkWidget* renderer,
+    GParamSpec* pspec,
+    gpointer user_data) {
+  if (!gtk_widget_get_realized(renderer)) {
+    return;
+  }
+
+  GtkWidget* toplevel = gtk_widget_get_toplevel(renderer);
+  if (toplevel == nullptr) {
+    return;
+  }
+
+  GdkWindow* gdk_window = gtk_widget_get_window(toplevel);
+  if (gdk_window == nullptr) {
+    return;
+  }
+
+  GtkWidgetClass* widget_class = GTK_WIDGET_GET_CLASS(renderer);
+  if (widget_class == nullptr || widget_class->map == nullptr) {
+    return;
+  }
+
+  const gboolean was_mapped = gtk_widget_get_mapped(renderer);
+  g_object_ref(gdk_window);
+
+  gtk_widget_set_window(toplevel, nullptr);
+  widget_class->map(renderer);
+
+  gtk_widget_set_window(toplevel, gdk_window);
+  widget_class->map(renderer);
+
+  if (!was_mapped) {
+    gtk_widget_set_mapped(renderer, FALSE);
+  }
+
+  g_object_unref(gdk_window);
+  gtk_widget_queue_draw(renderer);
+}
+
 static void apply_system_color_scheme() {
   g_autoptr(GError) error = nullptr;
   g_autoptr(GDBusConnection) connection =
@@ -117,6 +182,13 @@ static void my_application_activate(GApplication* application) {
   FlView* view = fl_view_new(project);
   gtk_widget_show(GTK_WIDGET(view));
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));
+
+  GtkWidget* subsurface_renderer = find_subsurface_renderer(GTK_WIDGET(view));
+  if (subsurface_renderer != nullptr) {
+    g_signal_connect_after(
+        subsurface_renderer, "notify::scale-factor",
+        G_CALLBACK(subsurface_renderer_scale_factor_changed_cb), nullptr);
+  }
 
   g_signal_connect_swapped(view, "first-frame", G_CALLBACK(first_frame_cb), self);
   gtk_widget_realize(GTK_WIDGET(view));

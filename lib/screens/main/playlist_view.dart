@@ -68,10 +68,10 @@ class PlaylistView extends HookConsumerWidget {
             .toList(growable: false);
 
         return ManagedMultiBookView(
-          title: 'Playlists',
           createLabel: 'New playlist',
           emptyTitle: 'No playlists yet.',
           emptyMessage: 'Create one when you want to queue your next listens.',
+          emptyIcon: Icons.playlist_play_rounded,
           onCreate: canCreatePlaylists
               ? () => _createPlaylist(
                   context: context,
@@ -83,6 +83,18 @@ class PlaylistView extends HookConsumerWidget {
           scrollController: scrollController,
           api: api,
           cards: cards,
+          hasNextPage: state.hasNextPage,
+          isLoadingNextPage: state.isLoadingNextPage,
+          nextPageError: state.nextPageError ?? state.error,
+          refreshError: state.error,
+          onLoadMore: () {
+            final notifier = ref.read(playlistsProvider(libraryId).notifier);
+            if (state.error != null) {
+              notifier.refresh(withLoading: false, requireServer: true);
+            } else {
+              notifier.loadNextPage();
+            }
+          },
           onRefresh: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false),
         );
       },
@@ -182,14 +194,17 @@ Future<void> _createPlaylist({
       selectionRequired: false,
       allowEmptyCreation: true,
       emptyCreationLabel: 'Create empty',
-      onCreate: ({required name, description, required bookIds}) {
-        return ref
+      onCreate: ({required name, description, required bookIds}) async {
+        final created = await ref
             .read(playlistsProvider(libraryId).notifier)
             .createPlaylist(
               name: name,
               description: description,
               items: bookIds.map((bookId) => <String, dynamic>{'libraryItemId': bookId}).toList(growable: false),
             );
+        if (context.mounted) {
+          _openCreatedPlaylist(context, created);
+        }
       },
       successMessage: 'Playlist created.',
       errorFallback: 'Could not create playlist.',
@@ -208,11 +223,23 @@ Future<void> _createPlaylist({
 
   await runManagedListMutation(
     context: context,
-    action: () => ref
-        .read(playlistsProvider(libraryId).notifier)
-        .createPlaylist(name: metadata.name, description: metadata.description),
+    action: () async {
+      final created = await ref
+          .read(playlistsProvider(libraryId).notifier)
+          .createPlaylist(name: metadata.name, description: metadata.description);
+      if (context.mounted) {
+        _openCreatedPlaylist(context, created);
+      }
+    },
     successMessage: 'Playlist created.',
     errorFallback: 'Could not create playlist.',
+  );
+}
+
+void _openCreatedPlaylist(BuildContext context, Playlist playlist) {
+  context.push(
+    Uri(path: '/playlist/${playlist.id}', queryParameters: {'libraryId': playlist.libraryId}).toString(),
+    extra: MultiBookEntryData.fromPlaylist(playlist),
   );
 }
 

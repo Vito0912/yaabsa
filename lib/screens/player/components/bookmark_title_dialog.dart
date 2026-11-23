@@ -1,3 +1,4 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/extensions.dart';
 
@@ -72,7 +73,7 @@ class _BookmarkTitleDialogState extends State<BookmarkTitleDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            TextField(
+            StyledTextField(
               controller: _titleController,
               autofocus: true,
               keyboardType: TextInputType.multiline,
@@ -80,12 +81,9 @@ class _BookmarkTitleDialogState extends State<BookmarkTitleDialog> {
               textCapitalization: TextCapitalization.sentences,
               minLines: 4,
               maxLines: 8,
-              decoration: const InputDecoration(
-                labelText: 'Note',
-                hintText: 'What do you want to remember?',
-                alignLabelWithHint: true,
-                border: OutlineInputBorder(),
-              ),
+              label: 'Note',
+              hintText: 'What do you want to remember?',
+              alignLabelWithHint: true,
             ),
           ],
         ),

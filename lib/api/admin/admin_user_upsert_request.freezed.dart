@@ -29,16 +29,21 @@ $AdminUserUpsertRequestCopyWith<AdminUserUpsertRequest> get copyWith => _$AdminU
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUserUpsertRequest&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.email, email) || other.email == email)&&(identical(other.type, type) || other.type == type)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&const DeepCollectionEquality().equals(other.librariesAccessible, librariesAccessible)&&const DeepCollectionEquality().equals(other.itemTagsSelected, itemTagsSelected));
+  final _this = this as AdminUserUpsertRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUserUpsertRequest&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.password, _this.password) || other.password == _this.password)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.permissions, _this.permissions) || other.permissions == _this.permissions)&&const DeepCollectionEquality().equals(other.librariesAccessible, _this.librariesAccessible)&&const DeepCollectionEquality().equals(other.itemTagsSelected, _this.itemTagsSelected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,username,password,email,type,isActive,permissions,const DeepCollectionEquality().hash(librariesAccessible),const DeepCollectionEquality().hash(itemTagsSelected));
+int get hashCode {
+  final _this = this as AdminUserUpsertRequest;
+  return Object.hash(runtimeType,_this.username,_this.password,_this.email,_this.type,_this.isActive,_this.permissions,const DeepCollectionEquality().hash(_this.librariesAccessible),const DeepCollectionEquality().hash(_this.itemTagsSelected));
+}
 
 @override
 String toString() {
-  return 'AdminUserUpsertRequest(username: $username, password: $password, email: $email, type: $type, isActive: $isActive, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected)';
+  final _this = this as AdminUserUpsertRequest;
+  return 'AdminUserUpsertRequest(username: ${_this.username}, password: ${_this.password}, email: ${_this.email}, type: ${_this.type}, isActive: ${_this.isActive}, permissions: ${_this.permissions}, librariesAccessible: ${_this.librariesAccessible}, itemTagsSelected: ${_this.itemTagsSelected})';
 }
 
 
@@ -263,16 +268,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUserUpsertRequest&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.email, email) || other.email == email)&&(identical(other.type, type) || other.type == type)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&const DeepCollectionEquality().equals(other._librariesAccessible, _librariesAccessible)&&const DeepCollectionEquality().equals(other._itemTagsSelected, _itemTagsSelected));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUserUpsertRequest&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.email, email) || other.email == email)&&(identical(other.type, type) || other.type == type)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&const DeepCollectionEquality().equals(other.librariesAccessible, _librariesAccessible)&&const DeepCollectionEquality().equals(other.itemTagsSelected, _itemTagsSelected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,username,password,email,type,isActive,permissions,const DeepCollectionEquality().hash(_librariesAccessible),const DeepCollectionEquality().hash(_itemTagsSelected));
+int get hashCode {
+    return Object.hash(runtimeType,username,password,email,type,isActive,permissions,const DeepCollectionEquality().hash(_librariesAccessible),const DeepCollectionEquality().hash(_itemTagsSelected));
+}
 
 @override
 String toString() {
-  return 'AdminUserUpsertRequest(username: $username, password: $password, email: $email, type: $type, isActive: $isActive, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected)';
+    return 'AdminUserUpsertRequest(username: $username, password: $password, email: $email, type: $type, isActive: $isActive, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected)';
 }
 
 

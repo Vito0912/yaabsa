@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 
@@ -79,9 +80,10 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
             children: <Widget>[
               Text('${widget.componentType.label} settings', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 10),
-              SwitchListTile(
+              SettingsSwitchPresentation(
                 value: placement.cardStyle,
-                title: const Text('Use card style'),
+                label: 'Use card style',
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 onChanged: (bool value) {
                   _updatePlacement(placement.copyWith(cardStyle: value));
                 },
@@ -111,26 +113,29 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
               ),
               if (widget.componentType == PlayerComponentType.mediaInfo) ...<Widget>[
                 const SizedBox(height: 10),
-                SwitchListTile(
+                SettingsSwitchPresentation(
                   value: placement.showAuthor,
+                  label: 'Show author',
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showAuthor: value));
                   },
-                  title: const Text('Show author'),
                 ),
-                SwitchListTile(
+                SettingsSwitchPresentation(
                   value: placement.showNarrator,
+                  label: 'Show narrator',
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showNarrator: value));
                   },
-                  title: const Text('Show narrator'),
                 ),
-                SwitchListTile(
+                SettingsSwitchPresentation(
                   value: placement.showSeries,
+                  label: 'Show series',
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showSeries: value));
                   },
-                  title: const Text('Show series'),
                 ),
                 const SizedBox(height: 8),
                 YaabsaExpressiveDropdownField<PlayerMetadataTextAlign>(

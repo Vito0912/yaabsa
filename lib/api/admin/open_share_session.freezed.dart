@@ -26,16 +26,21 @@ $OpenShareSessionCopyWith<OpenShareSession> get copyWith => _$OpenShareSessionCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OpenShareSession&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.displayAuthor, displayAuthor) || other.displayAuthor == displayAuthor)&&(identical(other.playMethod, playMethod) || other.playMethod == playMethod)&&(identical(other.mediaPlayer, mediaPlayer) || other.mediaPlayer == mediaPlayer)&&(identical(other.deviceInfo, deviceInfo) || other.deviceInfo == deviceInfo)&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.user, user) || other.user == user));
+  final _this = this as OpenShareSession;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OpenShareSession&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.episodeId, _this.episodeId) || other.episodeId == _this.episodeId)&&(identical(other.displayTitle, _this.displayTitle) || other.displayTitle == _this.displayTitle)&&(identical(other.displayAuthor, _this.displayAuthor) || other.displayAuthor == _this.displayAuthor)&&(identical(other.playMethod, _this.playMethod) || other.playMethod == _this.playMethod)&&(identical(other.mediaPlayer, _this.mediaPlayer) || other.mediaPlayer == _this.mediaPlayer)&&(identical(other.deviceInfo, _this.deviceInfo) || other.deviceInfo == _this.deviceInfo)&&(identical(other.currentTime, _this.currentTime) || other.currentTime == _this.currentTime)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.user, _this.user) || other.user == _this.user));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,libraryItemId,episodeId,displayTitle,displayAuthor,playMethod,mediaPlayer,deviceInfo,currentTime,startedAt,updatedAt,user);
+int get hashCode {
+  final _this = this as OpenShareSession;
+  return Object.hash(runtimeType,_this.id,_this.userId,_this.libraryItemId,_this.episodeId,_this.displayTitle,_this.displayAuthor,_this.playMethod,_this.mediaPlayer,_this.deviceInfo,_this.currentTime,_this.startedAt,_this.updatedAt,_this.user);
+}
 
 @override
 String toString() {
-  return 'OpenShareSession(id: $id, userId: $userId, libraryItemId: $libraryItemId, episodeId: $episodeId, displayTitle: $displayTitle, displayAuthor: $displayAuthor, playMethod: $playMethod, mediaPlayer: $mediaPlayer, deviceInfo: $deviceInfo, currentTime: $currentTime, startedAt: $startedAt, updatedAt: $updatedAt, user: $user)';
+  final _this = this as OpenShareSession;
+  return 'OpenShareSession(id: ${_this.id}, userId: ${_this.userId}, libraryItemId: ${_this.libraryItemId}, episodeId: ${_this.episodeId}, displayTitle: ${_this.displayTitle}, displayAuthor: ${_this.displayAuthor}, playMethod: ${_this.playMethod}, mediaPlayer: ${_this.mediaPlayer}, deviceInfo: ${_this.deviceInfo}, currentTime: ${_this.currentTime}, startedAt: ${_this.startedAt}, updatedAt: ${_this.updatedAt}, user: ${_this.user})';
 }
 
 
@@ -270,16 +275,18 @@ _$OpenShareSessionCopyWith<_OpenShareSession> get copyWith => __$OpenShareSessio
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OpenShareSession&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.displayAuthor, displayAuthor) || other.displayAuthor == displayAuthor)&&(identical(other.playMethod, playMethod) || other.playMethod == playMethod)&&(identical(other.mediaPlayer, mediaPlayer) || other.mediaPlayer == mediaPlayer)&&(identical(other.deviceInfo, deviceInfo) || other.deviceInfo == deviceInfo)&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.user, user) || other.user == user));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OpenShareSession&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.displayAuthor, displayAuthor) || other.displayAuthor == displayAuthor)&&(identical(other.playMethod, playMethod) || other.playMethod == playMethod)&&(identical(other.mediaPlayer, mediaPlayer) || other.mediaPlayer == mediaPlayer)&&(identical(other.deviceInfo, deviceInfo) || other.deviceInfo == deviceInfo)&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.user, user) || other.user == user));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,libraryItemId,episodeId,displayTitle,displayAuthor,playMethod,mediaPlayer,deviceInfo,currentTime,startedAt,updatedAt,user);
+int get hashCode {
+    return Object.hash(runtimeType,id,userId,libraryItemId,episodeId,displayTitle,displayAuthor,playMethod,mediaPlayer,deviceInfo,currentTime,startedAt,updatedAt,user);
+}
 
 @override
 String toString() {
-  return 'OpenShareSession(id: $id, userId: $userId, libraryItemId: $libraryItemId, episodeId: $episodeId, displayTitle: $displayTitle, displayAuthor: $displayAuthor, playMethod: $playMethod, mediaPlayer: $mediaPlayer, deviceInfo: $deviceInfo, currentTime: $currentTime, startedAt: $startedAt, updatedAt: $updatedAt, user: $user)';
+    return 'OpenShareSession(id: $id, userId: $userId, libraryItemId: $libraryItemId, episodeId: $episodeId, displayTitle: $displayTitle, displayAuthor: $displayAuthor, playMethod: $playMethod, mediaPlayer: $mediaPlayer, deviceInfo: $deviceInfo, currentTime: $currentTime, startedAt: $startedAt, updatedAt: $updatedAt, user: $user)';
 }
 
 

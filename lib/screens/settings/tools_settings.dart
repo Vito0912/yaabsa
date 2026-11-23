@@ -7,6 +7,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ToolsSettings extends ConsumerWidget {
   const ToolsSettings({super.key});
@@ -91,7 +92,7 @@ class ToolsSettings extends ConsumerWidget {
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(32.0),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),

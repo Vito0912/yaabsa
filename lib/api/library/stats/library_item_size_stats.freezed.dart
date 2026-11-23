@@ -29,16 +29,21 @@ $LibraryItemSizeStatsCopyWith<LibraryItemSizeStats> get copyWith => _$LibraryIte
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemSizeStats&&(identical(other.id, id) || other.id == id)&&(identical(other.size, size) || other.size == size)&&(identical(other.title, title) || other.title == title));
+  final _this = this as LibraryItemSizeStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemSizeStats&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.size, _this.size) || other.size == _this.size)&&(identical(other.title, _this.title) || other.title == _this.title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,size,title);
+int get hashCode {
+  final _this = this as LibraryItemSizeStats;
+  return Object.hash(runtimeType,_this.id,_this.size,_this.title);
+}
 
 @override
 String toString() {
-  return 'LibraryItemSizeStats(id: $id, size: $size, title: $title)';
+  final _this = this as LibraryItemSizeStats;
+  return 'LibraryItemSizeStats(id: ${_this.id}, size: ${_this.size}, title: ${_this.title})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemSizeStats&&(identical(other.id, id) || other.id == id)&&(identical(other.size, size) || other.size == size)&&(identical(other.title, title) || other.title == title));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemSizeStats&&(identical(other.id, id) || other.id == id)&&(identical(other.size, size) || other.size == size)&&(identical(other.title, title) || other.title == title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,size,title);
+int get hashCode {
+    return Object.hash(runtimeType,id,size,title);
+}
 
 @override
 String toString() {
-  return 'LibraryItemSizeStats(id: $id, size: $size, title: $title)';
+    return 'LibraryItemSizeStats(id: $id, size: $size, title: $title)';
 }
 
 

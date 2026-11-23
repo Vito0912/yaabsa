@@ -13,6 +13,7 @@ import 'package:yaabsa/components/app/item/match/library_item_quick_match_action
 import 'package:yaabsa/components/app/item/item_delete_actions.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
+import 'package:yaabsa/components/app/item/set_library_item_progress_dialog.dart';
 import 'package:yaabsa/components/app/item/item_book_stats_card.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/app/item/pinned_shelf_snackbar.dart';
@@ -80,6 +81,7 @@ class LibraryItemBookView extends ConsumerWidget {
     final ebookFile = bookMedia?.ebookFile;
 
     final durationSeconds = item.media?.duration() ?? 0;
+    final progressDurationSeconds = durationSeconds > 0 ? durationSeconds : itemProgress?.duration ?? 0;
     final duration = durationSeconds > 0 ? Duration(seconds: durationSeconds.round()) : null;
     final sizeBytes = bookMedia?.size ?? item.size;
 
@@ -182,11 +184,16 @@ class LibraryItemBookView extends ConsumerWidget {
                                   isLoading: isLoadingCurrentItem,
                                   actionsBuilder: (label, detail) {
                                     return buildItemActionButtons(
+                                      manageMemberships: true,
                                       prominentPlayback: true,
                                       playbackLabel: hasAudio ? label : null,
                                       playbackDetail: hasAudio ? detail : null,
-                                      hasAudio: hasAudio,
-                                      hasBook: hasBook,
+                                      hasAudio:
+                                          hasAudio &&
+                                          (!item.hasIssue || (storedDownload?.isCompleteForType('audiobook') ?? false)),
+                                      hasBook:
+                                          hasBook &&
+                                          (!item.hasIssue || (storedDownload?.isCompleteForType('ebook') ?? false)),
                                       canDownload: canDownload,
                                       downloadItemId: item.id,
                                       isDownloaded: isDownloaded,
@@ -289,7 +296,9 @@ class LibraryItemBookView extends ConsumerWidget {
 
                                         audioHandler.addLibraryItemToQueue(item);
                                       },
-                                      showMarkAsUnfinished: isItemFinished,
+                                      showMarkAsFinished: !isItemFinished,
+                                      showMarkAsUnfinished: itemProgress != null,
+                                      showSetProgress: progressDurationSeconds > 0,
                                       showEditItem: canEditItems,
                                       showQuickMatch: canUseMatchTools,
                                       showManualMatch: canUseMatchTools,
@@ -323,6 +332,34 @@ class LibraryItemBookView extends ConsumerWidget {
                                             return;
                                           case ItemMoreAction.markAsUnfinished:
                                             await markLibraryItemAsUnfinished(context: context, ref: ref, item: item);
+                                            return;
+                                          case ItemMoreAction.setProgress:
+                                            final currentFinishedAt = itemProgress?.finishedAt;
+                                            final selection = await showSetLibraryItemProgressDialog(
+                                              context: context,
+                                              initialProgress: itemProgress?.progress ?? 0,
+                                              durationSeconds: progressDurationSeconds,
+                                              initialStartedDate: itemProgress == null
+                                                  ? DateTime.now()
+                                                  : DateTime.fromMillisecondsSinceEpoch(itemProgress.startedAt),
+                                              initialFinishedDate: currentFinishedAt == null
+                                                  ? null
+                                                  : DateTime.fromMillisecondsSinceEpoch(currentFinishedAt),
+                                            );
+                                            if (!context.mounted || selection == null) {
+                                              return;
+                                            }
+
+                                            await setLibraryItemProgress(
+                                              context: context,
+                                              ref: ref,
+                                              item: item,
+                                              episode: null,
+                                              progress: selection.progress,
+                                              durationSeconds: progressDurationSeconds,
+                                              startedDate: selection.startedDate,
+                                              finishedDate: selection.finishedDate,
+                                            );
                                             return;
                                           case ItemMoreAction.addToPlaylist:
                                             await addLibraryItemToPlaylist(

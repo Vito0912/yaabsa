@@ -29,16 +29,21 @@ $ServerStatusCopyWith<ServerStatus> get copyWith => _$ServerStatusCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServerStatus&&(identical(other.app, app) || other.app == app)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion)&&(identical(other.isInit, isInit) || other.isInit == isInit)&&(identical(other.language, language) || other.language == language)&&const DeepCollectionEquality().equals(other.authMethods, authMethods)&&(identical(other.authFormData, authFormData) || other.authFormData == authFormData)&&(identical(other.configPath, configPath) || other.configPath == configPath)&&(identical(other.metadataPath, metadataPath) || other.metadataPath == metadataPath));
+  final _this = this as ServerStatus;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServerStatus&&(identical(other.app, _this.app) || other.app == _this.app)&&(identical(other.serverVersion, _this.serverVersion) || other.serverVersion == _this.serverVersion)&&(identical(other.isInit, _this.isInit) || other.isInit == _this.isInit)&&(identical(other.language, _this.language) || other.language == _this.language)&&const DeepCollectionEquality().equals(other.authMethods, _this.authMethods)&&(identical(other.authFormData, _this.authFormData) || other.authFormData == _this.authFormData)&&(identical(other.configPath, _this.configPath) || other.configPath == _this.configPath)&&(identical(other.metadataPath, _this.metadataPath) || other.metadataPath == _this.metadataPath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,app,serverVersion,isInit,language,const DeepCollectionEquality().hash(authMethods),authFormData,configPath,metadataPath);
+int get hashCode {
+  final _this = this as ServerStatus;
+  return Object.hash(runtimeType,_this.app,_this.serverVersion,_this.isInit,_this.language,const DeepCollectionEquality().hash(_this.authMethods),_this.authFormData,_this.configPath,_this.metadataPath);
+}
 
 @override
 String toString() {
-  return 'ServerStatus(app: $app, serverVersion: $serverVersion, isInit: $isInit, language: $language, authMethods: $authMethods, authFormData: $authFormData, configPath: $configPath, metadataPath: $metadataPath)';
+  final _this = this as ServerStatus;
+  return 'ServerStatus(app: ${_this.app}, serverVersion: ${_this.serverVersion}, isInit: ${_this.isInit}, language: ${_this.language}, authMethods: ${_this.authMethods}, authFormData: ${_this.authFormData}, configPath: ${_this.configPath}, metadataPath: ${_this.metadataPath})';
 }
 
 
@@ -260,16 +265,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServerStatus&&(identical(other.app, app) || other.app == app)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion)&&(identical(other.isInit, isInit) || other.isInit == isInit)&&(identical(other.language, language) || other.language == language)&&const DeepCollectionEquality().equals(other._authMethods, _authMethods)&&(identical(other.authFormData, authFormData) || other.authFormData == authFormData)&&(identical(other.configPath, configPath) || other.configPath == configPath)&&(identical(other.metadataPath, metadataPath) || other.metadataPath == metadataPath));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServerStatus&&(identical(other.app, app) || other.app == app)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion)&&(identical(other.isInit, isInit) || other.isInit == isInit)&&(identical(other.language, language) || other.language == language)&&const DeepCollectionEquality().equals(other.authMethods, _authMethods)&&(identical(other.authFormData, authFormData) || other.authFormData == authFormData)&&(identical(other.configPath, configPath) || other.configPath == configPath)&&(identical(other.metadataPath, metadataPath) || other.metadataPath == metadataPath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,app,serverVersion,isInit,language,const DeepCollectionEquality().hash(_authMethods),authFormData,configPath,metadataPath);
+int get hashCode {
+    return Object.hash(runtimeType,app,serverVersion,isInit,language,const DeepCollectionEquality().hash(_authMethods),authFormData,configPath,metadataPath);
+}
 
 @override
 String toString() {
-  return 'ServerStatus(app: $app, serverVersion: $serverVersion, isInit: $isInit, language: $language, authMethods: $authMethods, authFormData: $authFormData, configPath: $configPath, metadataPath: $metadataPath)';
+    return 'ServerStatus(app: $app, serverVersion: $serverVersion, isInit: $isInit, language: $language, authMethods: $authMethods, authFormData: $authFormData, configPath: $configPath, metadataPath: $metadataPath)';
 }
 
 
@@ -343,16 +350,21 @@ $AuthFormDataCopyWith<AuthFormData> get copyWith => _$AuthFormDataCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthFormData&&(identical(other.authLoginCustomMessage, authLoginCustomMessage) || other.authLoginCustomMessage == authLoginCustomMessage)&&(identical(other.authOpenIDButtonText, authOpenIDButtonText) || other.authOpenIDButtonText == authOpenIDButtonText)&&(identical(other.authOpenIDAutoLaunch, authOpenIDAutoLaunch) || other.authOpenIDAutoLaunch == authOpenIDAutoLaunch));
+  final _this = this as AuthFormData;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthFormData&&(identical(other.authLoginCustomMessage, _this.authLoginCustomMessage) || other.authLoginCustomMessage == _this.authLoginCustomMessage)&&(identical(other.authOpenIDButtonText, _this.authOpenIDButtonText) || other.authOpenIDButtonText == _this.authOpenIDButtonText)&&(identical(other.authOpenIDAutoLaunch, _this.authOpenIDAutoLaunch) || other.authOpenIDAutoLaunch == _this.authOpenIDAutoLaunch));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authLoginCustomMessage,authOpenIDButtonText,authOpenIDAutoLaunch);
+int get hashCode {
+  final _this = this as AuthFormData;
+  return Object.hash(runtimeType,_this.authLoginCustomMessage,_this.authOpenIDButtonText,_this.authOpenIDAutoLaunch);
+}
 
 @override
 String toString() {
-  return 'AuthFormData(authLoginCustomMessage: $authLoginCustomMessage, authOpenIDButtonText: $authOpenIDButtonText, authOpenIDAutoLaunch: $authOpenIDAutoLaunch)';
+  final _this = this as AuthFormData;
+  return 'AuthFormData(authLoginCustomMessage: ${_this.authLoginCustomMessage}, authOpenIDButtonText: ${_this.authOpenIDButtonText}, authOpenIDAutoLaunch: ${_this.authOpenIDAutoLaunch})';
 }
 
 
@@ -546,16 +558,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthFormData&&(identical(other.authLoginCustomMessage, authLoginCustomMessage) || other.authLoginCustomMessage == authLoginCustomMessage)&&(identical(other.authOpenIDButtonText, authOpenIDButtonText) || other.authOpenIDButtonText == authOpenIDButtonText)&&(identical(other.authOpenIDAutoLaunch, authOpenIDAutoLaunch) || other.authOpenIDAutoLaunch == authOpenIDAutoLaunch));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthFormData&&(identical(other.authLoginCustomMessage, authLoginCustomMessage) || other.authLoginCustomMessage == authLoginCustomMessage)&&(identical(other.authOpenIDButtonText, authOpenIDButtonText) || other.authOpenIDButtonText == authOpenIDButtonText)&&(identical(other.authOpenIDAutoLaunch, authOpenIDAutoLaunch) || other.authOpenIDAutoLaunch == authOpenIDAutoLaunch));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authLoginCustomMessage,authOpenIDButtonText,authOpenIDAutoLaunch);
+int get hashCode {
+    return Object.hash(runtimeType,authLoginCustomMessage,authOpenIDButtonText,authOpenIDAutoLaunch);
+}
 
 @override
 String toString() {
-  return 'AuthFormData(authLoginCustomMessage: $authLoginCustomMessage, authOpenIDButtonText: $authOpenIDButtonText, authOpenIDAutoLaunch: $authOpenIDAutoLaunch)';
+    return 'AuthFormData(authLoginCustomMessage: $authLoginCustomMessage, authOpenIDButtonText: $authOpenIDButtonText, authOpenIDAutoLaunch: $authOpenIDAutoLaunch)';
 }
 
 

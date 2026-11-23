@@ -83,18 +83,6 @@ extension _BGAudioHandlerCarRequests on BGAudioHandler {
     return _carBrowseRequest(this, 'filters/$libraryId', () => _androidAutoFetchFilterDataLive(libraryId));
   }
 
-  Future<List<Collection>> _androidAutoFetchCollectionsForLibrary(String libraryId) {
-    return _carBrowseRequest(
-      this,
-      'collections/$libraryId',
-      () => _androidAutoFetchCollectionsForLibraryLive(libraryId),
-    );
-  }
-
-  Future<List<Playlist>> _androidAutoFetchPlaylistsForLibrary(String libraryId) {
-    return _carBrowseRequest(this, 'playlists/$libraryId', () => _androidAutoFetchPlaylistsForLibraryLive(libraryId));
-  }
-
   Future<_AndroidAutoSeriesPage> _androidAutoFetchSeriesPageForLibrary(
     String libraryId,
     _AndroidAutoPagingOptions paging,

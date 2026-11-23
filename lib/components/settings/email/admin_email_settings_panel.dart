@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter/services.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminEmailSettingsPanel extends StatelessWidget {
   const AdminEmailSettingsPanel({
@@ -238,13 +240,13 @@ class AdminEmailSettingsPanel extends StatelessWidget {
               },
             ),
             const SizedBox(height: 8),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
               title: const Text('Use secure SMTP connection'),
               value: secure,
               onChanged: canEditFields ? onSecureChanged : null,
             ),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
               title: const Text('Reject unauthorized certificates'),
               subtitle: const Text('Disable only if your SMTP server uses self-signed certificates.'),
@@ -258,7 +260,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: canSendTest ? onSendTestEmail : null,
                   icon: isSendingTest
-                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.mark_email_read_outlined),
                   label: const Text('Send Test'),
                 ),
@@ -266,7 +268,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: canSaveSettings ? onSaveSettings : null,
                   icon: isSavingSettings
-                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.save_outlined),
                   label: const Text('Save Settings'),
                 ),

@@ -29,16 +29,21 @@ $YearInReviewNamedStatCopyWith<YearInReviewNamedStat> get copyWith => _$YearInRe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewNamedStat&&(identical(other.name, name) || other.name == name)&&(identical(other.time, time) || other.time == time));
+  final _this = this as YearInReviewNamedStat;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewNamedStat&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.time, _this.time) || other.time == _this.time));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,time);
+int get hashCode {
+  final _this = this as YearInReviewNamedStat;
+  return Object.hash(runtimeType,_this.name,_this.time);
+}
 
 @override
 String toString() {
-  return 'YearInReviewNamedStat(name: $name, time: $time)';
+  final _this = this as YearInReviewNamedStat;
+  return 'YearInReviewNamedStat(name: ${_this.name}, time: ${_this.time})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewNamedStat&&(identical(other.name, name) || other.name == name)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewNamedStat&&(identical(other.name, name) || other.name == name)&&(identical(other.time, time) || other.time == time));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,time);
+int get hashCode {
+    return Object.hash(runtimeType,name,time);
+}
 
 @override
 String toString() {
-  return 'YearInReviewNamedStat(name: $name, time: $time)';
+    return 'YearInReviewNamedStat(name: $name, time: $time)';
 }
 
 
@@ -295,16 +302,21 @@ $YearInReviewGenreStatCopyWith<YearInReviewGenreStat> get copyWith => _$YearInRe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewGenreStat&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.time, time) || other.time == time));
+  final _this = this as YearInReviewGenreStat;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewGenreStat&&(identical(other.genre, _this.genre) || other.genre == _this.genre)&&(identical(other.time, _this.time) || other.time == _this.time));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,genre,time);
+int get hashCode {
+  final _this = this as YearInReviewGenreStat;
+  return Object.hash(runtimeType,_this.genre,_this.time);
+}
 
 @override
 String toString() {
-  return 'YearInReviewGenreStat(genre: $genre, time: $time)';
+  final _this = this as YearInReviewGenreStat;
+  return 'YearInReviewGenreStat(genre: ${_this.genre}, time: ${_this.time})';
 }
 
 
@@ -496,16 +508,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewGenreStat&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewGenreStat&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.time, time) || other.time == time));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,genre,time);
+int get hashCode {
+    return Object.hash(runtimeType,genre,time);
+}
 
 @override
 String toString() {
-  return 'YearInReviewGenreStat(genre: $genre, time: $time)';
+    return 'YearInReviewGenreStat(genre: $genre, time: $time)';
 }
 
 
@@ -561,16 +575,21 @@ $YearInReviewMonthStatCopyWith<YearInReviewMonthStat> get copyWith => _$YearInRe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewMonthStat&&(identical(other.month, month) || other.month == month)&&(identical(other.time, time) || other.time == time));
+  final _this = this as YearInReviewMonthStat;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewMonthStat&&(identical(other.month, _this.month) || other.month == _this.month)&&(identical(other.time, _this.time) || other.time == _this.time));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,month,time);
+int get hashCode {
+  final _this = this as YearInReviewMonthStat;
+  return Object.hash(runtimeType,_this.month,_this.time);
+}
 
 @override
 String toString() {
-  return 'YearInReviewMonthStat(month: $month, time: $time)';
+  final _this = this as YearInReviewMonthStat;
+  return 'YearInReviewMonthStat(month: ${_this.month}, time: ${_this.time})';
 }
 
 
@@ -762,16 +781,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewMonthStat&&(identical(other.month, month) || other.month == month)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewMonthStat&&(identical(other.month, month) || other.month == month)&&(identical(other.time, time) || other.time == time));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,month,time);
+int get hashCode {
+    return Object.hash(runtimeType,month,time);
+}
 
 @override
 String toString() {
-  return 'YearInReviewMonthStat(month: $month, time: $time)';
+    return 'YearInReviewMonthStat(month: $month, time: $time)';
 }
 
 
@@ -827,16 +848,21 @@ $YearInReviewBookStatCopyWith<YearInReviewBookStat> get copyWith => _$YearInRevi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewBookStat&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
+  final _this = this as YearInReviewBookStat;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewBookStat&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.finishedAt, _this.finishedAt) || other.finishedAt == _this.finishedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,duration,finishedAt);
+int get hashCode {
+  final _this = this as YearInReviewBookStat;
+  return Object.hash(runtimeType,_this.id,_this.title,_this.duration,_this.finishedAt);
+}
 
 @override
 String toString() {
-  return 'YearInReviewBookStat(id: $id, title: $title, duration: $duration, finishedAt: $finishedAt)';
+  final _this = this as YearInReviewBookStat;
+  return 'YearInReviewBookStat(id: ${_this.id}, title: ${_this.title}, duration: ${_this.duration}, finishedAt: ${_this.finishedAt})';
 }
 
 
@@ -1032,16 +1058,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewBookStat&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewBookStat&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,duration,finishedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,title,duration,finishedAt);
+}
 
 @override
 String toString() {
-  return 'YearInReviewBookStat(id: $id, title: $title, duration: $duration, finishedAt: $finishedAt)';
+    return 'YearInReviewBookStat(id: $id, title: $title, duration: $duration, finishedAt: $finishedAt)';
 }
 
 
@@ -1099,16 +1127,21 @@ $YearInReviewStatsCopyWith<YearInReviewStats> get copyWith => _$YearInReviewStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewStats&&(identical(other.totalListeningSessions, totalListeningSessions) || other.totalListeningSessions == totalListeningSessions)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.totalBookListeningTime, totalBookListeningTime) || other.totalBookListeningTime == totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, totalPodcastListeningTime) || other.totalPodcastListeningTime == totalPodcastListeningTime)&&const DeepCollectionEquality().equals(other.topAuthors, topAuthors)&&const DeepCollectionEquality().equals(other.topGenres, topGenres)&&(identical(other.mostListenedNarrator, mostListenedNarrator) || other.mostListenedNarrator == mostListenedNarrator)&&(identical(other.mostListenedMonth, mostListenedMonth) || other.mostListenedMonth == mostListenedMonth)&&(identical(other.numBooksFinished, numBooksFinished) || other.numBooksFinished == numBooksFinished)&&(identical(other.numBooksListened, numBooksListened) || other.numBooksListened == numBooksListened)&&(identical(other.longestAudiobookFinished, longestAudiobookFinished) || other.longestAudiobookFinished == longestAudiobookFinished)&&const DeepCollectionEquality().equals(other.booksWithCovers, booksWithCovers)&&const DeepCollectionEquality().equals(other.finishedBooksWithCovers, finishedBooksWithCovers)&&(identical(other.numListeningSessions, numListeningSessions) || other.numListeningSessions == numListeningSessions)&&(identical(other.numBooksAdded, numBooksAdded) || other.numBooksAdded == numBooksAdded)&&(identical(other.numAuthorsAdded, numAuthorsAdded) || other.numAuthorsAdded == numAuthorsAdded)&&(identical(other.totalBooksAddedSize, totalBooksAddedSize) || other.totalBooksAddedSize == totalBooksAddedSize)&&(identical(other.totalBooksAddedDuration, totalBooksAddedDuration) || other.totalBooksAddedDuration == totalBooksAddedDuration)&&const DeepCollectionEquality().equals(other.booksAddedWithCovers, booksAddedWithCovers)&&(identical(other.totalBooksSize, totalBooksSize) || other.totalBooksSize == totalBooksSize)&&(identical(other.totalBooksDuration, totalBooksDuration) || other.totalBooksDuration == totalBooksDuration)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other.topNarrators, topNarrators));
+  final _this = this as YearInReviewStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is YearInReviewStats&&(identical(other.totalListeningSessions, _this.totalListeningSessions) || other.totalListeningSessions == _this.totalListeningSessions)&&(identical(other.totalListeningTime, _this.totalListeningTime) || other.totalListeningTime == _this.totalListeningTime)&&(identical(other.totalBookListeningTime, _this.totalBookListeningTime) || other.totalBookListeningTime == _this.totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, _this.totalPodcastListeningTime) || other.totalPodcastListeningTime == _this.totalPodcastListeningTime)&&const DeepCollectionEquality().equals(other.topAuthors, _this.topAuthors)&&const DeepCollectionEquality().equals(other.topGenres, _this.topGenres)&&(identical(other.mostListenedNarrator, _this.mostListenedNarrator) || other.mostListenedNarrator == _this.mostListenedNarrator)&&(identical(other.mostListenedMonth, _this.mostListenedMonth) || other.mostListenedMonth == _this.mostListenedMonth)&&(identical(other.numBooksFinished, _this.numBooksFinished) || other.numBooksFinished == _this.numBooksFinished)&&(identical(other.numBooksListened, _this.numBooksListened) || other.numBooksListened == _this.numBooksListened)&&(identical(other.longestAudiobookFinished, _this.longestAudiobookFinished) || other.longestAudiobookFinished == _this.longestAudiobookFinished)&&const DeepCollectionEquality().equals(other.booksWithCovers, _this.booksWithCovers)&&const DeepCollectionEquality().equals(other.finishedBooksWithCovers, _this.finishedBooksWithCovers)&&(identical(other.numListeningSessions, _this.numListeningSessions) || other.numListeningSessions == _this.numListeningSessions)&&(identical(other.numBooksAdded, _this.numBooksAdded) || other.numBooksAdded == _this.numBooksAdded)&&(identical(other.numAuthorsAdded, _this.numAuthorsAdded) || other.numAuthorsAdded == _this.numAuthorsAdded)&&(identical(other.totalBooksAddedSize, _this.totalBooksAddedSize) || other.totalBooksAddedSize == _this.totalBooksAddedSize)&&(identical(other.totalBooksAddedDuration, _this.totalBooksAddedDuration) || other.totalBooksAddedDuration == _this.totalBooksAddedDuration)&&const DeepCollectionEquality().equals(other.booksAddedWithCovers, _this.booksAddedWithCovers)&&(identical(other.totalBooksSize, _this.totalBooksSize) || other.totalBooksSize == _this.totalBooksSize)&&(identical(other.totalBooksDuration, _this.totalBooksDuration) || other.totalBooksDuration == _this.totalBooksDuration)&&(identical(other.numBooks, _this.numBooks) || other.numBooks == _this.numBooks)&&const DeepCollectionEquality().equals(other.topNarrators, _this.topNarrators));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,totalListeningSessions,totalListeningTime,totalBookListeningTime,totalPodcastListeningTime,const DeepCollectionEquality().hash(topAuthors),const DeepCollectionEquality().hash(topGenres),mostListenedNarrator,mostListenedMonth,numBooksFinished,numBooksListened,longestAudiobookFinished,const DeepCollectionEquality().hash(booksWithCovers),const DeepCollectionEquality().hash(finishedBooksWithCovers),numListeningSessions,numBooksAdded,numAuthorsAdded,totalBooksAddedSize,totalBooksAddedDuration,const DeepCollectionEquality().hash(booksAddedWithCovers),totalBooksSize,totalBooksDuration,numBooks,const DeepCollectionEquality().hash(topNarrators)]);
+int get hashCode {
+  final _this = this as YearInReviewStats;
+  return Object.hashAll([runtimeType,_this.totalListeningSessions,_this.totalListeningTime,_this.totalBookListeningTime,_this.totalPodcastListeningTime,const DeepCollectionEquality().hash(_this.topAuthors),const DeepCollectionEquality().hash(_this.topGenres),_this.mostListenedNarrator,_this.mostListenedMonth,_this.numBooksFinished,_this.numBooksListened,_this.longestAudiobookFinished,const DeepCollectionEquality().hash(_this.booksWithCovers),const DeepCollectionEquality().hash(_this.finishedBooksWithCovers),_this.numListeningSessions,_this.numBooksAdded,_this.numAuthorsAdded,_this.totalBooksAddedSize,_this.totalBooksAddedDuration,const DeepCollectionEquality().hash(_this.booksAddedWithCovers),_this.totalBooksSize,_this.totalBooksDuration,_this.numBooks,const DeepCollectionEquality().hash(_this.topNarrators)]);
+}
 
 @override
 String toString() {
-  return 'YearInReviewStats(totalListeningSessions: $totalListeningSessions, totalListeningTime: $totalListeningTime, totalBookListeningTime: $totalBookListeningTime, totalPodcastListeningTime: $totalPodcastListeningTime, topAuthors: $topAuthors, topGenres: $topGenres, mostListenedNarrator: $mostListenedNarrator, mostListenedMonth: $mostListenedMonth, numBooksFinished: $numBooksFinished, numBooksListened: $numBooksListened, longestAudiobookFinished: $longestAudiobookFinished, booksWithCovers: $booksWithCovers, finishedBooksWithCovers: $finishedBooksWithCovers, numListeningSessions: $numListeningSessions, numBooksAdded: $numBooksAdded, numAuthorsAdded: $numAuthorsAdded, totalBooksAddedSize: $totalBooksAddedSize, totalBooksAddedDuration: $totalBooksAddedDuration, booksAddedWithCovers: $booksAddedWithCovers, totalBooksSize: $totalBooksSize, totalBooksDuration: $totalBooksDuration, numBooks: $numBooks, topNarrators: $topNarrators)';
+  final _this = this as YearInReviewStats;
+  return 'YearInReviewStats(totalListeningSessions: ${_this.totalListeningSessions}, totalListeningTime: ${_this.totalListeningTime}, totalBookListeningTime: ${_this.totalBookListeningTime}, totalPodcastListeningTime: ${_this.totalPodcastListeningTime}, topAuthors: ${_this.topAuthors}, topGenres: ${_this.topGenres}, mostListenedNarrator: ${_this.mostListenedNarrator}, mostListenedMonth: ${_this.mostListenedMonth}, numBooksFinished: ${_this.numBooksFinished}, numBooksListened: ${_this.numBooksListened}, longestAudiobookFinished: ${_this.longestAudiobookFinished}, booksWithCovers: ${_this.booksWithCovers}, finishedBooksWithCovers: ${_this.finishedBooksWithCovers}, numListeningSessions: ${_this.numListeningSessions}, numBooksAdded: ${_this.numBooksAdded}, numAuthorsAdded: ${_this.numAuthorsAdded}, totalBooksAddedSize: ${_this.totalBooksAddedSize}, totalBooksAddedDuration: ${_this.totalBooksAddedDuration}, booksAddedWithCovers: ${_this.booksAddedWithCovers}, totalBooksSize: ${_this.totalBooksSize}, totalBooksDuration: ${_this.totalBooksDuration}, numBooks: ${_this.numBooks}, topNarrators: ${_this.topNarrators})';
 }
 
 
@@ -1414,16 +1447,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewStats&&(identical(other.totalListeningSessions, totalListeningSessions) || other.totalListeningSessions == totalListeningSessions)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.totalBookListeningTime, totalBookListeningTime) || other.totalBookListeningTime == totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, totalPodcastListeningTime) || other.totalPodcastListeningTime == totalPodcastListeningTime)&&const DeepCollectionEquality().equals(other._topAuthors, _topAuthors)&&const DeepCollectionEquality().equals(other._topGenres, _topGenres)&&(identical(other.mostListenedNarrator, mostListenedNarrator) || other.mostListenedNarrator == mostListenedNarrator)&&(identical(other.mostListenedMonth, mostListenedMonth) || other.mostListenedMonth == mostListenedMonth)&&(identical(other.numBooksFinished, numBooksFinished) || other.numBooksFinished == numBooksFinished)&&(identical(other.numBooksListened, numBooksListened) || other.numBooksListened == numBooksListened)&&(identical(other.longestAudiobookFinished, longestAudiobookFinished) || other.longestAudiobookFinished == longestAudiobookFinished)&&const DeepCollectionEquality().equals(other._booksWithCovers, _booksWithCovers)&&const DeepCollectionEquality().equals(other._finishedBooksWithCovers, _finishedBooksWithCovers)&&(identical(other.numListeningSessions, numListeningSessions) || other.numListeningSessions == numListeningSessions)&&(identical(other.numBooksAdded, numBooksAdded) || other.numBooksAdded == numBooksAdded)&&(identical(other.numAuthorsAdded, numAuthorsAdded) || other.numAuthorsAdded == numAuthorsAdded)&&(identical(other.totalBooksAddedSize, totalBooksAddedSize) || other.totalBooksAddedSize == totalBooksAddedSize)&&(identical(other.totalBooksAddedDuration, totalBooksAddedDuration) || other.totalBooksAddedDuration == totalBooksAddedDuration)&&const DeepCollectionEquality().equals(other._booksAddedWithCovers, _booksAddedWithCovers)&&(identical(other.totalBooksSize, totalBooksSize) || other.totalBooksSize == totalBooksSize)&&(identical(other.totalBooksDuration, totalBooksDuration) || other.totalBooksDuration == totalBooksDuration)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other._topNarrators, _topNarrators));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _YearInReviewStats&&(identical(other.totalListeningSessions, totalListeningSessions) || other.totalListeningSessions == totalListeningSessions)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.totalBookListeningTime, totalBookListeningTime) || other.totalBookListeningTime == totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, totalPodcastListeningTime) || other.totalPodcastListeningTime == totalPodcastListeningTime)&&const DeepCollectionEquality().equals(other.topAuthors, _topAuthors)&&const DeepCollectionEquality().equals(other.topGenres, _topGenres)&&(identical(other.mostListenedNarrator, mostListenedNarrator) || other.mostListenedNarrator == mostListenedNarrator)&&(identical(other.mostListenedMonth, mostListenedMonth) || other.mostListenedMonth == mostListenedMonth)&&(identical(other.numBooksFinished, numBooksFinished) || other.numBooksFinished == numBooksFinished)&&(identical(other.numBooksListened, numBooksListened) || other.numBooksListened == numBooksListened)&&(identical(other.longestAudiobookFinished, longestAudiobookFinished) || other.longestAudiobookFinished == longestAudiobookFinished)&&const DeepCollectionEquality().equals(other.booksWithCovers, _booksWithCovers)&&const DeepCollectionEquality().equals(other.finishedBooksWithCovers, _finishedBooksWithCovers)&&(identical(other.numListeningSessions, numListeningSessions) || other.numListeningSessions == numListeningSessions)&&(identical(other.numBooksAdded, numBooksAdded) || other.numBooksAdded == numBooksAdded)&&(identical(other.numAuthorsAdded, numAuthorsAdded) || other.numAuthorsAdded == numAuthorsAdded)&&(identical(other.totalBooksAddedSize, totalBooksAddedSize) || other.totalBooksAddedSize == totalBooksAddedSize)&&(identical(other.totalBooksAddedDuration, totalBooksAddedDuration) || other.totalBooksAddedDuration == totalBooksAddedDuration)&&const DeepCollectionEquality().equals(other.booksAddedWithCovers, _booksAddedWithCovers)&&(identical(other.totalBooksSize, totalBooksSize) || other.totalBooksSize == totalBooksSize)&&(identical(other.totalBooksDuration, totalBooksDuration) || other.totalBooksDuration == totalBooksDuration)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other.topNarrators, _topNarrators));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,totalListeningSessions,totalListeningTime,totalBookListeningTime,totalPodcastListeningTime,const DeepCollectionEquality().hash(_topAuthors),const DeepCollectionEquality().hash(_topGenres),mostListenedNarrator,mostListenedMonth,numBooksFinished,numBooksListened,longestAudiobookFinished,const DeepCollectionEquality().hash(_booksWithCovers),const DeepCollectionEquality().hash(_finishedBooksWithCovers),numListeningSessions,numBooksAdded,numAuthorsAdded,totalBooksAddedSize,totalBooksAddedDuration,const DeepCollectionEquality().hash(_booksAddedWithCovers),totalBooksSize,totalBooksDuration,numBooks,const DeepCollectionEquality().hash(_topNarrators)]);
+int get hashCode {
+    return Object.hashAll([runtimeType,totalListeningSessions,totalListeningTime,totalBookListeningTime,totalPodcastListeningTime,const DeepCollectionEquality().hash(_topAuthors),const DeepCollectionEquality().hash(_topGenres),mostListenedNarrator,mostListenedMonth,numBooksFinished,numBooksListened,longestAudiobookFinished,const DeepCollectionEquality().hash(_booksWithCovers),const DeepCollectionEquality().hash(_finishedBooksWithCovers),numListeningSessions,numBooksAdded,numAuthorsAdded,totalBooksAddedSize,totalBooksAddedDuration,const DeepCollectionEquality().hash(_booksAddedWithCovers),totalBooksSize,totalBooksDuration,numBooks,const DeepCollectionEquality().hash(_topNarrators)]);
+}
 
 @override
 String toString() {
-  return 'YearInReviewStats(totalListeningSessions: $totalListeningSessions, totalListeningTime: $totalListeningTime, totalBookListeningTime: $totalBookListeningTime, totalPodcastListeningTime: $totalPodcastListeningTime, topAuthors: $topAuthors, topGenres: $topGenres, mostListenedNarrator: $mostListenedNarrator, mostListenedMonth: $mostListenedMonth, numBooksFinished: $numBooksFinished, numBooksListened: $numBooksListened, longestAudiobookFinished: $longestAudiobookFinished, booksWithCovers: $booksWithCovers, finishedBooksWithCovers: $finishedBooksWithCovers, numListeningSessions: $numListeningSessions, numBooksAdded: $numBooksAdded, numAuthorsAdded: $numAuthorsAdded, totalBooksAddedSize: $totalBooksAddedSize, totalBooksAddedDuration: $totalBooksAddedDuration, booksAddedWithCovers: $booksAddedWithCovers, totalBooksSize: $totalBooksSize, totalBooksDuration: $totalBooksDuration, numBooks: $numBooks, topNarrators: $topNarrators)';
+    return 'YearInReviewStats(totalListeningSessions: $totalListeningSessions, totalListeningTime: $totalListeningTime, totalBookListeningTime: $totalBookListeningTime, totalPodcastListeningTime: $totalPodcastListeningTime, topAuthors: $topAuthors, topGenres: $topGenres, mostListenedNarrator: $mostListenedNarrator, mostListenedMonth: $mostListenedMonth, numBooksFinished: $numBooksFinished, numBooksListened: $numBooksListened, longestAudiobookFinished: $longestAudiobookFinished, booksWithCovers: $booksWithCovers, finishedBooksWithCovers: $finishedBooksWithCovers, numListeningSessions: $numListeningSessions, numBooksAdded: $numBooksAdded, numAuthorsAdded: $numAuthorsAdded, totalBooksAddedSize: $totalBooksAddedSize, totalBooksAddedDuration: $totalBooksAddedDuration, booksAddedWithCovers: $booksAddedWithCovers, totalBooksSize: $totalBooksSize, totalBooksDuration: $totalBooksDuration, numBooks: $numBooks, topNarrators: $topNarrators)';
 }
 
 

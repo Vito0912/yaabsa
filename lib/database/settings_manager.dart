@@ -1,6 +1,7 @@
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/settings_backup.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'settings_manager.g.dart';
@@ -190,6 +191,57 @@ class SettingsManager extends _$SettingsManager {
         level: InfoLevel.error,
       );
       rethrow;
+    }
+  }
+
+  Future<String> exportSettings() async {
+    final db = ref.read(appDatabaseProvider);
+
+    return db.transaction(() async {
+      final global = await db.getAllGlobalSettings();
+      final users = await db.getAllUserSettings();
+
+      return SettingsBackup.encode(global: global, users: users);
+    });
+  }
+
+  Future<Map<String, Map<String, String>>> matchingBackupUsers(Map<String, Map<String, String>> users) async {
+    final db = ref.read(appDatabaseProvider);
+    final query = db.selectOnly(db.storedUsers)..addColumns([db.storedUsers.id]);
+    final rows = await query.get();
+    final savedUserIds = rows.map((row) => row.read(db.storedUsers.id)).toSet();
+
+    return Map.fromEntries(users.entries.where((entry) => savedUserIds.contains(entry.key)));
+  }
+
+  Future<void> importSettings({
+    required Map<String, String> global,
+    required Map<String, Map<String, String>> users,
+  }) async {
+    final db = ref.read(appDatabaseProvider);
+    final cache = ref.read(settingsCacheProvider);
+    final matchingUsers = await db.transaction(() async {
+      final matchingUsers = await matchingBackupUsers(users);
+
+      for (final entry in global.entries) {
+        await db.setGlobalSetting(entry.key, entry.value);
+      }
+      for (final user in matchingUsers.entries) {
+        for (final entry in user.value.entries) {
+          await db.setUserSetting(user.key, entry.key, entry.value);
+        }
+      }
+
+      return matchingUsers;
+    });
+
+    for (final entry in global.entries) {
+      cache.set<String>(entry.key, entry.value);
+    }
+    for (final user in matchingUsers.entries) {
+      for (final entry in user.value.entries) {
+        cache.set<String>(user.key, entry.value, entry.key);
+      }
     }
   }
 

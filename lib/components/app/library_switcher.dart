@@ -3,6 +3,8 @@ import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class LibrarySwitcher extends ConsumerWidget {
   const LibrarySwitcher({super.key});
@@ -40,7 +42,7 @@ class LibrarySwitcher extends ConsumerWidget {
     );
   }
 
-  PopupMenuButton<String> _buildSelector(
+  YaabsaContextMenuButton<String> _buildSelector(
     BuildContext context,
     WidgetRef ref,
     List<Library> libraries,
@@ -57,7 +59,7 @@ class LibrarySwitcher extends ConsumerWidget {
     }
     final selectedName = selectedLibrary?.name ?? fallbackName ?? 'Library';
 
-    return PopupMenuButton<String>(
+    return YaabsaContextMenuButton<String>(
       tooltip: 'Select library',
       onSelected: (String newLibraryId) async {
         await ref.read(selectedLibraryIdProvider.notifier).set(newLibraryId);
@@ -136,7 +138,7 @@ class LibrarySwitcher extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2)),
+      loading: () => const SizedBox(width: 26, height: 26, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
       error: (error, stack) => _chipButton(context, selectedLibrary?.name ?? 'Library error', compact: true),
     );
   }

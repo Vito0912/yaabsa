@@ -31,7 +31,8 @@ $InternalDownloadCopyWith<InternalDownload> get copyWith => _$InternalDownloadCo
 
 @override
 String toString() {
-  return 'InternalDownload(item: $item, episode: $episode, tracks: $tracks, expectedFileCount: $expectedFileCount, auxiliaryFilePaths: $auxiliaryFilePaths, saf: $saf, coverPath: $coverPath, sidecarPaths: $sidecarPaths, downloadType: $downloadType, downloadBasePath: $downloadBasePath, downloadOrigin: $downloadOrigin, smartProfileIds: $smartProfileIds, managedBytes: $managedBytes, completedAt: $completedAt)';
+  final _this = this as InternalDownload;
+  return 'InternalDownload(item: ${_this.item}, episode: ${_this.episode}, tracks: ${_this.tracks}, expectedFileCount: ${_this.expectedFileCount}, auxiliaryFilePaths: ${_this.auxiliaryFilePaths}, saf: ${_this.saf}, coverPath: ${_this.coverPath}, sidecarPaths: ${_this.sidecarPaths}, downloadType: ${_this.downloadType}, downloadBasePath: ${_this.downloadBasePath}, downloadOrigin: ${_this.downloadOrigin}, smartProfileIds: ${_this.smartProfileIds}, managedBytes: ${_this.managedBytes}, completedAt: ${_this.completedAt})';
 }
 
 
@@ -273,7 +274,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'InternalDownload(item: $item, episode: $episode, tracks: $tracks, expectedFileCount: $expectedFileCount, auxiliaryFilePaths: $auxiliaryFilePaths, saf: $saf, coverPath: $coverPath, sidecarPaths: $sidecarPaths, downloadType: $downloadType, downloadBasePath: $downloadBasePath, downloadOrigin: $downloadOrigin, smartProfileIds: $smartProfileIds, managedBytes: $managedBytes, completedAt: $completedAt)';
+    return 'InternalDownload(item: $item, episode: $episode, tracks: $tracks, expectedFileCount: $expectedFileCount, auxiliaryFilePaths: $auxiliaryFilePaths, saf: $saf, coverPath: $coverPath, sidecarPaths: $sidecarPaths, downloadType: $downloadType, downloadBasePath: $downloadBasePath, downloadOrigin: $downloadOrigin, smartProfileIds: $smartProfileIds, managedBytes: $managedBytes, completedAt: $completedAt)';
 }
 
 

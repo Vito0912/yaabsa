@@ -29,16 +29,21 @@ $SeriesItemsCopyWith<SeriesItems> get copyWith => _$SeriesItemsCopyWithImpl<Seri
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SeriesItems&&const DeepCollectionEquality().equals(other.results, results)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&(identical(other.sortDesc, sortDesc) || other.sortDesc == sortDesc)&&(identical(other.filterBy, filterBy) || other.filterBy == filterBy));
+  final _this = this as SeriesItems;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SeriesItems&&const DeepCollectionEquality().equals(other.results, _this.results)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.limit, _this.limit) || other.limit == _this.limit)&&(identical(other.sortBy, _this.sortBy) || other.sortBy == _this.sortBy)&&(identical(other.sortDesc, _this.sortDesc) || other.sortDesc == _this.sortDesc)&&(identical(other.filterBy, _this.filterBy) || other.filterBy == _this.filterBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(results),total,page,limit,sortBy,sortDesc,filterBy);
+int get hashCode {
+  final _this = this as SeriesItems;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.results),_this.total,_this.page,_this.limit,_this.sortBy,_this.sortDesc,_this.filterBy);
+}
 
 @override
 String toString() {
-  return 'SeriesItems(results: $results, total: $total, page: $page, limit: $limit, sortBy: $sortBy, sortDesc: $sortDesc, filterBy: $filterBy)';
+  final _this = this as SeriesItems;
+  return 'SeriesItems(results: ${_this.results}, total: ${_this.total}, page: ${_this.page}, limit: ${_this.limit}, sortBy: ${_this.sortBy}, sortDesc: ${_this.sortDesc}, filterBy: ${_this.filterBy})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SeriesItems&&const DeepCollectionEquality().equals(other._results, _results)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&(identical(other.sortDesc, sortDesc) || other.sortDesc == sortDesc)&&(identical(other.filterBy, filterBy) || other.filterBy == filterBy));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SeriesItems&&const DeepCollectionEquality().equals(other.results, _results)&&(identical(other.total, total) || other.total == total)&&(identical(other.page, page) || other.page == page)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&(identical(other.sortDesc, sortDesc) || other.sortDesc == sortDesc)&&(identical(other.filterBy, filterBy) || other.filterBy == filterBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_results),total,page,limit,sortBy,sortDesc,filterBy);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_results),total,page,limit,sortBy,sortDesc,filterBy);
+}
 
 @override
 String toString() {
-  return 'SeriesItems(results: $results, total: $total, page: $page, limit: $limit, sortBy: $sortBy, sortDesc: $sortDesc, filterBy: $filterBy)';
+    return 'SeriesItems(results: $results, total: $total, page: $page, limit: $limit, sortBy: $sortBy, sortDesc: $sortDesc, filterBy: $filterBy)';
 }
 
 

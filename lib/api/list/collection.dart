@@ -14,6 +14,7 @@ abstract class Collection with _$Collection {
     @JsonKey(name: "description") String? description,
     @JsonKey(name: "coverPath") String? coverPath,
     @JsonKey(name: "books") List<LibraryItem>? items,
+    @JsonKey(name: "numBooks") int? numBooks,
     @JsonKey(name: "lastUpdate") required int lastUpdate,
     @JsonKey(name: "createdAt") required int createdAt,
   }) = _Collection;

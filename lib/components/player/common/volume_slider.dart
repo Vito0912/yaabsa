@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/player/common/volume_slider_panel.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 void showPlayerVolumeSheet(BuildContext context) {
   showModalBottomSheet<void>(
@@ -61,7 +62,6 @@ class _VolumeSliderState extends State<VolumeSlider> {
           _lastNonZeroVolume = volume;
         }
         final isBoosted = volume > 1.0;
-        final colorScheme = Theme.of(context).colorScheme;
 
         return CompositedTransformTarget(
           link: _anchorLink,
@@ -76,11 +76,14 @@ class _VolumeSliderState extends State<VolumeSlider> {
               child: SizedBox(
                 width: _buttonSize.width,
                 height: _buttonSize.height,
-                child: IconButton(
+                child: YaabsaActionIconButton(
+                  icon: _iconForVolume(volume),
+                  tone: isBoosted ? YaabsaActionTone.primary : YaabsaActionTone.neutral,
+                  iconSize: 24,
+                  buttonSize: _buttonSize.width,
+                  compact: false,
                   tooltip: 'Volume ${(volume * 100).round()}%',
                   onPressed: () => _handlePress(context, volume),
-                  color: isBoosted ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.6),
-                  icon: Icon(_iconForVolume(volume)),
                 ),
               ),
             ),

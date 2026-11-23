@@ -29,16 +29,21 @@ $LibraryStatsCopyWith<LibraryStats> get copyWith => _$LibraryStatsCopyWithImpl<L
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryStats&&(identical(other.totalItems, totalItems) || other.totalItems == totalItems)&&(identical(other.totalAuthors, totalAuthors) || other.totalAuthors == totalAuthors)&&(identical(other.totalGenres, totalGenres) || other.totalGenres == totalGenres)&&(identical(other.totalDuration, totalDuration) || other.totalDuration == totalDuration)&&const DeepCollectionEquality().equals(other.longestItems, longestItems)&&(identical(other.numAudioTracks, numAudioTracks) || other.numAudioTracks == numAudioTracks)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.totalSize, totalSize) || other.totalSize == totalSize)&&const DeepCollectionEquality().equals(other.largestItems, largestItems)&&const DeepCollectionEquality().equals(other.authorsWithCount, authorsWithCount)&&const DeepCollectionEquality().equals(other.genresWithCount, genresWithCount));
+  final _this = this as LibraryStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryStats&&(identical(other.totalItems, _this.totalItems) || other.totalItems == _this.totalItems)&&(identical(other.totalAuthors, _this.totalAuthors) || other.totalAuthors == _this.totalAuthors)&&(identical(other.totalGenres, _this.totalGenres) || other.totalGenres == _this.totalGenres)&&(identical(other.totalDuration, _this.totalDuration) || other.totalDuration == _this.totalDuration)&&const DeepCollectionEquality().equals(other.longestItems, _this.longestItems)&&(identical(other.numAudioTracks, _this.numAudioTracks) || other.numAudioTracks == _this.numAudioTracks)&&(identical(other.numAudioFiles, _this.numAudioFiles) || other.numAudioFiles == _this.numAudioFiles)&&(identical(other.totalSize, _this.totalSize) || other.totalSize == _this.totalSize)&&const DeepCollectionEquality().equals(other.largestItems, _this.largestItems)&&const DeepCollectionEquality().equals(other.authorsWithCount, _this.authorsWithCount)&&const DeepCollectionEquality().equals(other.genresWithCount, _this.genresWithCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalItems,totalAuthors,totalGenres,totalDuration,const DeepCollectionEquality().hash(longestItems),numAudioTracks,numAudioFiles,totalSize,const DeepCollectionEquality().hash(largestItems),const DeepCollectionEquality().hash(authorsWithCount),const DeepCollectionEquality().hash(genresWithCount));
+int get hashCode {
+  final _this = this as LibraryStats;
+  return Object.hash(runtimeType,_this.totalItems,_this.totalAuthors,_this.totalGenres,_this.totalDuration,const DeepCollectionEquality().hash(_this.longestItems),_this.numAudioTracks,_this.numAudioFiles,_this.totalSize,const DeepCollectionEquality().hash(_this.largestItems),const DeepCollectionEquality().hash(_this.authorsWithCount),const DeepCollectionEquality().hash(_this.genresWithCount));
+}
 
 @override
 String toString() {
-  return 'LibraryStats(totalItems: $totalItems, totalAuthors: $totalAuthors, totalGenres: $totalGenres, totalDuration: $totalDuration, longestItems: $longestItems, numAudioTracks: $numAudioTracks, numAudioFiles: $numAudioFiles, totalSize: $totalSize, largestItems: $largestItems, authorsWithCount: $authorsWithCount, genresWithCount: $genresWithCount)';
+  final _this = this as LibraryStats;
+  return 'LibraryStats(totalItems: ${_this.totalItems}, totalAuthors: ${_this.totalAuthors}, totalGenres: ${_this.totalGenres}, totalDuration: ${_this.totalDuration}, longestItems: ${_this.longestItems}, numAudioTracks: ${_this.numAudioTracks}, numAudioFiles: ${_this.numAudioFiles}, totalSize: ${_this.totalSize}, largestItems: ${_this.largestItems}, authorsWithCount: ${_this.authorsWithCount}, genresWithCount: ${_this.genresWithCount})';
 }
 
 
@@ -272,16 +277,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryStats&&(identical(other.totalItems, totalItems) || other.totalItems == totalItems)&&(identical(other.totalAuthors, totalAuthors) || other.totalAuthors == totalAuthors)&&(identical(other.totalGenres, totalGenres) || other.totalGenres == totalGenres)&&(identical(other.totalDuration, totalDuration) || other.totalDuration == totalDuration)&&const DeepCollectionEquality().equals(other._longestItems, _longestItems)&&(identical(other.numAudioTracks, numAudioTracks) || other.numAudioTracks == numAudioTracks)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.totalSize, totalSize) || other.totalSize == totalSize)&&const DeepCollectionEquality().equals(other._largestItems, _largestItems)&&const DeepCollectionEquality().equals(other._authorsWithCount, _authorsWithCount)&&const DeepCollectionEquality().equals(other._genresWithCount, _genresWithCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryStats&&(identical(other.totalItems, totalItems) || other.totalItems == totalItems)&&(identical(other.totalAuthors, totalAuthors) || other.totalAuthors == totalAuthors)&&(identical(other.totalGenres, totalGenres) || other.totalGenres == totalGenres)&&(identical(other.totalDuration, totalDuration) || other.totalDuration == totalDuration)&&const DeepCollectionEquality().equals(other.longestItems, _longestItems)&&(identical(other.numAudioTracks, numAudioTracks) || other.numAudioTracks == numAudioTracks)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.totalSize, totalSize) || other.totalSize == totalSize)&&const DeepCollectionEquality().equals(other.largestItems, _largestItems)&&const DeepCollectionEquality().equals(other.authorsWithCount, _authorsWithCount)&&const DeepCollectionEquality().equals(other.genresWithCount, _genresWithCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalItems,totalAuthors,totalGenres,totalDuration,const DeepCollectionEquality().hash(_longestItems),numAudioTracks,numAudioFiles,totalSize,const DeepCollectionEquality().hash(_largestItems),const DeepCollectionEquality().hash(_authorsWithCount),const DeepCollectionEquality().hash(_genresWithCount));
+int get hashCode {
+    return Object.hash(runtimeType,totalItems,totalAuthors,totalGenres,totalDuration,const DeepCollectionEquality().hash(_longestItems),numAudioTracks,numAudioFiles,totalSize,const DeepCollectionEquality().hash(_largestItems),const DeepCollectionEquality().hash(_authorsWithCount),const DeepCollectionEquality().hash(_genresWithCount));
+}
 
 @override
 String toString() {
-  return 'LibraryStats(totalItems: $totalItems, totalAuthors: $totalAuthors, totalGenres: $totalGenres, totalDuration: $totalDuration, longestItems: $longestItems, numAudioTracks: $numAudioTracks, numAudioFiles: $numAudioFiles, totalSize: $totalSize, largestItems: $largestItems, authorsWithCount: $authorsWithCount, genresWithCount: $genresWithCount)';
+    return 'LibraryStats(totalItems: $totalItems, totalAuthors: $totalAuthors, totalGenres: $totalGenres, totalDuration: $totalDuration, longestItems: $longestItems, numAudioTracks: $numAudioTracks, numAudioFiles: $numAudioFiles, totalSize: $totalSize, largestItems: $largestItems, authorsWithCount: $authorsWithCount, genresWithCount: $genresWithCount)';
 }
 
 

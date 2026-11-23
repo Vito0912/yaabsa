@@ -7,6 +7,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_local_tab.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayHistoryView extends ConsumerWidget {
   const PlayHistoryView({super.key, this.itemId, this.episodeId, this.itemTitle});
@@ -135,7 +136,7 @@ class _PlayHistorySessionsTab extends ConsumerWidget {
 
     final content = itemAsync.when(
       data: (item) => LibraryItemListeningSessionsTab(item: item, initialEpisodeId: episodeId),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, _) => _SessionLoadError(error: error),
     );
     return DesktopPageShortcuts(

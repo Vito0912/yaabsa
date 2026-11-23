@@ -306,6 +306,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         case ItemMoreAction.manualMatch:
         case ItemMoreAction.markAsFinished:
         case ItemMoreAction.markAsUnfinished:
+        case ItemMoreAction.setProgress:
         case ItemMoreAction.addToPlaylist:
         case ItemMoreAction.addToCollection:
         case ItemMoreAction.deleteItem:
@@ -425,7 +426,10 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                           ? () => unawaited(playRandomLibraryItemOrEpisode([widget.item]))
                                           : null,
                                       onBack: () => context.pop(),
-                                      onPlayLatest: firstPlayableEpisode == null
+                                      onPlayLatest:
+                                          firstPlayableEpisode == null ||
+                                              (widget.item.hasIssue &&
+                                                  !(downloadsByEpisodeId[firstPlayableEpisode.id]?.isComplete ?? false))
                                           ? null
                                           : () {
                                               final episodeToPlay = firstPlayableEpisode;
@@ -491,7 +495,6 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                             visibleEpisodeCount: visibleEpisodes.length,
                                             searchQuery: _searchQuery,
                                             searchController: _searchController,
-                                            isMobileLayout: context.isMobile,
                                             progressFilter: _progressFilter,
                                             sortMode: _sortMode,
                                             onSearchChanged: (value) {
@@ -704,7 +707,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                       });
                                     },
                                     onOpenDetails: () => _openEpisodeDetails(episode, visibleEpisodes),
-                                    onPlayPressed: episode.audioFile == null
+                                    onPlayPressed: episode.audioFile == null || (widget.item.hasIssue && !isDownloaded)
                                         ? null
                                         : () {
                                             if (isCurrentEpisode) {
@@ -733,7 +736,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                         ? () =>
                                               _deleteEpisodeDownload(download: episodeDownload, userId: currentUser.id)
                                         : null,
-                                    showMarkAsUnfinished: isEpisodeFinished,
+                                    showMarkAsFinished: !isEpisodeFinished,
+                                    showMarkAsUnfinished: episodeProgress != null,
                                     onMoreActionSelected: (action) async {
                                       switch (action) {
                                         case ItemMoreAction.editItem:
@@ -755,6 +759,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                             item: widget.item,
                                             episode: episode,
                                           );
+                                          return;
+                                        case ItemMoreAction.setProgress:
                                           return;
                                         case ItemMoreAction.addToPlaylist:
                                           if (currentUser == null || libraryId == null) {

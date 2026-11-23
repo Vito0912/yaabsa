@@ -29,16 +29,21 @@ $LibraryFileCopyWith<LibraryFile> get copyWith => _$LibraryFileCopyWithImpl<Libr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFile&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.isSupplementary, isSupplementary) || other.isSupplementary == isSupplementary)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.fileType, fileType) || other.fileType == fileType));
+  final _this = this as LibraryFile;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFile&&(identical(other.ino, _this.ino) || other.ino == _this.ino)&&(identical(other.metadata, _this.metadata) || other.metadata == _this.metadata)&&(identical(other.isSupplementary, _this.isSupplementary) || other.isSupplementary == _this.isSupplementary)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.fileType, _this.fileType) || other.fileType == _this.fileType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ino,metadata,isSupplementary,addedAt,updatedAt,fileType);
+int get hashCode {
+  final _this = this as LibraryFile;
+  return Object.hash(runtimeType,_this.ino,_this.metadata,_this.isSupplementary,_this.addedAt,_this.updatedAt,_this.fileType);
+}
 
 @override
 String toString() {
-  return 'LibraryFile(ino: $ino, metadata: $metadata, isSupplementary: $isSupplementary, addedAt: $addedAt, updatedAt: $updatedAt, fileType: $fileType)';
+  final _this = this as LibraryFile;
+  return 'LibraryFile(ino: ${_this.ino}, metadata: ${_this.metadata}, isSupplementary: ${_this.isSupplementary}, addedAt: ${_this.addedAt}, updatedAt: ${_this.updatedAt}, fileType: ${_this.fileType})';
 }
 
 
@@ -247,16 +252,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFile&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.isSupplementary, isSupplementary) || other.isSupplementary == isSupplementary)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.fileType, fileType) || other.fileType == fileType));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFile&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.isSupplementary, isSupplementary) || other.isSupplementary == isSupplementary)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.fileType, fileType) || other.fileType == fileType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ino,metadata,isSupplementary,addedAt,updatedAt,fileType);
+int get hashCode {
+    return Object.hash(runtimeType,ino,metadata,isSupplementary,addedAt,updatedAt,fileType);
+}
 
 @override
 String toString() {
-  return 'LibraryFile(ino: $ino, metadata: $metadata, isSupplementary: $isSupplementary, addedAt: $addedAt, updatedAt: $updatedAt, fileType: $fileType)';
+    return 'LibraryFile(ino: $ino, metadata: $metadata, isSupplementary: $isSupplementary, addedAt: $addedAt, updatedAt: $updatedAt, fileType: $fileType)';
 }
 
 

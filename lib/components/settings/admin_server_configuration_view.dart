@@ -9,6 +9,7 @@ import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerConfigurationView extends ConsumerStatefulWidget {
   const AdminServerConfigurationView({super.key});
@@ -417,7 +418,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
         if (_settings == null && _isLoading) {
           return const Padding(
             padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           );
         }
 
@@ -445,7 +446,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+            if (_isLoading) const YaabsaLinearProgressIndicator(minHeight: 2),
             SettingsNavigationSection(
               title: 'General',
               topPadding: 12,
@@ -677,7 +678,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

@@ -119,7 +119,7 @@ extension _BGAudioHandlerReader on BGAudioHandler {
         local: true,
         saf: false,
       );
-      mediaItem.add(_currentMediaItem!.toMediaItem());
+      mediaItem.add(_currentMediaItem!.toMediaItem(artHeaders: _artRequestHeadersInternal));
 
       final initial = Duration(microseconds: (initialPosition * 1e6).round());
       final trackIndex = _currentMediaItem!.getIndexForDuration(initial);

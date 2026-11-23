@@ -29,16 +29,21 @@ $LibraryItemRequestCopyWith<LibraryItemRequest> get copyWith => _$LibraryItemReq
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.expanded, expanded) || other.expanded == expanded)&&(identical(other.include, include) || other.include == include)&&(identical(other.episode, episode) || other.episode == episode));
+  final _this = this as LibraryItemRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemRequest&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.expanded, _this.expanded) || other.expanded == _this.expanded)&&(identical(other.include, _this.include) || other.include == _this.include)&&(identical(other.episode, _this.episode) || other.episode == _this.episode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,expanded,include,episode);
+int get hashCode {
+  final _this = this as LibraryItemRequest;
+  return Object.hash(runtimeType,_this.id,_this.expanded,_this.include,_this.episode);
+}
 
 @override
 String toString() {
-  return 'LibraryItemRequest(id: $id, expanded: $expanded, include: $include, episode: $episode)';
+  final _this = this as LibraryItemRequest;
+  return 'LibraryItemRequest(id: ${_this.id}, expanded: ${_this.expanded}, include: ${_this.include}, episode: ${_this.episode})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.expanded, expanded) || other.expanded == expanded)&&(identical(other.include, include) || other.include == include)&&(identical(other.episode, episode) || other.episode == episode));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.expanded, expanded) || other.expanded == expanded)&&(identical(other.include, include) || other.include == include)&&(identical(other.episode, episode) || other.episode == episode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,expanded,include,episode);
+int get hashCode {
+    return Object.hash(runtimeType,id,expanded,include,episode);
+}
 
 @override
 String toString() {
-  return 'LibraryItemRequest(id: $id, expanded: $expanded, include: $include, episode: $episode)';
+    return 'LibraryItemRequest(id: $id, expanded: $expanded, include: $include, episode: $episode)';
 }
 
 

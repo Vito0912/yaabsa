@@ -6,8 +6,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_draft.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 typedef ChapterAddOptions = ({String title, int count, double start, double interval});
 typedef ChapterLookupChoice = ({List<ChapterEditorValue> chapters, bool titlesOnly});
@@ -363,7 +364,7 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
                 icon: const Icon(Icons.search_rounded),
                 label: Text(_loading ? 'Searching...' : 'Search'),
               ),
-              if (_loading) const LinearProgressIndicator(),
+              if (_loading) const YaabsaLinearProgressIndicator(),
               if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               if (chapters != null) ...[
                 const SizedBox(height: 12),

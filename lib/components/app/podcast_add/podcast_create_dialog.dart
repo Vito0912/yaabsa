@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/library_folder.dart';
@@ -8,7 +9,8 @@ import 'package:yaabsa/api/podcast/request/create_podcast_request.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
 
 Future<CreatePodcastRequest?> showPodcastCreateDialog({
   required BuildContext context,
@@ -134,19 +136,12 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: ClipRRect(
+                child: YaabsaCoverImage(
+                  image: imageUrl == null ? null : NetworkImage(imageUrl),
+                  width: 180,
+                  height: 180,
                   borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 180,
-                    height: 180,
-                    child: imageUrl == null
-                        ? const _DialogCoverFallback()
-                        : Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const _DialogCoverFallback(),
-                          ),
-                  ),
+                  placeholder: const _DialogCoverFallback(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -157,14 +152,14 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                   children: [
                     _CreateDialogResponsiveFields(
                       children: [
-                        LibraryItemEditorTextField(
+                        StyledTextField(
                           label: 'Title *',
                           controller: _titleController,
                           onChanged: (_) => setState(() {}),
                         ),
-                        LibraryItemEditorTextField(label: 'Author', controller: _authorController),
-                        LibraryItemEditorTextField(label: 'Language', controller: _languageController),
-                        LibraryItemEditorTextField(
+                        StyledTextField(label: 'Author', controller: _authorController),
+                        StyledTextField(label: 'Language', controller: _languageController),
+                        StyledTextField(
                           label: 'RSS Feed URL *',
                           hintText: 'https://example.com/feed.xml',
                           controller: _feedUrlController,
@@ -191,7 +186,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    LibraryItemEditorTextField(label: 'Description', controller: _descriptionController, maxLines: 4),
+                    StyledTextField(label: 'Description', controller: _descriptionController, maxLines: 4),
                   ],
                 ),
               ),
@@ -225,7 +220,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                         children: [
                           Material(
                             color: Colors.transparent,
-                            child: SwitchListTile.adaptive(
+                            child: YaabsaSwitchTile.adaptive(
                               contentPadding: EdgeInsets.zero,
                               value: _explicit,
                               onChanged: (value) {
@@ -239,7 +234,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                           const Divider(height: 1),
                           Material(
                             color: Colors.transparent,
-                            child: SwitchListTile.adaptive(
+                            child: YaabsaSwitchTile.adaptive(
                               contentPadding: EdgeInsets.zero,
                               value: _autoDownloadEpisodes,
                               onChanged: (value) {

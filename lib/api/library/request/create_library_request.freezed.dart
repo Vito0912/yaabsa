@@ -29,16 +29,21 @@ $CreateLibraryRequestCopyWith<CreateLibraryRequest> get copyWith => _$CreateLibr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateLibraryRequest&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.folders, folders)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.settings, settings) || other.settings == settings));
+  final _this = this as CreateLibraryRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateLibraryRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.folders, _this.folders)&&(identical(other.provider, _this.provider) || other.provider == _this.provider)&&(identical(other.icon, _this.icon) || other.icon == _this.icon)&&(identical(other.mediaType, _this.mediaType) || other.mediaType == _this.mediaType)&&(identical(other.settings, _this.settings) || other.settings == _this.settings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(folders),provider,icon,mediaType,settings);
+int get hashCode {
+  final _this = this as CreateLibraryRequest;
+  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.folders),_this.provider,_this.icon,_this.mediaType,_this.settings);
+}
 
 @override
 String toString() {
-  return 'CreateLibraryRequest(name: $name, folders: $folders, provider: $provider, icon: $icon, mediaType: $mediaType, settings: $settings)';
+  final _this = this as CreateLibraryRequest;
+  return 'CreateLibraryRequest(name: ${_this.name}, folders: ${_this.folders}, provider: ${_this.provider}, icon: ${_this.icon}, mediaType: ${_this.mediaType}, settings: ${_this.settings})';
 }
 
 
@@ -256,16 +261,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateLibraryRequest&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._folders, _folders)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.settings, settings) || other.settings == settings));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateLibraryRequest&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.folders, _folders)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.settings, settings) || other.settings == settings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_folders),provider,icon,mediaType,settings);
+int get hashCode {
+    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_folders),provider,icon,mediaType,settings);
+}
 
 @override
 String toString() {
-  return 'CreateLibraryRequest(name: $name, folders: $folders, provider: $provider, icon: $icon, mediaType: $mediaType, settings: $settings)';
+    return 'CreateLibraryRequest(name: $name, folders: $folders, provider: $provider, icon: $icon, mediaType: $mediaType, settings: $settings)';
 }
 
 

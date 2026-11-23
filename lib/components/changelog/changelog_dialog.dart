@@ -7,6 +7,7 @@ import 'package:yaabsa/util/changelog.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<void>? _startupPresentation;
 
@@ -192,7 +193,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                   if (releases == null) {
                     return const Padding(
                       padding: EdgeInsets.all(32),
-                      child: Center(child: CircularProgressIndicator()),
+                      child: Center(child: YaabsaCircularProgressIndicator()),
                     );
                   }
 

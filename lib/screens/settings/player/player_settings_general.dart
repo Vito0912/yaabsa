@@ -15,6 +15,7 @@ import 'package:yaabsa/screens/settings/player/player_action_settings_editor.dar
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
+import 'package:yaabsa/util/audio_handler/playback_keep_alive_level.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class PlayerSettingsGeneral extends ConsumerWidget {
@@ -251,6 +252,14 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                     false;
               },
             ),
+            if (!kIsWeb && defaultTargetPlatform != TargetPlatform.fuchsia)
+              SettingDropdown<String>(
+                label: 'Prevent word clipping',
+                description: 'Add quiet background noise to help connected audio devices stay active',
+                values: PlaybackKeepAliveLevel.values.map((level) => level.name).toList(),
+                valueLabels: PlaybackKeepAliveLevel.values.map((level) => level.label).toList(),
+                settingKey: SettingKeys.preventWordClipping,
+              ),
             if (isAndroid)
               const SettingSwitchTile(
                 label: 'Skip silence',

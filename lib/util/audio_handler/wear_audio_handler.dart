@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
+import 'package:yaabsa/util/network/request_headers.dart';
 
 class WearAudioHandler extends BaseAudioHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -51,11 +53,20 @@ class WearAudioHandler extends BaseAudioHandler {
   }
 
   Future<void> loadInternalMedia(InternalMedia media, {Duration initialPosition = Duration.zero}) async {
-    final sources = media.toAudioSources();
+    // Same headers as the phone handler: the server's custom headers (e.g. for
+    // a reverse proxy) and, for HLS, the bearer token.
+    final user = containerRef.read(currentUserProvider).value;
+    final isHls = media.tracks.any((track) => track.mimeType.toLowerCase().contains('mpegurl'));
+    final headers = buildRequestHeaders(
+      serverHeaders: user?.server?.headers,
+      bearerToken: isHls ? user?.preferredAuthToken : null,
+    );
+
+    final sources = media.toAudioSources(headers: headers);
     if (sources.isEmpty) return;
 
     _media = media;
-    final item = media.toMediaItem();
+    final item = media.toMediaItem(artHeaders: buildRequestHeaders(serverHeaders: user?.server?.headers));
     queue.add([item]);
     mediaItem.add(item);
 

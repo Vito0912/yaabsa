@@ -29,16 +29,21 @@ $CustomMetadataProvidersResponseCopyWith<CustomMetadataProvidersResponse> get co
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomMetadataProvidersResponse&&const DeepCollectionEquality().equals(other.providers, providers));
+  final _this = this as CustomMetadataProvidersResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomMetadataProvidersResponse&&const DeepCollectionEquality().equals(other.providers, _this.providers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(providers));
+int get hashCode {
+  final _this = this as CustomMetadataProvidersResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.providers));
+}
 
 @override
 String toString() {
-  return 'CustomMetadataProvidersResponse(providers: $providers)';
+  final _this = this as CustomMetadataProvidersResponse;
+  return 'CustomMetadataProvidersResponse(providers: ${_this.providers})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomMetadataProvidersResponse&&const DeepCollectionEquality().equals(other._providers, _providers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomMetadataProvidersResponse&&const DeepCollectionEquality().equals(other.providers, _providers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_providers));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_providers));
+}
 
 @override
 String toString() {
-  return 'CustomMetadataProvidersResponse(providers: $providers)';
+    return 'CustomMetadataProvidersResponse(providers: $providers)';
 }
 
 

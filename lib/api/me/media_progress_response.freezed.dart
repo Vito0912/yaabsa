@@ -29,16 +29,21 @@ $MediaProgressResponseCopyWith<MediaProgressResponse> get copyWith => _$MediaPro
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaProgressResponse&&const DeepCollectionEquality().equals(other.mediaProgress, mediaProgress));
+  final _this = this as MediaProgressResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaProgressResponse&&const DeepCollectionEquality().equals(other.mediaProgress, _this.mediaProgress));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(mediaProgress));
+int get hashCode {
+  final _this = this as MediaProgressResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.mediaProgress));
+}
 
 @override
 String toString() {
-  return 'MediaProgressResponse(mediaProgress: $mediaProgress)';
+  final _this = this as MediaProgressResponse;
+  return 'MediaProgressResponse(mediaProgress: ${_this.mediaProgress})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaProgressResponse&&const DeepCollectionEquality().equals(other._mediaProgress, _mediaProgress));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaProgressResponse&&const DeepCollectionEquality().equals(other.mediaProgress, _mediaProgress));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_mediaProgress));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_mediaProgress));
+}
 
 @override
 String toString() {
-  return 'MediaProgressResponse(mediaProgress: $mediaProgress)';
+    return 'MediaProgressResponse(mediaProgress: $mediaProgress)';
 }
 
 

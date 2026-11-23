@@ -29,16 +29,21 @@ $AuthorStatsCopyWith<AuthorStats> get copyWith => _$AuthorStatsCopyWithImpl<Auth
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthorStats&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.count, count) || other.count == count));
+  final _this = this as AuthorStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthorStats&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.count, _this.count) || other.count == _this.count));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,count);
+int get hashCode {
+  final _this = this as AuthorStats;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.count);
+}
 
 @override
 String toString() {
-  return 'AuthorStats(id: $id, name: $name, count: $count)';
+  final _this = this as AuthorStats;
+  return 'AuthorStats(id: ${_this.id}, name: ${_this.name}, count: ${_this.count})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthorStats&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.count, count) || other.count == count));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthorStats&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.count, count) || other.count == count));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,count);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,count);
+}
 
 @override
 String toString() {
-  return 'AuthorStats(id: $id, name: $name, count: $count)';
+    return 'AuthorStats(id: $id, name: $name, count: $count)';
 }
 
 

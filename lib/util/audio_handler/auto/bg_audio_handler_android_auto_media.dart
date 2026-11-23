@@ -463,7 +463,7 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       return null;
     }
     final scheme = originalUri.scheme.toLowerCase();
-    if (scheme != 'http' && scheme != 'https' && scheme != 'file') {
+    if (scheme != 'http' && scheme != 'https') {
       return originalUri;
     }
 

@@ -59,7 +59,9 @@ Future<void> addSelectedLibraryItemsToPlaylist({
       if (response.data == null) {
         throw Exception('No playlist data returned from add request.');
       }
-      await ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false, forceServer: true);
+      await ref
+          .read(playlistsProvider(libraryId).notifier)
+          .refresh(withLoading: false, forceServer: true, invalidatePending: true);
     },
     successMessage: 'Added ${selectedItems.length} selected item(s) to "${target.title}".',
     errorFallback: 'Could not add selected items to playlist.',
@@ -155,10 +157,12 @@ Future<LibraryTargetPickerOption?> _showEditablePlaylistPicker({
     loadErrorMessage: 'Could not load playlists.',
     loadOptions: () async {
       final playlistsNotifier = ref.read(playlistsProvider(libraryId).notifier);
+      await playlistsNotifier.ensureAllLoaded();
       var playlists = ref.read(playlistsProvider(libraryId)).value?.items ?? const <Playlist>[];
 
       if (playlists.isEmpty) {
         await playlistsNotifier.refresh(withLoading: false, forceServer: true);
+        await playlistsNotifier.ensureAllLoaded();
         playlists = ref.read(playlistsProvider(libraryId)).value?.items ?? const <Playlist>[];
       }
 
@@ -194,10 +198,12 @@ Future<void> addSelectedBooksToCollection({
     loadErrorMessage: 'Could not load collections.',
     loadOptions: () async {
       final collectionsNotifier = ref.read(collectionsProvider(libraryId).notifier);
+      await collectionsNotifier.ensureAllLoaded();
       var collections = ref.read(collectionsProvider(libraryId)).value?.items ?? const <Collection>[];
 
       if (collections.isEmpty) {
         await collectionsNotifier.refresh(withLoading: false, forceServer: true);
+        await collectionsNotifier.ensureAllLoaded();
         collections = ref.read(collectionsProvider(libraryId)).value?.items ?? const <Collection>[];
       }
 

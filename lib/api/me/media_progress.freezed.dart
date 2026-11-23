@@ -29,16 +29,21 @@ $MediaProgressCopyWith<MediaProgress> get copyWith => _$MediaProgressCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaProgress&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.mediaItemId, mediaItemId) || other.mediaItemId == mediaItemId)&&(identical(other.mediaItemType, mediaItemType) || other.mediaItemType == mediaItemType)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished)&&(identical(other.hideFromContinueListening, hideFromContinueListening) || other.hideFromContinueListening == hideFromContinueListening)&&(identical(other.ebookLocation, ebookLocation) || other.ebookLocation == ebookLocation)&&(identical(other.ebookProgress, ebookProgress) || other.ebookProgress == ebookProgress)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
+  final _this = this as MediaProgress;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaProgress&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.episodeId, _this.episodeId) || other.episodeId == _this.episodeId)&&(identical(other.mediaItemId, _this.mediaItemId) || other.mediaItemId == _this.mediaItemId)&&(identical(other.mediaItemType, _this.mediaItemType) || other.mediaItemType == _this.mediaItemType)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.progress, _this.progress) || other.progress == _this.progress)&&(identical(other.currentTime, _this.currentTime) || other.currentTime == _this.currentTime)&&(identical(other.isFinished, _this.isFinished) || other.isFinished == _this.isFinished)&&(identical(other.hideFromContinueListening, _this.hideFromContinueListening) || other.hideFromContinueListening == _this.hideFromContinueListening)&&(identical(other.ebookLocation, _this.ebookLocation) || other.ebookLocation == _this.ebookLocation)&&(identical(other.ebookProgress, _this.ebookProgress) || other.ebookProgress == _this.ebookProgress)&&(identical(other.lastUpdate, _this.lastUpdate) || other.lastUpdate == _this.lastUpdate)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt)&&(identical(other.finishedAt, _this.finishedAt) || other.finishedAt == _this.finishedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,libraryItemId,episodeId,mediaItemId,mediaItemType,duration,progress,currentTime,isFinished,hideFromContinueListening,ebookLocation,ebookProgress,lastUpdate,startedAt,finishedAt);
+int get hashCode {
+  final _this = this as MediaProgress;
+  return Object.hash(runtimeType,_this.id,_this.userId,_this.libraryItemId,_this.episodeId,_this.mediaItemId,_this.mediaItemType,_this.duration,_this.progress,_this.currentTime,_this.isFinished,_this.hideFromContinueListening,_this.ebookLocation,_this.ebookProgress,_this.lastUpdate,_this.startedAt,_this.finishedAt);
+}
 
 @override
 String toString() {
-  return 'MediaProgress(id: $id, userId: $userId, libraryItemId: $libraryItemId, episodeId: $episodeId, mediaItemId: $mediaItemId, mediaItemType: $mediaItemType, duration: $duration, progress: $progress, currentTime: $currentTime, isFinished: $isFinished, hideFromContinueListening: $hideFromContinueListening, ebookLocation: $ebookLocation, ebookProgress: $ebookProgress, lastUpdate: $lastUpdate, startedAt: $startedAt, finishedAt: $finishedAt)';
+  final _this = this as MediaProgress;
+  return 'MediaProgress(id: ${_this.id}, userId: ${_this.userId}, libraryItemId: ${_this.libraryItemId}, episodeId: ${_this.episodeId}, mediaItemId: ${_this.mediaItemId}, mediaItemType: ${_this.mediaItemType}, duration: ${_this.duration}, progress: ${_this.progress}, currentTime: ${_this.currentTime}, isFinished: ${_this.isFinished}, hideFromContinueListening: ${_this.hideFromContinueListening}, ebookLocation: ${_this.ebookLocation}, ebookProgress: ${_this.ebookProgress}, lastUpdate: ${_this.lastUpdate}, startedAt: ${_this.startedAt}, finishedAt: ${_this.finishedAt})';
 }
 
 
@@ -258,16 +263,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaProgress&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.mediaItemId, mediaItemId) || other.mediaItemId == mediaItemId)&&(identical(other.mediaItemType, mediaItemType) || other.mediaItemType == mediaItemType)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished)&&(identical(other.hideFromContinueListening, hideFromContinueListening) || other.hideFromContinueListening == hideFromContinueListening)&&(identical(other.ebookLocation, ebookLocation) || other.ebookLocation == ebookLocation)&&(identical(other.ebookProgress, ebookProgress) || other.ebookProgress == ebookProgress)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaProgress&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.mediaItemId, mediaItemId) || other.mediaItemId == mediaItemId)&&(identical(other.mediaItemType, mediaItemType) || other.mediaItemType == mediaItemType)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished)&&(identical(other.hideFromContinueListening, hideFromContinueListening) || other.hideFromContinueListening == hideFromContinueListening)&&(identical(other.ebookLocation, ebookLocation) || other.ebookLocation == ebookLocation)&&(identical(other.ebookProgress, ebookProgress) || other.ebookProgress == ebookProgress)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,libraryItemId,episodeId,mediaItemId,mediaItemType,duration,progress,currentTime,isFinished,hideFromContinueListening,ebookLocation,ebookProgress,lastUpdate,startedAt,finishedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,userId,libraryItemId,episodeId,mediaItemId,mediaItemType,duration,progress,currentTime,isFinished,hideFromContinueListening,ebookLocation,ebookProgress,lastUpdate,startedAt,finishedAt);
+}
 
 @override
 String toString() {
-  return 'MediaProgress(id: $id, userId: $userId, libraryItemId: $libraryItemId, episodeId: $episodeId, mediaItemId: $mediaItemId, mediaItemType: $mediaItemType, duration: $duration, progress: $progress, currentTime: $currentTime, isFinished: $isFinished, hideFromContinueListening: $hideFromContinueListening, ebookLocation: $ebookLocation, ebookProgress: $ebookProgress, lastUpdate: $lastUpdate, startedAt: $startedAt, finishedAt: $finishedAt)';
+    return 'MediaProgress(id: $id, userId: $userId, libraryItemId: $libraryItemId, episodeId: $episodeId, mediaItemId: $mediaItemId, mediaItemType: $mediaItemType, duration: $duration, progress: $progress, currentTime: $currentTime, isFinished: $isFinished, hideFromContinueListening: $hideFromContinueListening, ebookLocation: $ebookLocation, ebookProgress: $ebookProgress, lastUpdate: $lastUpdate, startedAt: $startedAt, finishedAt: $finishedAt)';
 }
 
 

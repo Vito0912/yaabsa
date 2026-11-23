@@ -26,16 +26,21 @@ $OpenSessionsResponseCopyWith<OpenSessionsResponse> get copyWith => _$OpenSessio
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OpenSessionsResponse&&const DeepCollectionEquality().equals(other.sessions, sessions)&&const DeepCollectionEquality().equals(other.shareSessions, shareSessions));
+  final _this = this as OpenSessionsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OpenSessionsResponse&&const DeepCollectionEquality().equals(other.sessions, _this.sessions)&&const DeepCollectionEquality().equals(other.shareSessions, _this.shareSessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(sessions),const DeepCollectionEquality().hash(shareSessions));
+int get hashCode {
+  final _this = this as OpenSessionsResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.sessions),const DeepCollectionEquality().hash(_this.shareSessions));
+}
 
 @override
 String toString() {
-  return 'OpenSessionsResponse(sessions: $sessions, shareSessions: $shareSessions)';
+  final _this = this as OpenSessionsResponse;
+  return 'OpenSessionsResponse(sessions: ${_this.sessions}, shareSessions: ${_this.shareSessions})';
 }
 
 
@@ -236,16 +241,18 @@ _$OpenSessionsResponseCopyWith<_OpenSessionsResponse> get copyWith => __$OpenSes
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OpenSessionsResponse&&const DeepCollectionEquality().equals(other._sessions, _sessions)&&const DeepCollectionEquality().equals(other._shareSessions, _shareSessions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OpenSessionsResponse&&const DeepCollectionEquality().equals(other.sessions, _sessions)&&const DeepCollectionEquality().equals(other.shareSessions, _shareSessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_sessions),const DeepCollectionEquality().hash(_shareSessions));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_sessions),const DeepCollectionEquality().hash(_shareSessions));
+}
 
 @override
 String toString() {
-  return 'OpenSessionsResponse(sessions: $sessions, shareSessions: $shareSessions)';
+    return 'OpenSessionsResponse(sessions: $sessions, shareSessions: $shareSessions)';
 }
 
 

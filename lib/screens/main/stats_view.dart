@@ -6,20 +6,21 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
-import 'package:yaabsa/components/stats/stats_components.dart';
+import 'package:yaabsa/features/statistics/widgets/statistics_components.dart';
 import 'package:yaabsa/models/advanced_listening_analytics_state.dart';
 import 'package:yaabsa/models/advanced_listening_stats.dart';
 import 'package:yaabsa/provider/common/stats_provider.dart';
-import 'package:yaabsa/screens/main/stats/stats_activity_section.dart';
-import 'package:yaabsa/screens/main/stats/stats_activity_totals_card.dart';
-import 'package:yaabsa/screens/main/stats/stats_achievements_section.dart';
-import 'package:yaabsa/screens/main/stats/stats_advanced_dashboard.dart';
-import 'package:yaabsa/screens/main/stats/stats_recent_sessions_list.dart';
-import 'package:yaabsa/screens/main/stats/stats_summary_grid.dart';
-import 'package:yaabsa/screens/main/stats/stats_weekday_breakdown.dart';
-import 'package:yaabsa/screens/main/stats/stats_year_rewind_section.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_activity_section.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_activity_totals_card.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_achievements_section.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_advanced_dashboard.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_recent_sessions_list.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_summary_grid.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_weekday_breakdown.dart';
+import 'package:yaabsa/features/statistics/widgets/stats_year_rewind_section.dart';
 import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class StatsView extends ConsumerStatefulWidget {
   const StatsView({super.key});
@@ -234,7 +235,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                     },
                     loading: () => const Padding(
                       padding: EdgeInsets.symmetric(vertical: 80),
-                      child: Center(child: CircularProgressIndicator()),
+                      child: Center(child: YaabsaCircularProgressIndicator()),
                     ),
                     error: (error, _) => ConnectionIssueView.requestFailed(
                       error: error,

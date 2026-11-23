@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
+import 'package:yaabsa/components/app/library/library_item_context_menu.dart';
 import 'package:yaabsa/components/app/library/library_items_grid.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
@@ -24,9 +25,11 @@ import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
 
 class LibraryView extends HookConsumerWidget {
-  const LibraryView({super.key, this.initialFilter});
+  const LibraryView({super.key, this.initialFilter, this.toolbarTitle, this.onToolbarBack});
 
   final String? initialFilter;
+  final String? toolbarTitle;
+  final VoidCallback? onToolbarBack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,7 +76,8 @@ class LibraryView extends HookConsumerWidget {
       stream: currentUser == null ? null : appDatabase.watchUserSetting(currentUser.id, SettingKeys.collapseSeries),
       builder: (context, snapshot) {
         final collapseSeriesEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, collapseSeriesFallback);
-        final initialCollapseSeries = selectedLibrary.mediaType == 'book' && collapseSeriesEnabled ? 1 : 0;
+        final initialCollapseSeries =
+            initialFilter != 'issues' && selectedLibrary.mediaType == 'book' && collapseSeriesEnabled ? 1 : 0;
         final itemsProvider = libraryItemsProvider(
           libraryId,
           initialFilter: initialFilter,
@@ -136,15 +140,23 @@ class LibraryView extends HookConsumerWidget {
                                 .read(itemsProvider.notifier)
                                 .setSort(sortSelection.sort, newDesc: sortSelection.desc),
                             onClearFilter: () => ref.read(itemsProvider.notifier).clearFilter(),
+                            title: toolbarTitle,
+                            onBack: onToolbarBack,
                           ),
                           Expanded(
                             child: items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage
                                 ? ListView(
                                     physics: const AlwaysScrollableScrollPhysics(),
-                                    children: const [
+                                    children: [
                                       SizedBox(
                                         height: 200,
-                                        child: Center(child: Text('No items found in this library.')),
+                                        child: Center(
+                                          child: Text(
+                                            state.filter == 'issues'
+                                                ? 'No missing or incomplete items found.'
+                                                : 'No items found in this library.',
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   )
@@ -212,6 +224,32 @@ class LibraryView extends HookConsumerWidget {
                                       }
                                       editingItemId.value = item.id;
                                     },
+                                    onItemContextMenu: (item, _, position) async {
+                                      await showLibraryItemContextMenu(
+                                        context: context,
+                                        ref: ref,
+                                        item: item,
+                                        position: position,
+                                        canEdit: canEditItems && item.collapsedSeries == null,
+                                        canQuickMatch: canQuickMatchItems,
+                                        canDelete:
+                                            canManageBooks &&
+                                            hasDeletePermission &&
+                                            managementPreferences.deleteItemsEnabled,
+                                        canAddToCollection:
+                                            canManageBooks &&
+                                            hasUpdatePermission &&
+                                            managementPreferences.collectionsEnabled,
+                                        currentUserId: currentUser?.id,
+                                        filterData: filterDataAsync.asData?.value,
+                                        onEdit: () {
+                                          if (!selection.selectionMode && item.collapsedSeries == null) {
+                                            editingItemId.value = item.id;
+                                          }
+                                        },
+                                        onAfterDelete: () => ref.read(itemsProvider.notifier).refresh(),
+                                      );
+                                    },
                                   ),
                           ),
                         ],
@@ -259,7 +297,10 @@ class LibraryView extends HookConsumerWidget {
         );
         return ScreenRefreshIndicator(
           enabled: editingItemId.value == null,
-          onRefresh: () => ref.read(itemsProvider.notifier).refresh(),
+          onRefresh: () async {
+            ref.invalidate(libraryFilterDataProvider(libraryId));
+            await ref.read(itemsProvider.notifier).refresh();
+          },
           child: content,
         );
       },

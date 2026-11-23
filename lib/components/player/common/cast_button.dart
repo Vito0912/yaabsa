@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/player/common/cast_device_sheet.dart';
+import 'package:yaabsa/features/player/widgets/player_cast_presentation.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/cast/cast_backend.dart';
 import 'package:yaabsa/util/cast/cast_service.dart';
@@ -66,11 +67,10 @@ class CastButton extends StatelessWidget {
       initialData: audioHandler.casting.hasConnectedSession,
       builder: (context, snapshot) {
         final connected = snapshot.data ?? false;
-        return IconButton(
-          onPressed: () => showCastDevicePicker(context),
-          tooltip: connected ? 'Manage cast device' : 'Connect to a cast device',
+        return PlayerCastButtonPresentation(
+          connected: connected,
           iconSize: iconSize,
-          icon: Icon(connected ? Icons.cast_connected : Icons.cast),
+          onPressed: () => showCastDevicePicker(context),
         );
       },
     );

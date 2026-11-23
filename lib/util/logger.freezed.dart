@@ -25,23 +25,29 @@ $LogEntryCopyWith<LogEntry> get copyWith => _$LogEntryCopyWithImpl<LogEntry>(thi
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  final _this = this as LogEntry;
   properties
     ..add(DiagnosticsProperty('type', 'LogEntry'))
-    ..add(DiagnosticsProperty('timestamp', timestamp))..add(DiagnosticsProperty('message', message))..add(DiagnosticsProperty('level', level))..add(DiagnosticsProperty('tag', tag));
+    ..add(DiagnosticsProperty('timestamp', _this.timestamp))..add(DiagnosticsProperty('message', _this.message))..add(DiagnosticsProperty('level', _this.level))..add(DiagnosticsProperty('tag', _this.tag));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LogEntry&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.message, message) || other.message == message)&&(identical(other.level, level) || other.level == level)&&(identical(other.tag, tag) || other.tag == tag));
+  final _this = this as LogEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LogEntry&&(identical(other.timestamp, _this.timestamp) || other.timestamp == _this.timestamp)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.level, _this.level) || other.level == _this.level)&&(identical(other.tag, _this.tag) || other.tag == _this.tag));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,timestamp,message,level,tag);
+int get hashCode {
+  final _this = this as LogEntry;
+  return Object.hash(runtimeType,_this.timestamp,_this.message,_this.level,_this.tag);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'LogEntry(timestamp: $timestamp, message: $message, level: $level, tag: $tag)';
+  final _this = this as LogEntry;
+  return 'LogEntry(timestamp: ${_this.timestamp}, message: ${_this.message}, level: ${_this.level}, tag: ${_this.tag})';
 }
 
 
@@ -233,23 +239,25 @@ _$LogEntryCopyWith<_LogEntry> get copyWith => __$LogEntryCopyWithImpl<_LogEntry>
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'LogEntry'))
     ..add(DiagnosticsProperty('timestamp', timestamp))..add(DiagnosticsProperty('message', message))..add(DiagnosticsProperty('level', level))..add(DiagnosticsProperty('tag', tag));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LogEntry&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.message, message) || other.message == message)&&(identical(other.level, level) || other.level == level)&&(identical(other.tag, tag) || other.tag == tag));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LogEntry&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.message, message) || other.message == message)&&(identical(other.level, level) || other.level == level)&&(identical(other.tag, tag) || other.tag == tag));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,timestamp,message,level,tag);
+int get hashCode {
+    return Object.hash(runtimeType,timestamp,message,level,tag);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'LogEntry(timestamp: $timestamp, message: $message, level: $level, tag: $tag)';
+    return 'LogEntry(timestamp: $timestamp, message: $message, level: $level, tag: $tag)';
 }
 
 

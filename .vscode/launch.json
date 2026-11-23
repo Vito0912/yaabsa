@@ -16,6 +16,14 @@
       "program": "lib/main.dart",
       "flutterMode": "debug",
       "toolArgs": ["--flavor", "auto"]
+    },
+    {
+      "name": "Wear OS",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_wear.dart",
+      "flutterMode": "debug",
+      "toolArgs": ["--flavor", "wear"]
     }
   ]
 }

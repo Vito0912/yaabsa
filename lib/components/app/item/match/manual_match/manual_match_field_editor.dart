@@ -1,8 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_description_field.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
+import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
 
 class ManualMatchFieldEditor extends StatelessWidget {
   const ManualMatchFieldEditor({
@@ -191,17 +192,12 @@ class ManualMatchFieldEditor extends StatelessWidget {
       return _coverFallback(context, icon: Icons.image_not_supported_rounded);
     }
 
-    return ClipRRect(
+    return YaabsaCoverImage(
+      image: NetworkImage(coverUrl),
+      width: 80,
+      height: 80,
       borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        width: 80,
-        height: 80,
-        child: Image.network(
-          coverUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _coverFallback(context, icon: Icons.broken_image_rounded),
-        ),
-      ),
+      placeholder: _coverFallback(context, icon: Icons.broken_image_rounded),
     );
   }
 

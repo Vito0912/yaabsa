@@ -29,16 +29,21 @@ $QuickMatchLibraryItemOptionsCopyWith<QuickMatchLibraryItemOptions> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QuickMatchLibraryItemOptions&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.overrideCover, overrideCover) || other.overrideCover == overrideCover)&&(identical(other.overrideDetails, overrideDetails) || other.overrideDetails == overrideDetails));
+  final _this = this as QuickMatchLibraryItemOptions;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QuickMatchLibraryItemOptions&&(identical(other.provider, _this.provider) || other.provider == _this.provider)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.isbn, _this.isbn) || other.isbn == _this.isbn)&&(identical(other.asin, _this.asin) || other.asin == _this.asin)&&(identical(other.overrideCover, _this.overrideCover) || other.overrideCover == _this.overrideCover)&&(identical(other.overrideDetails, _this.overrideDetails) || other.overrideDetails == _this.overrideDetails));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,provider,title,author,isbn,asin,overrideCover,overrideDetails);
+int get hashCode {
+  final _this = this as QuickMatchLibraryItemOptions;
+  return Object.hash(runtimeType,_this.provider,_this.title,_this.author,_this.isbn,_this.asin,_this.overrideCover,_this.overrideDetails);
+}
 
 @override
 String toString() {
-  return 'QuickMatchLibraryItemOptions(provider: $provider, title: $title, author: $author, isbn: $isbn, asin: $asin, overrideCover: $overrideCover, overrideDetails: $overrideDetails)';
+  final _this = this as QuickMatchLibraryItemOptions;
+  return 'QuickMatchLibraryItemOptions(provider: ${_this.provider}, title: ${_this.title}, author: ${_this.author}, isbn: ${_this.isbn}, asin: ${_this.asin}, overrideCover: ${_this.overrideCover}, overrideDetails: ${_this.overrideDetails})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QuickMatchLibraryItemOptions&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.overrideCover, overrideCover) || other.overrideCover == overrideCover)&&(identical(other.overrideDetails, overrideDetails) || other.overrideDetails == overrideDetails));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _QuickMatchLibraryItemOptions&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.overrideCover, overrideCover) || other.overrideCover == overrideCover)&&(identical(other.overrideDetails, overrideDetails) || other.overrideDetails == overrideDetails));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,provider,title,author,isbn,asin,overrideCover,overrideDetails);
+int get hashCode {
+    return Object.hash(runtimeType,provider,title,author,isbn,asin,overrideCover,overrideDetails);
+}
 
 @override
 String toString() {
-  return 'QuickMatchLibraryItemOptions(provider: $provider, title: $title, author: $author, isbn: $isbn, asin: $asin, overrideCover: $overrideCover, overrideDetails: $overrideDetails)';
+    return 'QuickMatchLibraryItemOptions(provider: $provider, title: $title, author: $author, isbn: $isbn, asin: $asin, overrideCover: $overrideCover, overrideDetails: $overrideDetails)';
 }
 
 

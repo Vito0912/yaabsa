@@ -29,16 +29,21 @@ $UserListeningStatsCopyWith<UserListeningStats> get copyWith => _$UserListeningS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserListeningStats&&(identical(other.totalTime, totalTime) || other.totalTime == totalTime)&&const DeepCollectionEquality().equals(other.items, items)&&const DeepCollectionEquality().equals(other.days, days)&&(identical(other.dayOfWeek, dayOfWeek) || other.dayOfWeek == dayOfWeek)&&(identical(other.today, today) || other.today == today)&&const DeepCollectionEquality().equals(other.recentSessions, recentSessions));
+  final _this = this as UserListeningStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserListeningStats&&(identical(other.totalTime, _this.totalTime) || other.totalTime == _this.totalTime)&&const DeepCollectionEquality().equals(other.items, _this.items)&&const DeepCollectionEquality().equals(other.days, _this.days)&&(identical(other.dayOfWeek, _this.dayOfWeek) || other.dayOfWeek == _this.dayOfWeek)&&(identical(other.today, _this.today) || other.today == _this.today)&&const DeepCollectionEquality().equals(other.recentSessions, _this.recentSessions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalTime,const DeepCollectionEquality().hash(items),const DeepCollectionEquality().hash(days),dayOfWeek,today,const DeepCollectionEquality().hash(recentSessions));
+int get hashCode {
+  final _this = this as UserListeningStats;
+  return Object.hash(runtimeType,_this.totalTime,const DeepCollectionEquality().hash(_this.items),const DeepCollectionEquality().hash(_this.days),_this.dayOfWeek,_this.today,const DeepCollectionEquality().hash(_this.recentSessions));
+}
 
 @override
 String toString() {
-  return 'UserListeningStats(totalTime: $totalTime, items: $items, days: $days, dayOfWeek: $dayOfWeek, today: $today, recentSessions: $recentSessions)';
+  final _this = this as UserListeningStats;
+  return 'UserListeningStats(totalTime: ${_this.totalTime}, items: ${_this.items}, days: ${_this.days}, dayOfWeek: ${_this.dayOfWeek}, today: ${_this.today}, recentSessions: ${_this.recentSessions})';
 }
 
 
@@ -274,16 +279,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserListeningStats&&(identical(other.totalTime, totalTime) || other.totalTime == totalTime)&&const DeepCollectionEquality().equals(other._items, _items)&&const DeepCollectionEquality().equals(other._days, _days)&&(identical(other.dayOfWeek, dayOfWeek) || other.dayOfWeek == dayOfWeek)&&(identical(other.today, today) || other.today == today)&&const DeepCollectionEquality().equals(other._recentSessions, _recentSessions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserListeningStats&&(identical(other.totalTime, totalTime) || other.totalTime == totalTime)&&const DeepCollectionEquality().equals(other.items, _items)&&const DeepCollectionEquality().equals(other.days, _days)&&(identical(other.dayOfWeek, dayOfWeek) || other.dayOfWeek == dayOfWeek)&&(identical(other.today, today) || other.today == today)&&const DeepCollectionEquality().equals(other.recentSessions, _recentSessions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalTime,const DeepCollectionEquality().hash(_items),const DeepCollectionEquality().hash(_days),dayOfWeek,today,const DeepCollectionEquality().hash(_recentSessions));
+int get hashCode {
+    return Object.hash(runtimeType,totalTime,const DeepCollectionEquality().hash(_items),const DeepCollectionEquality().hash(_days),dayOfWeek,today,const DeepCollectionEquality().hash(_recentSessions));
+}
 
 @override
 String toString() {
-  return 'UserListeningStats(totalTime: $totalTime, items: $items, days: $days, dayOfWeek: $dayOfWeek, today: $today, recentSessions: $recentSessions)';
+    return 'UserListeningStats(totalTime: $totalTime, items: $items, days: $days, dayOfWeek: $dayOfWeek, today: $today, recentSessions: $recentSessions)';
 }
 
 

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 enum DesktopPageCommand { search, refresh, dismiss }
 
@@ -142,7 +143,7 @@ class _DesktopPageShortcutsState extends ConsumerState<DesktopPageShortcuts> {
       fit: StackFit.passthrough,
       children: [
         widget.child,
-        if (_refreshing) const Positioned(top: 0, left: 0, right: 0, child: LinearProgressIndicator()),
+        if (_refreshing) const Positioned(top: 0, left: 0, right: 0, child: YaabsaLinearProgressIndicator()),
       ],
     );
   }

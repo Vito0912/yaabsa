@@ -41,6 +41,7 @@ class MediaProgressStore {
   String? userId;
   Map<String, MediaProgress> progressByKey = <String, MediaProgress>{};
   Map<String, Map<String, MediaProgress>> progressByLibraryItemId = <String, Map<String, MediaProgress>>{};
+  final Set<String> deletedProgressKeys = <String>{};
   bool isInitialized = false;
   bool startupFetchAttempted = false;
 }
@@ -126,15 +127,19 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   void _replaceProgressMap(Map<String, MediaProgress> next) {
+    final visibleNext = <String, MediaProgress>{
+      for (final entry in next.entries)
+        if (!_store.deletedProgressKeys.contains(entry.key)) entry.key: entry.value,
+    };
     final changedKeys = <String>{};
     var notifyGlobalListeners = false;
     for (final key in _progressByKey.keys) {
-      if (!next.containsKey(key)) {
+      if (!visibleNext.containsKey(key)) {
         changedKeys.add(key);
         notifyGlobalListeners = true;
       }
     }
-    for (final entry in next.entries) {
+    for (final entry in visibleNext.entries) {
       if (_progressByKey[entry.key] != entry.value) {
         changedKeys.add(entry.key);
         notifyGlobalListeners =
@@ -142,7 +147,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
     }
 
-    _progressByKey = Map<String, MediaProgress>.of(next);
+    _progressByKey = Map<String, MediaProgress>.of(visibleNext);
     _progressByLibraryItemId = <String, Map<String, MediaProgress>>{};
     for (final entry in _progressByKey.entries) {
       _progressByLibraryItemId.putIfAbsent(entry.value.libraryItemId, () => <String, MediaProgress>{})[entry.key] =
@@ -152,6 +157,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   void _setProgress(String key, MediaProgress progress) {
+    _store.deletedProgressKeys.remove(key);
     final existing = _progressByKey[key];
     if (existing == progress) {
       return;
@@ -180,6 +186,36 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
     _notifyChangedKeys(<String>[key], notifyGlobalListeners: true);
     return true;
+  }
+
+  Future<void> removeProgressRecordLocally(String libraryItemId, {String? episodeId, required String userId}) async {
+    if (_activeUserId() != userId) {
+      return;
+    }
+
+    final key = _progressKey(libraryItemId, episodeId);
+    _store.deletedProgressKeys.add(key);
+    _removeProgress(key);
+
+    final db = ref.read(appDatabaseProvider);
+    final currentUser = ref.read(currentUserProvider).value;
+    if (currentUser?.id == userId && currentUser?.mediaProgress != null) {
+      final remainingProgress = currentUser!.mediaProgress!
+          .where((progress) => _progressKeyFromMediaProgress(progress) != key)
+          .toList(growable: false);
+      await db.addOrUpdateStoredUser(currentUser.copyWith(mediaProgress: remainingProgress));
+    }
+
+    await _deleteCachedProgress(userId: userId, libraryItemId: libraryItemId, episodeId: episodeId);
+    try {
+      await db.clearMediaProgressFromSyncs(userId, libraryItemId, episodeId: episodeId);
+    } catch (error, stackTrace) {
+      logger(
+        'Failed to clear queued media progress for $key: $error\n$stackTrace',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.warning,
+      );
+    }
   }
 
   String _progressKey(String libraryItemId, [String? episodeId]) {
@@ -271,10 +307,17 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     try {
       final decoded = jsonDecode(rawJson);
       if (decoded is Map<String, dynamic>) {
+        if (decoded.isEmpty) {
+          return null;
+        }
         return MediaProgress.fromJson(decoded);
       }
       if (decoded is Map) {
-        return MediaProgress.fromJson(Map<String, dynamic>.from(decoded));
+        final progressJson = Map<String, dynamic>.from(decoded);
+        if (progressJson.isEmpty) {
+          return null;
+        }
+        return MediaProgress.fromJson(progressJson);
       }
       throw const FormatException('Stored media progress payload is not a JSON object');
     } catch (e, s) {
@@ -456,6 +499,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       _store.userId = userId;
       _store.isInitialized = false;
       _store.startupFetchAttempted = false;
+      _store.deletedProgressKeys.clear();
       _replaceProgressMap(const <String, MediaProgress>{});
     }
 

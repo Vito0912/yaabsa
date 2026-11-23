@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 class JumpButton extends ConsumerWidget {
   const JumpButton({super.key, required this.rewind, this.iconSize, this.buttonSize = 48});
@@ -17,11 +18,12 @@ class JumpButton extends ConsumerWidget {
     final intervalVal = ref.watch(globalSettingByKeyProvider(intervalKey)).asData?.value;
     final durationSeconds = SettingsParser.decodeValue<int>(intervalVal, 10);
 
-    return IconButton(
-      style: IconButton.styleFrom(minimumSize: Size.square(buttonSize)),
-      iconSize: iconSize,
+    return YaabsaActionIconButton(
+      iconWidget: JumpIcon(rewind: rewind, durationSeconds: durationSeconds, size: iconSize),
+      iconSize: iconSize ?? 24,
+      buttonSize: buttonSize,
+      compact: false,
       tooltip: rewind ? 'Rewind $durationSeconds seconds' : 'Forward $durationSeconds seconds',
-      icon: JumpIcon(rewind: rewind, durationSeconds: durationSeconds, size: iconSize),
       onPressed: () {
         rewind ? audioHandler.rewind() : audioHandler.fastForward();
       },

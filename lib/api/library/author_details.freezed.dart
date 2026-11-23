@@ -29,16 +29,21 @@ $AuthorDetailsCopyWith<AuthorDetails> get copyWith => _$AuthorDetailsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthorDetails&&(identical(other.id, id) || other.id == id)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.series, series)&&const DeepCollectionEquality().equals(other.libraryItems, libraryItems));
+  final _this = this as AuthorDetails;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthorDetails&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.asin, _this.asin) || other.asin == _this.asin)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.imagePath, _this.imagePath) || other.imagePath == _this.imagePath)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&const DeepCollectionEquality().equals(other.series, _this.series)&&const DeepCollectionEquality().equals(other.libraryItems, _this.libraryItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,asin,name,description,imagePath,libraryId,addedAt,updatedAt,const DeepCollectionEquality().hash(series),const DeepCollectionEquality().hash(libraryItems));
+int get hashCode {
+  final _this = this as AuthorDetails;
+  return Object.hash(runtimeType,_this.id,_this.asin,_this.name,_this.description,_this.imagePath,_this.libraryId,_this.addedAt,_this.updatedAt,const DeepCollectionEquality().hash(_this.series),const DeepCollectionEquality().hash(_this.libraryItems));
+}
 
 @override
 String toString() {
-  return 'AuthorDetails(id: $id, asin: $asin, name: $name, description: $description, imagePath: $imagePath, libraryId: $libraryId, addedAt: $addedAt, updatedAt: $updatedAt, series: $series, libraryItems: $libraryItems)';
+  final _this = this as AuthorDetails;
+  return 'AuthorDetails(id: ${_this.id}, asin: ${_this.asin}, name: ${_this.name}, description: ${_this.description}, imagePath: ${_this.imagePath}, libraryId: ${_this.libraryId}, addedAt: ${_this.addedAt}, updatedAt: ${_this.updatedAt}, series: ${_this.series}, libraryItems: ${_this.libraryItems})';
 }
 
 
@@ -258,16 +263,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthorDetails&&(identical(other.id, id) || other.id == id)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._series, _series)&&const DeepCollectionEquality().equals(other._libraryItems, _libraryItems));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthorDetails&&(identical(other.id, id) || other.id == id)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.series, _series)&&const DeepCollectionEquality().equals(other.libraryItems, _libraryItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,asin,name,description,imagePath,libraryId,addedAt,updatedAt,const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_libraryItems));
+int get hashCode {
+    return Object.hash(runtimeType,id,asin,name,description,imagePath,libraryId,addedAt,updatedAt,const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_libraryItems));
+}
 
 @override
 String toString() {
-  return 'AuthorDetails(id: $id, asin: $asin, name: $name, description: $description, imagePath: $imagePath, libraryId: $libraryId, addedAt: $addedAt, updatedAt: $updatedAt, series: $series, libraryItems: $libraryItems)';
+    return 'AuthorDetails(id: $id, asin: $asin, name: $name, description: $description, imagePath: $imagePath, libraryId: $libraryId, addedAt: $addedAt, updatedAt: $updatedAt, series: $series, libraryItems: $libraryItems)';
 }
 
 
@@ -331,16 +338,21 @@ $AuthorSeriesGroupCopyWith<AuthorSeriesGroup> get copyWith => _$AuthorSeriesGrou
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthorSeriesGroup&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.items, items));
+  final _this = this as AuthorSeriesGroup;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthorSeriesGroup&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.items, _this.items));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(items));
+int get hashCode {
+  final _this = this as AuthorSeriesGroup;
+  return Object.hash(runtimeType,_this.id,_this.name,const DeepCollectionEquality().hash(_this.items));
+}
 
 @override
 String toString() {
-  return 'AuthorSeriesGroup(id: $id, name: $name, items: $items)';
+  final _this = this as AuthorSeriesGroup;
+  return 'AuthorSeriesGroup(id: ${_this.id}, name: ${_this.name}, items: ${_this.items})';
 }
 
 
@@ -540,16 +552,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthorSeriesGroup&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._items, _items));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthorSeriesGroup&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.items, _items));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_items));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_items));
+}
 
 @override
 String toString() {
-  return 'AuthorSeriesGroup(id: $id, name: $name, items: $items)';
+    return 'AuthorSeriesGroup(id: $id, name: $name, items: $items)';
 }
 
 

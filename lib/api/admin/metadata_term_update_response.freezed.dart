@@ -29,16 +29,21 @@ $MetadataTermUpdateResponseCopyWith<MetadataTermUpdateResponse> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MetadataTermUpdateResponse&&(identical(other.numItemsUpdated, numItemsUpdated) || other.numItemsUpdated == numItemsUpdated)&&(identical(other.tagMerged, tagMerged) || other.tagMerged == tagMerged)&&(identical(other.genreMerged, genreMerged) || other.genreMerged == genreMerged));
+  final _this = this as MetadataTermUpdateResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MetadataTermUpdateResponse&&(identical(other.numItemsUpdated, _this.numItemsUpdated) || other.numItemsUpdated == _this.numItemsUpdated)&&(identical(other.tagMerged, _this.tagMerged) || other.tagMerged == _this.tagMerged)&&(identical(other.genreMerged, _this.genreMerged) || other.genreMerged == _this.genreMerged));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,numItemsUpdated,tagMerged,genreMerged);
+int get hashCode {
+  final _this = this as MetadataTermUpdateResponse;
+  return Object.hash(runtimeType,_this.numItemsUpdated,_this.tagMerged,_this.genreMerged);
+}
 
 @override
 String toString() {
-  return 'MetadataTermUpdateResponse(numItemsUpdated: $numItemsUpdated, tagMerged: $tagMerged, genreMerged: $genreMerged)';
+  final _this = this as MetadataTermUpdateResponse;
+  return 'MetadataTermUpdateResponse(numItemsUpdated: ${_this.numItemsUpdated}, tagMerged: ${_this.tagMerged}, genreMerged: ${_this.genreMerged})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MetadataTermUpdateResponse&&(identical(other.numItemsUpdated, numItemsUpdated) || other.numItemsUpdated == numItemsUpdated)&&(identical(other.tagMerged, tagMerged) || other.tagMerged == tagMerged)&&(identical(other.genreMerged, genreMerged) || other.genreMerged == genreMerged));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MetadataTermUpdateResponse&&(identical(other.numItemsUpdated, numItemsUpdated) || other.numItemsUpdated == numItemsUpdated)&&(identical(other.tagMerged, tagMerged) || other.tagMerged == tagMerged)&&(identical(other.genreMerged, genreMerged) || other.genreMerged == genreMerged));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,numItemsUpdated,tagMerged,genreMerged);
+int get hashCode {
+    return Object.hash(runtimeType,numItemsUpdated,tagMerged,genreMerged);
+}
 
 @override
 String toString() {
-  return 'MetadataTermUpdateResponse(numItemsUpdated: $numItemsUpdated, tagMerged: $tagMerged, genreMerged: $genreMerged)';
+    return 'MetadataTermUpdateResponse(numItemsUpdated: $numItemsUpdated, tagMerged: $tagMerged, genreMerged: $genreMerged)';
 }
 
 

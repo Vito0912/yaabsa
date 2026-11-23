@@ -29,16 +29,21 @@ $AdminUserCopyWith<AdminUser> get copyWith => _$AdminUserCopyWithImpl<AdminUser>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUser&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email)&&(identical(other.type, type) || other.type == type)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.hasOpenIdLink, hasOpenIdLink) || other.hasOpenIdLink == hasOpenIdLink)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&const DeepCollectionEquality().equals(other.librariesAccessible, librariesAccessible)&&const DeepCollectionEquality().equals(other.itemTagsSelected, itemTagsSelected));
+  final _this = this as AdminUser;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUser&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.isLocked, _this.isLocked) || other.isLocked == _this.isLocked)&&(identical(other.lastSeen, _this.lastSeen) || other.lastSeen == _this.lastSeen)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.hasOpenIdLink, _this.hasOpenIdLink) || other.hasOpenIdLink == _this.hasOpenIdLink)&&(identical(other.permissions, _this.permissions) || other.permissions == _this.permissions)&&const DeepCollectionEquality().equals(other.librariesAccessible, _this.librariesAccessible)&&const DeepCollectionEquality().equals(other.itemTagsSelected, _this.itemTagsSelected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,email,type,isActive,isLocked,lastSeen,createdAt,hasOpenIdLink,permissions,const DeepCollectionEquality().hash(librariesAccessible),const DeepCollectionEquality().hash(itemTagsSelected));
+int get hashCode {
+  final _this = this as AdminUser;
+  return Object.hash(runtimeType,_this.id,_this.username,_this.email,_this.type,_this.isActive,_this.isLocked,_this.lastSeen,_this.createdAt,_this.hasOpenIdLink,_this.permissions,const DeepCollectionEquality().hash(_this.librariesAccessible),const DeepCollectionEquality().hash(_this.itemTagsSelected));
+}
 
 @override
 String toString() {
-  return 'AdminUser(id: $id, username: $username, email: $email, type: $type, isActive: $isActive, isLocked: $isLocked, lastSeen: $lastSeen, createdAt: $createdAt, hasOpenIdLink: $hasOpenIdLink, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected)';
+  final _this = this as AdminUser;
+  return 'AdminUser(id: ${_this.id}, username: ${_this.username}, email: ${_this.email}, type: ${_this.type}, isActive: ${_this.isActive}, isLocked: ${_this.isLocked}, lastSeen: ${_this.lastSeen}, createdAt: ${_this.createdAt}, hasOpenIdLink: ${_this.hasOpenIdLink}, permissions: ${_this.permissions}, librariesAccessible: ${_this.librariesAccessible}, itemTagsSelected: ${_this.itemTagsSelected})';
 }
 
 
@@ -271,16 +276,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUser&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email)&&(identical(other.type, type) || other.type == type)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.hasOpenIdLink, hasOpenIdLink) || other.hasOpenIdLink == hasOpenIdLink)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&const DeepCollectionEquality().equals(other._librariesAccessible, _librariesAccessible)&&const DeepCollectionEquality().equals(other._itemTagsSelected, _itemTagsSelected));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUser&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email)&&(identical(other.type, type) || other.type == type)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.hasOpenIdLink, hasOpenIdLink) || other.hasOpenIdLink == hasOpenIdLink)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&const DeepCollectionEquality().equals(other.librariesAccessible, _librariesAccessible)&&const DeepCollectionEquality().equals(other.itemTagsSelected, _itemTagsSelected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,email,type,isActive,isLocked,lastSeen,createdAt,hasOpenIdLink,permissions,const DeepCollectionEquality().hash(_librariesAccessible),const DeepCollectionEquality().hash(_itemTagsSelected));
+int get hashCode {
+    return Object.hash(runtimeType,id,username,email,type,isActive,isLocked,lastSeen,createdAt,hasOpenIdLink,permissions,const DeepCollectionEquality().hash(_librariesAccessible),const DeepCollectionEquality().hash(_itemTagsSelected));
+}
 
 @override
 String toString() {
-  return 'AdminUser(id: $id, username: $username, email: $email, type: $type, isActive: $isActive, isLocked: $isLocked, lastSeen: $lastSeen, createdAt: $createdAt, hasOpenIdLink: $hasOpenIdLink, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected)';
+    return 'AdminUser(id: $id, username: $username, email: $email, type: $type, isActive: $isActive, isLocked: $isLocked, lastSeen: $lastSeen, createdAt: $createdAt, hasOpenIdLink: $hasOpenIdLink, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected)';
 }
 
 

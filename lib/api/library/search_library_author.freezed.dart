@@ -29,16 +29,21 @@ $SearchLibraryAuthorCopyWith<SearchLibraryAuthor> get copyWith => _$SearchLibrar
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchLibraryAuthor&&(identical(other.id, id) || other.id == id)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
+  final _this = this as SearchLibraryAuthor;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchLibraryAuthor&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.asin, _this.asin) || other.asin == _this.asin)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.imagePath, _this.imagePath) || other.imagePath == _this.imagePath)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.numBooks, _this.numBooks) || other.numBooks == _this.numBooks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,asin,name,description,imagePath,libraryId,addedAt,updatedAt,numBooks);
+int get hashCode {
+  final _this = this as SearchLibraryAuthor;
+  return Object.hash(runtimeType,_this.id,_this.asin,_this.name,_this.description,_this.imagePath,_this.libraryId,_this.addedAt,_this.updatedAt,_this.numBooks);
+}
 
 @override
 String toString() {
-  return 'SearchLibraryAuthor(id: $id, asin: $asin, name: $name, description: $description, imagePath: $imagePath, libraryId: $libraryId, addedAt: $addedAt, updatedAt: $updatedAt, numBooks: $numBooks)';
+  final _this = this as SearchLibraryAuthor;
+  return 'SearchLibraryAuthor(id: ${_this.id}, asin: ${_this.asin}, name: ${_this.name}, description: ${_this.description}, imagePath: ${_this.imagePath}, libraryId: ${_this.libraryId}, addedAt: ${_this.addedAt}, updatedAt: ${_this.updatedAt}, numBooks: ${_this.numBooks})';
 }
 
 
@@ -244,16 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchLibraryAuthor&&(identical(other.id, id) || other.id == id)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchLibraryAuthor&&(identical(other.id, id) || other.id == id)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,asin,name,description,imagePath,libraryId,addedAt,updatedAt,numBooks);
+int get hashCode {
+    return Object.hash(runtimeType,id,asin,name,description,imagePath,libraryId,addedAt,updatedAt,numBooks);
+}
 
 @override
 String toString() {
-  return 'SearchLibraryAuthor(id: $id, asin: $asin, name: $name, description: $description, imagePath: $imagePath, libraryId: $libraryId, addedAt: $addedAt, updatedAt: $updatedAt, numBooks: $numBooks)';
+    return 'SearchLibraryAuthor(id: $id, asin: $asin, name: $name, description: $description, imagePath: $imagePath, libraryId: $libraryId, addedAt: $addedAt, updatedAt: $updatedAt, numBooks: $numBooks)';
 }
 
 

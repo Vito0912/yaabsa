@@ -29,16 +29,21 @@ $SortingPrefixesUpdateResponseCopyWith<SortingPrefixesUpdateResponse> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SortingPrefixesUpdateResponse&&(identical(other.rowsUpdated, rowsUpdated) || other.rowsUpdated == rowsUpdated)&&(identical(other.serverSettings, serverSettings) || other.serverSettings == serverSettings));
+  final _this = this as SortingPrefixesUpdateResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SortingPrefixesUpdateResponse&&(identical(other.rowsUpdated, _this.rowsUpdated) || other.rowsUpdated == _this.rowsUpdated)&&(identical(other.serverSettings, _this.serverSettings) || other.serverSettings == _this.serverSettings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,rowsUpdated,serverSettings);
+int get hashCode {
+  final _this = this as SortingPrefixesUpdateResponse;
+  return Object.hash(runtimeType,_this.rowsUpdated,_this.serverSettings);
+}
 
 @override
 String toString() {
-  return 'SortingPrefixesUpdateResponse(rowsUpdated: $rowsUpdated, serverSettings: $serverSettings)';
+  final _this = this as SortingPrefixesUpdateResponse;
+  return 'SortingPrefixesUpdateResponse(rowsUpdated: ${_this.rowsUpdated}, serverSettings: ${_this.serverSettings})';
 }
 
 
@@ -239,16 +244,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SortingPrefixesUpdateResponse&&(identical(other.rowsUpdated, rowsUpdated) || other.rowsUpdated == rowsUpdated)&&(identical(other.serverSettings, serverSettings) || other.serverSettings == serverSettings));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SortingPrefixesUpdateResponse&&(identical(other.rowsUpdated, rowsUpdated) || other.rowsUpdated == rowsUpdated)&&(identical(other.serverSettings, serverSettings) || other.serverSettings == serverSettings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,rowsUpdated,serverSettings);
+int get hashCode {
+    return Object.hash(runtimeType,rowsUpdated,serverSettings);
+}
 
 @override
 String toString() {
-  return 'SortingPrefixesUpdateResponse(rowsUpdated: $rowsUpdated, serverSettings: $serverSettings)';
+    return 'SortingPrefixesUpdateResponse(rowsUpdated: $rowsUpdated, serverSettings: $serverSettings)';
 }
 
 

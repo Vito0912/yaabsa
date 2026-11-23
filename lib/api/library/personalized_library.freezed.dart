@@ -26,16 +26,21 @@ $PersonalizedLibraryCopyWith<PersonalizedLibrary> get copyWith => _$Personalized
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries)&&const DeepCollectionEquality().equals(other.extraLibraryShelves, extraLibraryShelves)&&const DeepCollectionEquality().equals(other.extraEpisodeShelves, extraEpisodeShelves));
+  final _this = this as PersonalizedLibrary;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalizedLibrary&&(identical(other.continueListening, _this.continueListening) || other.continueListening == _this.continueListening)&&(identical(other.recentlyAdded, _this.recentlyAdded) || other.recentlyAdded == _this.recentlyAdded)&&(identical(other.recentSeries, _this.recentSeries) || other.recentSeries == _this.recentSeries)&&(identical(other.discover, _this.discover) || other.discover == _this.discover)&&(identical(other.listenAgain, _this.listenAgain) || other.listenAgain == _this.listenAgain)&&(identical(other.newestAuthors, _this.newestAuthors) || other.newestAuthors == _this.newestAuthors)&&(identical(other.newestEpisodes, _this.newestEpisodes) || other.newestEpisodes == _this.newestEpisodes)&&(identical(other.continueSeries, _this.continueSeries) || other.continueSeries == _this.continueSeries)&&const DeepCollectionEquality().equals(other.extraLibraryShelves, _this.extraLibraryShelves)&&const DeepCollectionEquality().equals(other.extraEpisodeShelves, _this.extraEpisodeShelves));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries,const DeepCollectionEquality().hash(extraLibraryShelves),const DeepCollectionEquality().hash(extraEpisodeShelves));
+int get hashCode {
+  final _this = this as PersonalizedLibrary;
+  return Object.hash(runtimeType,_this.continueListening,_this.recentlyAdded,_this.recentSeries,_this.discover,_this.listenAgain,_this.newestAuthors,_this.newestEpisodes,_this.continueSeries,const DeepCollectionEquality().hash(_this.extraLibraryShelves),const DeepCollectionEquality().hash(_this.extraEpisodeShelves));
+}
 
 @override
 String toString() {
-  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries, extraLibraryShelves: $extraLibraryShelves, extraEpisodeShelves: $extraEpisodeShelves)';
+  final _this = this as PersonalizedLibrary;
+  return 'PersonalizedLibrary(continueListening: ${_this.continueListening}, recentlyAdded: ${_this.recentlyAdded}, recentSeries: ${_this.recentSeries}, discover: ${_this.discover}, listenAgain: ${_this.listenAgain}, newestAuthors: ${_this.newestAuthors}, newestEpisodes: ${_this.newestEpisodes}, continueSeries: ${_this.continueSeries}, extraLibraryShelves: ${_this.extraLibraryShelves}, extraEpisodeShelves: ${_this.extraEpisodeShelves})';
 }
 
 
@@ -348,16 +353,18 @@ _$PersonalizedLibraryCopyWith<_PersonalizedLibrary> get copyWith => __$Personali
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries)&&const DeepCollectionEquality().equals(other._extraLibraryShelves, _extraLibraryShelves)&&const DeepCollectionEquality().equals(other._extraEpisodeShelves, _extraEpisodeShelves));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries)&&const DeepCollectionEquality().equals(other.extraLibraryShelves, _extraLibraryShelves)&&const DeepCollectionEquality().equals(other.extraEpisodeShelves, _extraEpisodeShelves));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries,const DeepCollectionEquality().hash(_extraLibraryShelves),const DeepCollectionEquality().hash(_extraEpisodeShelves));
+int get hashCode {
+    return Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries,const DeepCollectionEquality().hash(_extraLibraryShelves),const DeepCollectionEquality().hash(_extraEpisodeShelves));
+}
 
 @override
 String toString() {
-  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries, extraLibraryShelves: $extraLibraryShelves, extraEpisodeShelves: $extraEpisodeShelves)';
+    return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries, extraLibraryShelves: $extraLibraryShelves, extraEpisodeShelves: $extraEpisodeShelves)';
 }
 
 
@@ -517,16 +524,21 @@ $ShelfEntryCopyWith<T, ShelfEntry<T>> get copyWith => _$ShelfEntryCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShelfEntry<T>&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.labelStringKey, labelStringKey) || other.labelStringKey == labelStringKey)&&(identical(other.type, type) || other.type == type)&&(identical(other.total, total) || other.total == total)&&const DeepCollectionEquality().equals(other.entities, entities));
+  final _this = this as ShelfEntry<T>;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShelfEntry<T>&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.labelStringKey, _this.labelStringKey) || other.labelStringKey == _this.labelStringKey)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.total, _this.total) || other.total == _this.total)&&const DeepCollectionEquality().equals(other.entities, _this.entities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,labelStringKey,type,total,const DeepCollectionEquality().hash(entities));
+int get hashCode {
+  final _this = this as ShelfEntry<T>;
+  return Object.hash(runtimeType,_this.id,_this.label,_this.labelStringKey,_this.type,_this.total,const DeepCollectionEquality().hash(_this.entities));
+}
 
 @override
 String toString() {
-  return 'ShelfEntry<$T>(id: $id, label: $label, labelStringKey: $labelStringKey, type: $type, total: $total, entities: $entities)';
+  final _this = this as ShelfEntry<T>;
+  return 'ShelfEntry<$T>(id: ${_this.id}, label: ${_this.label}, labelStringKey: ${_this.labelStringKey}, type: ${_this.type}, total: ${_this.total}, entities: ${_this.entities})';
 }
 
 
@@ -732,16 +744,18 @@ Map<String, dynamic> toJson(Object? Function(T) toJsonT) {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShelfEntry<T>&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.labelStringKey, labelStringKey) || other.labelStringKey == labelStringKey)&&(identical(other.type, type) || other.type == type)&&(identical(other.total, total) || other.total == total)&&const DeepCollectionEquality().equals(other._entities, _entities));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShelfEntry<T>&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.labelStringKey, labelStringKey) || other.labelStringKey == labelStringKey)&&(identical(other.type, type) || other.type == type)&&(identical(other.total, total) || other.total == total)&&const DeepCollectionEquality().equals(other.entities, _entities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,labelStringKey,type,total,const DeepCollectionEquality().hash(_entities));
+int get hashCode {
+    return Object.hash(runtimeType,id,label,labelStringKey,type,total,const DeepCollectionEquality().hash(_entities));
+}
 
 @override
 String toString() {
-  return 'ShelfEntry<$T>(id: $id, label: $label, labelStringKey: $labelStringKey, type: $type, total: $total, entities: $entities)';
+    return 'ShelfEntry<$T>(id: $id, label: $label, labelStringKey: $labelStringKey, type: $type, total: $total, entities: $entities)';
 }
 
 

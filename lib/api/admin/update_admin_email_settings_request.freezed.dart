@@ -29,16 +29,21 @@ $UpdateAdminEmailSettingsRequestCopyWith<UpdateAdminEmailSettingsRequest> get co
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateAdminEmailSettingsRequest&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&(identical(other.secure, secure) || other.secure == secure)&&(identical(other.rejectUnauthorized, rejectUnauthorized) || other.rejectUnauthorized == rejectUnauthorized)&&(identical(other.user, user) || other.user == user)&&(identical(other.pass, pass) || other.pass == pass)&&(identical(other.testAddress, testAddress) || other.testAddress == testAddress)&&(identical(other.fromAddress, fromAddress) || other.fromAddress == fromAddress));
+  final _this = this as UpdateAdminEmailSettingsRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateAdminEmailSettingsRequest&&(identical(other.host, _this.host) || other.host == _this.host)&&(identical(other.port, _this.port) || other.port == _this.port)&&(identical(other.secure, _this.secure) || other.secure == _this.secure)&&(identical(other.rejectUnauthorized, _this.rejectUnauthorized) || other.rejectUnauthorized == _this.rejectUnauthorized)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.pass, _this.pass) || other.pass == _this.pass)&&(identical(other.testAddress, _this.testAddress) || other.testAddress == _this.testAddress)&&(identical(other.fromAddress, _this.fromAddress) || other.fromAddress == _this.fromAddress));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,host,port,secure,rejectUnauthorized,user,pass,testAddress,fromAddress);
+int get hashCode {
+  final _this = this as UpdateAdminEmailSettingsRequest;
+  return Object.hash(runtimeType,_this.host,_this.port,_this.secure,_this.rejectUnauthorized,_this.user,_this.pass,_this.testAddress,_this.fromAddress);
+}
 
 @override
 String toString() {
-  return 'UpdateAdminEmailSettingsRequest(host: $host, port: $port, secure: $secure, rejectUnauthorized: $rejectUnauthorized, user: $user, pass: $pass, testAddress: $testAddress, fromAddress: $fromAddress)';
+  final _this = this as UpdateAdminEmailSettingsRequest;
+  return 'UpdateAdminEmailSettingsRequest(host: ${_this.host}, port: ${_this.port}, secure: ${_this.secure}, rejectUnauthorized: ${_this.rejectUnauthorized}, user: ${_this.user}, pass: ${_this.pass}, testAddress: ${_this.testAddress}, fromAddress: ${_this.fromAddress})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateAdminEmailSettingsRequest&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&(identical(other.secure, secure) || other.secure == secure)&&(identical(other.rejectUnauthorized, rejectUnauthorized) || other.rejectUnauthorized == rejectUnauthorized)&&(identical(other.user, user) || other.user == user)&&(identical(other.pass, pass) || other.pass == pass)&&(identical(other.testAddress, testAddress) || other.testAddress == testAddress)&&(identical(other.fromAddress, fromAddress) || other.fromAddress == fromAddress));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateAdminEmailSettingsRequest&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&(identical(other.secure, secure) || other.secure == secure)&&(identical(other.rejectUnauthorized, rejectUnauthorized) || other.rejectUnauthorized == rejectUnauthorized)&&(identical(other.user, user) || other.user == user)&&(identical(other.pass, pass) || other.pass == pass)&&(identical(other.testAddress, testAddress) || other.testAddress == testAddress)&&(identical(other.fromAddress, fromAddress) || other.fromAddress == fromAddress));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,host,port,secure,rejectUnauthorized,user,pass,testAddress,fromAddress);
+int get hashCode {
+    return Object.hash(runtimeType,host,port,secure,rejectUnauthorized,user,pass,testAddress,fromAddress);
+}
 
 @override
 String toString() {
-  return 'UpdateAdminEmailSettingsRequest(host: $host, port: $port, secure: $secure, rejectUnauthorized: $rejectUnauthorized, user: $user, pass: $pass, testAddress: $testAddress, fromAddress: $fromAddress)';
+    return 'UpdateAdminEmailSettingsRequest(host: $host, port: $port, secure: $secure, rejectUnauthorized: $rejectUnauthorized, user: $user, pass: $pass, testAddress: $testAddress, fromAddress: $fromAddress)';
 }
 
 

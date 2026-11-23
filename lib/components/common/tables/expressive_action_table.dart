@@ -1,7 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/feedback/empty_state_card.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
-enum ExpressiveTableActionTone { neutral, primary, danger }
+typedef ExpressiveTableActionTone = YaabsaActionTone;
 
 enum ExpressiveTableCellAlignment { start, center, end }
 
@@ -79,6 +82,8 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     this.topActionsPadding = EdgeInsets.zero,
     this.topActionsSpacing = 10,
     this.actionsColumnWidth = 118,
+    this.actionButtonVariant,
+    this.actionButtonShape,
   });
 
   final List<T> rows;
@@ -100,18 +105,8 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   final EdgeInsetsGeometry topActionsPadding;
   final double topActionsSpacing;
   final double actionsColumnWidth;
-
-  Color _actionColor(BuildContext context, ExpressiveTableActionTone tone) {
-    final colorScheme = Theme.of(context).colorScheme;
-    switch (tone) {
-      case ExpressiveTableActionTone.primary:
-        return colorScheme.primary;
-      case ExpressiveTableActionTone.danger:
-        return colorScheme.error;
-      case ExpressiveTableActionTone.neutral:
-        return colorScheme.onSurfaceVariant;
-    }
-  }
+  final YaabsaActionButtonVariant? actionButtonVariant;
+  final YaabsaActionButtonShape? actionButtonShape;
 
   AlignmentDirectional _cellAlignment(ExpressiveTableCellAlignment alignment) {
     switch (alignment) {
@@ -180,45 +175,19 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(emptyTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-            if (emptySubtitle != null && emptySubtitle!.trim().isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(emptySubtitle!, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-            ],
-          ],
-        ),
-      ),
-    );
+    return YaabsaEmptyStateCard(title: emptyTitle, subtitle: emptySubtitle, topPadding: 6);
   }
 
   Widget _buildActionButtons(BuildContext context, T row, {required bool compact}) {
     final key = rowId(row);
     if (busyRowIds.contains(key)) {
-      return const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2));
+      return const SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2));
     }
 
     final visibleActions = actions.where((action) => action.isVisible?.call(row) ?? true).toList(growable: false);
     if (visibleActions.isEmpty) {
       return const SizedBox.shrink();
     }
-
-    final disabledColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.42);
 
     return Wrap(
       spacing: compact ? 2 : 4,
@@ -229,15 +198,19 @@ class ExpressiveActionTable<T> extends StatelessWidget {
           Builder(
             builder: (context) {
               final enabled = action.isEnabled?.call(row) ?? true;
-              final color = enabled ? _actionColor(context, action.tone) : disabledColor;
               final icon = action.iconBuilder?.call(row) ?? action.icon;
               final tooltip = action.tooltipBuilder?.call(row) ?? action.tooltip;
 
-              return IconButton(
+              return YaabsaActionIconButton(
+                icon: icon,
                 tooltip: tooltip,
-                visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+                tone: action.tone,
+                enabled: enabled,
+                iconSize: compact ? 19 : 20,
+                compact: compact,
+                variant: actionButtonVariant,
+                shape: actionButtonShape,
                 onPressed: enabled ? () => _handleActionTap(action, row) : null,
-                icon: Icon(icon, size: compact ? 19 : 20, color: color),
               );
             },
           ),
@@ -507,7 +480,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
       children: const [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 28),
-          child: Center(child: CircularProgressIndicator()),
+          child: Center(child: YaabsaCircularProgressIndicator()),
         ),
       ],
     );

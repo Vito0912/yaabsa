@@ -29,16 +29,21 @@ $CustomMetadataProviderCopyWith<CustomMetadataProvider> get copyWith => _$Custom
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomMetadataProvider&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.url, url) || other.url == url)&&(identical(other.authHeaderValue, authHeaderValue) || other.authHeaderValue == authHeaderValue)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  final _this = this as CustomMetadataProvider;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomMetadataProvider&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.mediaType, _this.mediaType) || other.mediaType == _this.mediaType)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.authHeaderValue, _this.authHeaderValue) || other.authHeaderValue == _this.authHeaderValue)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,mediaType,url,authHeaderValue,createdAt,updatedAt);
+int get hashCode {
+  final _this = this as CustomMetadataProvider;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.mediaType,_this.url,_this.authHeaderValue,_this.createdAt,_this.updatedAt);
+}
 
 @override
 String toString() {
-  return 'CustomMetadataProvider(id: $id, name: $name, mediaType: $mediaType, url: $url, authHeaderValue: $authHeaderValue, createdAt: $createdAt, updatedAt: $updatedAt)';
+  final _this = this as CustomMetadataProvider;
+  return 'CustomMetadataProvider(id: ${_this.id}, name: ${_this.name}, mediaType: ${_this.mediaType}, url: ${_this.url}, authHeaderValue: ${_this.authHeaderValue}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomMetadataProvider&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.url, url) || other.url == url)&&(identical(other.authHeaderValue, authHeaderValue) || other.authHeaderValue == authHeaderValue)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomMetadataProvider&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.url, url) || other.url == url)&&(identical(other.authHeaderValue, authHeaderValue) || other.authHeaderValue == authHeaderValue)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,mediaType,url,authHeaderValue,createdAt,updatedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,mediaType,url,authHeaderValue,createdAt,updatedAt);
+}
 
 @override
 String toString() {
-  return 'CustomMetadataProvider(id: $id, name: $name, mediaType: $mediaType, url: $url, authHeaderValue: $authHeaderValue, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'CustomMetadataProvider(id: $id, name: $name, mediaType: $mediaType, url: $url, authHeaderValue: $authHeaderValue, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 

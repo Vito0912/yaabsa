@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/inputs/field_decoration.dart';
 import 'package:yaabsa/util/extensions.dart';
 
 Future<int?> showSessionDurationPickerDialog(
@@ -55,13 +56,11 @@ class SessionDurationPickerField extends StatelessWidget {
       onTap: enabled ? () => _openPicker(context) : null,
       borderRadius: BorderRadius.circular(10),
       child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          isDense: true,
-          suffixIcon: const Icon(Icons.timer_outlined),
-          enabled: enabled,
-        ),
+        decoration: yaabsaFieldDecoration(
+          context,
+          label: label,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ).copyWith(isDense: true, suffixIcon: const Icon(Icons.timer_outlined), enabled: enabled),
         child: Text(valueLabel, style: Theme.of(context).textTheme.bodyLarge),
       ),
     );

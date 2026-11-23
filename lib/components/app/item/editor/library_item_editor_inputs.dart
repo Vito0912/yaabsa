@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 
 class LibraryItemEditorSectionCard extends StatelessWidget {
   const LibraryItemEditorSectionCard({super.key, required this.title, required this.child, this.subtitle});
@@ -32,37 +32,6 @@ class LibraryItemEditorSectionCard extends StatelessWidget {
           child,
         ],
       ),
-    );
-  }
-}
-
-class LibraryItemEditorTextField extends StatelessWidget {
-  const LibraryItemEditorTextField({
-    super.key,
-    required this.label,
-    this.controller,
-    this.hintText,
-    this.maxLines = 1,
-    this.keyboardType,
-    this.onChanged,
-  });
-
-  final String label;
-  final TextEditingController? controller;
-  final String? hintText;
-  final int maxLines;
-  final TextInputType? keyboardType;
-  final ValueChanged<String>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return StyledTextField(
-      label: label,
-      controller: controller,
-      hintText: hintText,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      onChanged: onChanged,
     );
   }
 }

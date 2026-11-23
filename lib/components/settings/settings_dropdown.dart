@@ -2,6 +2,9 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/features/settings/widgets/settings_control_status_presentation.dart';
+import 'package:yaabsa/ui/components/lists/settings_control_label.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SettingDropdown<T> extends ConsumerWidget {
   final String label;
@@ -117,42 +120,9 @@ class SettingDropdown<T> extends ConsumerWidget {
           },
         );
       },
-      loading: () => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                style: textTheme.titleMedium?.copyWith(color: theme.disabledColor),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5)),
-          ],
-        ),
-      ),
-      error: (error, stackTrace) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                style: textTheme.titleMedium?.copyWith(color: theme.colorScheme.error),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            Icon(Icons.error_outline, color: theme.colorScheme.error, size: 22),
-          ],
-        ),
-      ),
+      loading: () => SettingsControlStatusPresentation(label: label, state: SettingsControlLoadState.loading),
+      error: (error, stackTrace) =>
+          SettingsControlStatusPresentation(label: label, state: SettingsControlLoadState.error),
     );
   }
 
@@ -194,28 +164,12 @@ class SettingDropdown<T> extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: enabled ? colorScheme.primary : colorScheme.primary.withValues(alpha: 0.38),
-                    ),
-                  ),
-                  if (description != null && description!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      description!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: enabled
-                            ? colorScheme.onSurfaceVariant
-                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                      ),
-                    ),
-                  ],
-                ],
+              child: SettingsControlLabel(
+                label: label,
+                description: description,
+                enabled: enabled,
+                icon: icon,
+                tooltip: tooltip,
               ),
             ),
             for (int i = 0; i < values.length; i++) ...[
@@ -266,30 +220,16 @@ class SettingDropdown<T> extends ConsumerWidget {
     } else {
       return ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        title: Text(
-          label,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-          ),
-        ),
-        subtitle: Text(
-          currentDisplayValue,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: enabled ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-          ),
+        title: SettingsControlLabel(
+          label: label,
+          description: currentDisplayValue,
+          enabled: enabled,
+          icon: icon,
+          tooltip: tooltip,
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null && tooltip != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: Tooltip(
-                  message: tooltip!,
-                  child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
-                ),
-              ),
             Icon(
               Icons.chevron_right_rounded,
               size: 20,
@@ -442,7 +382,7 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
         ),
       ),
       trailing: isLoading
-          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
+          ? const SizedBox(height: 20, width: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2.5))
           : Icon(
               Icons.chevron_right_rounded,
               size: 20,

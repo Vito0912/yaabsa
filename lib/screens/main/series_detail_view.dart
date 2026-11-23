@@ -25,6 +25,7 @@ import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 const int _seriesBooksPrefetchThreshold = 8;
 const int _seriesBooksApproxScrollPastCount = 24;
@@ -259,7 +260,7 @@ class SeriesDetailView extends HookConsumerWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, stackTrace) {
         if (!serverReachable) {
           return ConnectionIssueView.offline(

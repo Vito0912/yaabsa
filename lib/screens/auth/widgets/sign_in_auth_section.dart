@@ -1,5 +1,7 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SignInAuthSection extends StatelessWidget {
   const SignInAuthSection({
@@ -41,16 +43,13 @@ class SignInAuthSection extends StatelessWidget {
       children: [
         if (useApiKey) ...[
           const SizedBox(height: 12),
-          TextField(
+          StyledTextField(
             controller: apiKeyController,
             enabled: !isLoading,
             obscureText: true,
             onSubmitted: (_) => onValidateAndSignIn(),
-            decoration: InputDecoration(
-              labelText: 'API Key',
-              prefixIcon: const Icon(Icons.key_rounded),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            label: 'API Key',
+            prefixIcon: const Icon(Icons.key_rounded),
           ),
           const SizedBox(height: 14),
           FilledButton.icon(
@@ -59,7 +58,7 @@ class SignInAuthSection extends StatelessWidget {
                 ? SizedBox(
                     height: 18,
                     width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                    child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                   )
                 : const Icon(Icons.vpn_key_rounded),
             label: Text(isLoading ? 'Signing in...' : 'Connect with API Key'),
@@ -70,19 +69,16 @@ class SignInAuthSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextField(
+                StyledTextField(
                   controller: usernameController,
                   enabled: !isLoading && !lockImportedIdentity,
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.username, AutofillHints.email],
-                  decoration: InputDecoration(
-                    labelText: 'Username',
-                    prefixIcon: const Icon(Icons.person_outline_rounded),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+                  label: 'Username',
+                  prefixIcon: const Icon(Icons.person_outline_rounded),
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                StyledTextField(
                   controller: passwordController,
                   focusNode: passwordFocusNode,
                   enabled: !isLoading,
@@ -95,11 +91,8 @@ class SignInAuthSection extends StatelessWidget {
                     TextInput.finishAutofillContext(shouldSave: true);
                     onValidateAndSignIn();
                   },
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.password_rounded),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+                  label: 'Password',
+                  prefixIcon: const Icon(Icons.password_rounded),
                 ),
               ],
             ),
@@ -116,7 +109,7 @@ class SignInAuthSection extends StatelessWidget {
                 ? SizedBox(
                     height: 18,
                     width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                    child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                   )
                 : const Icon(Icons.login_rounded),
             label: Text(isLoading ? 'Signing in...' : 'Sign In'),

@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_badge.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 enum AdminUserTileAction { edit, toggleActive, unlinkOpenId, delete }
 
@@ -90,7 +93,7 @@ class AdminUserListTile extends StatelessWidget {
   Widget _buildCompactActions() {
     final canToggleActive = !user.isRoot;
 
-    return PopupMenuButton<AdminUserTileAction>(
+    return YaabsaContextMenuButton<AdminUserTileAction>(
       enabled: !isBusy,
       onSelected: _onActionSelected,
       itemBuilder: (_) => <PopupMenuEntry<AdminUserTileAction>>[
@@ -114,7 +117,7 @@ class AdminUserListTile extends StatelessWidget {
     );
   }
 
-  Widget _buildWideActions(BuildContext context) {
+  Widget _buildWideActions() {
     return Align(
       alignment: Alignment.centerRight,
       child: Wrap(
@@ -133,12 +136,7 @@ class AdminUserListTile extends StatelessWidget {
               icon: Icon(user.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded, size: 18),
               label: Text(user.isActive ? 'Disable' : 'Enable'),
             ),
-          OutlinedButton.icon(
-            onPressed: isBusy ? null : onDelete,
-            style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            icon: const Icon(Icons.delete_outline_rounded, size: 18),
-            label: const Text('Delete'),
-          ),
+          YaabsaDeleteIconButton(tooltip: 'Delete user', onPressed: isBusy ? null : onDelete),
         ],
       ),
     );
@@ -194,14 +192,14 @@ class AdminUserListTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 if (isBusy)
-                  const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  const SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 else if (compactActions)
                   _buildCompactActions(),
               ],
             ),
             const SizedBox(height: 6),
             Text(subtitleParts.join(' • '), style: Theme.of(context).textTheme.bodySmall),
-            if (!compactActions) ...[const SizedBox(height: 10), _buildWideActions(context)],
+            if (!compactActions) ...[const SizedBox(height: 10), _buildWideActions()],
           ],
         ),
       ),

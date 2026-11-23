@@ -1,10 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/admin_email_settings.dart';
 import 'package:yaabsa/api/admin/session_user_summary.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/settings/email/admin_email_device_availability.dart';
 import 'package:yaabsa/components/settings/email/admin_email_settings_validation.dart';
+import 'package:yaabsa/ui/components/dialogs/dialog_actions.dart';
 
 Future<AdminEmailEreaderDevice?> showAdminEmailDeviceFormDialog({
   required BuildContext context,
@@ -262,11 +263,11 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton.icon(
-          onPressed: _submit,
-          icon: Icon(_isEditing ? Icons.save_outlined : Icons.add_rounded),
-          label: Text(_isEditing ? 'Save Device' : 'Add Device'),
+        YaabsaDialogActions(
+          actionLabel: _isEditing ? 'Save Device' : 'Add Device',
+          actionIcon: _isEditing ? Icons.save_outlined : Icons.add_rounded,
+          onAction: _submit,
+          onCancel: () => Navigator.of(context).pop(),
         ),
       ],
     );

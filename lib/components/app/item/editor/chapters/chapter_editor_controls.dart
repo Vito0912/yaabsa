@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_draft.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class ChapterEditorToolbar extends StatelessWidget {
   const ChapterEditorToolbar({
@@ -49,7 +50,7 @@ class ChapterEditorToolbar extends StatelessWidget {
                 label: const Text('Add chapters'),
               ),
               if (context.isMobile)
-                PopupMenuButton<String>(
+                YaabsaContextMenuButton<String>(
                   enabled: enabled,
                   tooltip: 'Chapter tools',
                   onSelected: (action) {

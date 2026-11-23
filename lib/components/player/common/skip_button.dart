@@ -1,5 +1,6 @@
 import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 class SkipButton extends StatelessWidget {
   const SkipButton({super.key, required this.previous, this.iconSize, this.buttonSize = 48});
@@ -11,14 +12,11 @@ class SkipButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (previous) {
-      return IconButton(
-        style: IconButton.styleFrom(minimumSize: Size.square(buttonSize)),
+      return SkipButtonPresentation(
+        previous: true,
         iconSize: iconSize,
-        tooltip: 'Previous',
-        icon: const Icon(Icons.skip_previous_rounded),
-        onPressed: () {
-          audioHandler.skipToPreviousInApp();
-        },
+        buttonSize: buttonSize,
+        onPressed: audioHandler.skipToPreviousInApp,
       );
     }
 
@@ -26,19 +24,40 @@ class SkipButton extends StatelessWidget {
       stream: audioHandler.canSkipForwardStream,
       initialData: audioHandler.canSkipForwardNow,
       builder: (context, snapshot) {
-        final canSkip = snapshot.data == true;
-        return IconButton(
-          style: IconButton.styleFrom(minimumSize: Size.square(buttonSize)),
+        return SkipButtonPresentation(
+          previous: false,
           iconSize: iconSize,
-          tooltip: 'Next',
-          icon: const Icon(Icons.skip_next_rounded),
-          onPressed: canSkip
-              ? () {
-                  audioHandler.skipToNextInApp();
-                }
-              : null,
+          buttonSize: buttonSize,
+          onPressed: snapshot.data == true ? audioHandler.skipToNextInApp : null,
         );
       },
+    );
+  }
+}
+
+class SkipButtonPresentation extends StatelessWidget {
+  const SkipButtonPresentation({
+    super.key,
+    required this.previous,
+    required this.onPressed,
+    this.iconSize,
+    this.buttonSize = 48,
+  });
+
+  final bool previous;
+  final VoidCallback? onPressed;
+  final double? iconSize;
+  final double buttonSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return YaabsaActionIconButton(
+      icon: previous ? Icons.skip_previous_rounded : Icons.skip_next_rounded,
+      iconSize: iconSize ?? 24,
+      buttonSize: buttonSize,
+      compact: false,
+      tooltip: previous ? 'Previous' : 'Next',
+      onPressed: onPressed,
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/stats/library_stats.dart';
-import 'package:yaabsa/components/stats/stats_components.dart';
+import 'package:yaabsa/features/statistics/widgets/statistics_components.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
 class AdminLibraryStatsPreviewIcons extends StatelessWidget {

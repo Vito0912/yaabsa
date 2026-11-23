@@ -29,16 +29,21 @@ $PinnedShelfEntryCopyWith<PinnedShelfEntry> get copyWith => _$PinnedShelfEntryCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PinnedShelfEntry&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.pinnedAt, pinnedAt) || other.pinnedAt == pinnedAt));
+  final _this = this as PinnedShelfEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PinnedShelfEntry&&(identical(other.itemId, _this.itemId) || other.itemId == _this.itemId)&&(identical(other.episodeId, _this.episodeId) || other.episodeId == _this.episodeId)&&(identical(other.pinnedAt, _this.pinnedAt) || other.pinnedAt == _this.pinnedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemId,episodeId,pinnedAt);
+int get hashCode {
+  final _this = this as PinnedShelfEntry;
+  return Object.hash(runtimeType,_this.itemId,_this.episodeId,_this.pinnedAt);
+}
 
 @override
 String toString() {
-  return 'PinnedShelfEntry(itemId: $itemId, episodeId: $episodeId, pinnedAt: $pinnedAt)';
+  final _this = this as PinnedShelfEntry;
+  return 'PinnedShelfEntry(itemId: ${_this.itemId}, episodeId: ${_this.episodeId}, pinnedAt: ${_this.pinnedAt})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PinnedShelfEntry&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.pinnedAt, pinnedAt) || other.pinnedAt == pinnedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PinnedShelfEntry&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.pinnedAt, pinnedAt) || other.pinnedAt == pinnedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemId,episodeId,pinnedAt);
+int get hashCode {
+    return Object.hash(runtimeType,itemId,episodeId,pinnedAt);
+}
 
 @override
 String toString() {
-  return 'PinnedShelfEntry(itemId: $itemId, episodeId: $episodeId, pinnedAt: $pinnedAt)';
+    return 'PinnedShelfEntry(itemId: $itemId, episodeId: $episodeId, pinnedAt: $pinnedAt)';
 }
 
 

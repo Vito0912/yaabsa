@@ -4,6 +4,7 @@ import 'package:yaabsa/api/podcast/podcast_search_result.dart';
 import 'package:yaabsa/components/app/library/cue_badge.dart';
 import 'package:yaabsa/components/app/library/explicit_badge.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
+import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
 
 class PodcastAddResultEntry {
   const PodcastAddResultEntry({required this.id, required this.result, required this.existing});
@@ -216,15 +217,12 @@ class _PodcastResultCover extends StatelessWidget {
     final normalized = url?.trim();
     final coverUrl = normalized == null || normalized.isEmpty ? null : normalized;
 
-    return ClipRRect(
+    return YaabsaCoverImage(
+      image: coverUrl == null ? null : NetworkImage(coverUrl),
+      width: size,
+      height: size,
       borderRadius: BorderRadius.circular(10),
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: coverUrl == null
-            ? _fallbackCover(context)
-            : Image.network(coverUrl, fit: BoxFit.cover, errorBuilder: (_, _, _) => _fallbackCover(context)),
-      ),
+      placeholder: _fallbackCover(context),
     );
   }
 

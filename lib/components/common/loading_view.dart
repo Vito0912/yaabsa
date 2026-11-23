@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LoadingView extends ConsumerWidget {
   const LoadingView({super.key, this.showDownloadsShortcut = true, this.alwaysShowDownloadsShortcut = false});
@@ -17,7 +18,7 @@ class LoadingView extends ConsumerWidget {
 
     return Stack(
       children: [
-        const Center(child: CircularProgressIndicator()),
+        const Center(child: YaabsaCircularProgressIndicator()),
 
         if (shouldShowButton)
           Align(

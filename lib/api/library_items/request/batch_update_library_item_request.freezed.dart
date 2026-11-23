@@ -29,16 +29,21 @@ $BatchUpdateLibraryItemRequestCopyWith<BatchUpdateLibraryItemRequest> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchUpdateLibraryItemRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.mediaPayload, mediaPayload) || other.mediaPayload == mediaPayload));
+  final _this = this as BatchUpdateLibraryItemRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchUpdateLibraryItemRequest&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.mediaPayload, _this.mediaPayload) || other.mediaPayload == _this.mediaPayload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,mediaPayload);
+int get hashCode {
+  final _this = this as BatchUpdateLibraryItemRequest;
+  return Object.hash(runtimeType,_this.id,_this.mediaPayload);
+}
 
 @override
 String toString() {
-  return 'BatchUpdateLibraryItemRequest(id: $id, mediaPayload: $mediaPayload)';
+  final _this = this as BatchUpdateLibraryItemRequest;
+  return 'BatchUpdateLibraryItemRequest(id: ${_this.id}, mediaPayload: ${_this.mediaPayload})';
 }
 
 
@@ -239,16 +244,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchUpdateLibraryItemRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.mediaPayload, mediaPayload) || other.mediaPayload == mediaPayload));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchUpdateLibraryItemRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.mediaPayload, mediaPayload) || other.mediaPayload == mediaPayload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,mediaPayload);
+int get hashCode {
+    return Object.hash(runtimeType,id,mediaPayload);
+}
 
 @override
 String toString() {
-  return 'BatchUpdateLibraryItemRequest(id: $id, mediaPayload: $mediaPayload)';
+    return 'BatchUpdateLibraryItemRequest(id: $id, mediaPayload: $mediaPayload)';
 }
 
 

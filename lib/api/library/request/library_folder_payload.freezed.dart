@@ -29,16 +29,21 @@ $LibraryFolderPayloadCopyWith<LibraryFolderPayload> get copyWith => _$LibraryFol
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFolderPayload&&(identical(other.id, id) || other.id == id)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.path, path) || other.path == path)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt));
+  final _this = this as LibraryFolderPayload;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFolderPayload&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.fullPath, _this.fullPath) || other.fullPath == _this.fullPath)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullPath,path,libraryId,addedAt);
+int get hashCode {
+  final _this = this as LibraryFolderPayload;
+  return Object.hash(runtimeType,_this.id,_this.fullPath,_this.path,_this.libraryId,_this.addedAt);
+}
 
 @override
 String toString() {
-  return 'LibraryFolderPayload(id: $id, fullPath: $fullPath, path: $path, libraryId: $libraryId, addedAt: $addedAt)';
+  final _this = this as LibraryFolderPayload;
+  return 'LibraryFolderPayload(id: ${_this.id}, fullPath: ${_this.fullPath}, path: ${_this.path}, libraryId: ${_this.libraryId}, addedAt: ${_this.addedAt})';
 }
 
 
@@ -236,16 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFolderPayload&&(identical(other.id, id) || other.id == id)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.path, path) || other.path == path)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFolderPayload&&(identical(other.id, id) || other.id == id)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.path, path) || other.path == path)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullPath,path,libraryId,addedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,fullPath,path,libraryId,addedAt);
+}
 
 @override
 String toString() {
-  return 'LibraryFolderPayload(id: $id, fullPath: $fullPath, path: $path, libraryId: $libraryId, addedAt: $addedAt)';
+    return 'LibraryFolderPayload(id: $id, fullPath: $fullPath, path: $path, libraryId: $libraryId, addedAt: $addedAt)';
 }
 
 

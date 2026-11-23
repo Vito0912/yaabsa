@@ -29,16 +29,21 @@ $CreateCustomMetadataProviderResponseCopyWith<CreateCustomMetadataProviderRespon
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateCustomMetadataProviderResponse&&(identical(other.provider, provider) || other.provider == provider));
+  final _this = this as CreateCustomMetadataProviderResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateCustomMetadataProviderResponse&&(identical(other.provider, _this.provider) || other.provider == _this.provider));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,provider);
+int get hashCode {
+  final _this = this as CreateCustomMetadataProviderResponse;
+  return Object.hash(runtimeType,_this.provider);
+}
 
 @override
 String toString() {
-  return 'CreateCustomMetadataProviderResponse(provider: $provider)';
+  final _this = this as CreateCustomMetadataProviderResponse;
+  return 'CreateCustomMetadataProviderResponse(provider: ${_this.provider})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateCustomMetadataProviderResponse&&(identical(other.provider, provider) || other.provider == provider));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateCustomMetadataProviderResponse&&(identical(other.provider, provider) || other.provider == provider));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,provider);
+int get hashCode {
+    return Object.hash(runtimeType,provider);
+}
 
 @override
 String toString() {
-  return 'CreateCustomMetadataProviderResponse(provider: $provider)';
+    return 'CreateCustomMetadataProviderResponse(provider: $provider)';
 }
 
 

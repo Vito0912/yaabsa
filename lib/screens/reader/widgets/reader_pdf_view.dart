@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_paged_surface.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ReaderPdfView extends StatefulWidget {
   const ReaderPdfView({
@@ -170,7 +171,7 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(value: value, color: Theme.of(context).colorScheme.primary),
+              YaabsaCircularProgressIndicator(value: value, color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 16),
               Text(text, style: Theme.of(context).textTheme.titleMedium),
             ],

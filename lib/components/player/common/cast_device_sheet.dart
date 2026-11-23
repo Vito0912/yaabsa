@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/cast/cast_backend.dart';
 import 'package:yaabsa/util/cast/cast_service.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class CastDeviceSheet extends StatefulWidget {
   const CastDeviceSheet({super.key, required this.casting});
@@ -83,16 +85,19 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
               Row(
                 children: [
                   Expanded(child: Text('Cast devices', style: Theme.of(context).textTheme.titleLarge)),
-                  IconButton(
+                  YaabsaActionIconButton(
+                    icon: Icons.refresh,
+                    iconSize: 24,
+                    buttonSize: 48,
+                    compact: false,
                     onPressed: _searching ? null : _discover,
                     tooltip: 'Search again',
-                    icon: const Icon(Icons.refresh),
                   ),
                 ],
               ),
               Text(widget.casting.supportedProtocols.map((protocol) => protocol.label).join(' and ')),
               const SizedBox(height: 12),
-              if (_searching) const LinearProgressIndicator(),
+              if (_searching) const YaabsaLinearProgressIndicator(),
               if (_error != null) Text(_error!),
               StreamBuilder<List<String>>(
                 stream: widget.casting.discoveryErrors,

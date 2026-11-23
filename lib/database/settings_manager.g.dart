@@ -68,7 +68,7 @@ final class SettingsManagerProvider extends $StreamNotifierProvider<SettingsMana
   SettingsManager create() => SettingsManager();
 }
 
-String _$settingsManagerHash() => r'360c09053a47d123f6f26b0d4fa638091efa70c9';
+String _$settingsManagerHash() => r'ebed150abb88fc926a6a491d5fdd4408fcc918f4';
 
 abstract class _$SettingsManager extends $StreamNotifier<int> {
   Stream<int> build();

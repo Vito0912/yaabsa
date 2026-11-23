@@ -11,6 +11,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<Uri?> showLibraryItemFileDownloadDialog({
   required BuildContext context,
@@ -173,7 +174,7 @@ class _FileDownloadDialogState extends State<_FileDownloadDialog> {
               else if (_saving)
                 Text(_copying ? 'Saving file...' : 'Choose where to save the file')
               else ...[
-                LinearProgressIndicator(value: _total > 0 ? (_received / _total).clamp(0, 1) : null),
+                YaabsaLinearProgressIndicator(value: _total > 0 ? (_received / _total).clamp(0, 1) : null),
                 const SizedBox(height: 8),
                 Text(_total > 0 ? '${formatBytes(_received)} of ${formatBytes(_total)}' : formatBytes(_received)),
               ],

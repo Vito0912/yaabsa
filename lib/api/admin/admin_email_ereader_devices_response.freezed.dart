@@ -29,16 +29,21 @@ $AdminEmailEreaderDevicesResponseCopyWith<AdminEmailEreaderDevicesResponse> get 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailEreaderDevicesResponse&&const DeepCollectionEquality().equals(other.ereaderDevices, ereaderDevices));
+  final _this = this as AdminEmailEreaderDevicesResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailEreaderDevicesResponse&&const DeepCollectionEquality().equals(other.ereaderDevices, _this.ereaderDevices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(ereaderDevices));
+int get hashCode {
+  final _this = this as AdminEmailEreaderDevicesResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.ereaderDevices));
+}
 
 @override
 String toString() {
-  return 'AdminEmailEreaderDevicesResponse(ereaderDevices: $ereaderDevices)';
+  final _this = this as AdminEmailEreaderDevicesResponse;
+  return 'AdminEmailEreaderDevicesResponse(ereaderDevices: ${_this.ereaderDevices})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailEreaderDevicesResponse&&const DeepCollectionEquality().equals(other._ereaderDevices, _ereaderDevices));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailEreaderDevicesResponse&&const DeepCollectionEquality().equals(other.ereaderDevices, _ereaderDevices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_ereaderDevices));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_ereaderDevices));
+}
 
 @override
 String toString() {
-  return 'AdminEmailEreaderDevicesResponse(ereaderDevices: $ereaderDevices)';
+    return 'AdminEmailEreaderDevicesResponse(ereaderDevices: $ereaderDevices)';
 }
 
 

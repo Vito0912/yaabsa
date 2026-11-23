@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/me/status.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SignInServerStatus extends StatelessWidget {
   const SignInServerStatus({super.key, required this.isLoading, required this.status, required this.error});
@@ -19,7 +20,7 @@ class SignInServerStatus extends StatelessWidget {
           SizedBox(
             height: 14,
             width: 14,
-            child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onSurfaceVariant),
+            child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: 8),
           Text('Checking server...', style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),

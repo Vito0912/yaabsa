@@ -29,16 +29,21 @@ $PlayLibraryItemRequestCopyWith<PlayLibraryItemRequest> get copyWith => _$PlayLi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayLibraryItemRequest&&(identical(other.deviceInfo, deviceInfo) || other.deviceInfo == deviceInfo)&&(identical(other.forceDirectPlay, forceDirectPlay) || other.forceDirectPlay == forceDirectPlay)&&(identical(other.forceTranscode, forceTranscode) || other.forceTranscode == forceTranscode)&&const DeepCollectionEquality().equals(other.supportedMimeTypes, supportedMimeTypes)&&(identical(other.mediaPlayer, mediaPlayer) || other.mediaPlayer == mediaPlayer));
+  final _this = this as PlayLibraryItemRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayLibraryItemRequest&&(identical(other.deviceInfo, _this.deviceInfo) || other.deviceInfo == _this.deviceInfo)&&(identical(other.forceDirectPlay, _this.forceDirectPlay) || other.forceDirectPlay == _this.forceDirectPlay)&&(identical(other.forceTranscode, _this.forceTranscode) || other.forceTranscode == _this.forceTranscode)&&const DeepCollectionEquality().equals(other.supportedMimeTypes, _this.supportedMimeTypes)&&(identical(other.mediaPlayer, _this.mediaPlayer) || other.mediaPlayer == _this.mediaPlayer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceInfo,forceDirectPlay,forceTranscode,const DeepCollectionEquality().hash(supportedMimeTypes),mediaPlayer);
+int get hashCode {
+  final _this = this as PlayLibraryItemRequest;
+  return Object.hash(runtimeType,_this.deviceInfo,_this.forceDirectPlay,_this.forceTranscode,const DeepCollectionEquality().hash(_this.supportedMimeTypes),_this.mediaPlayer);
+}
 
 @override
 String toString() {
-  return 'PlayLibraryItemRequest(deviceInfo: $deviceInfo, forceDirectPlay: $forceDirectPlay, forceTranscode: $forceTranscode, supportedMimeTypes: $supportedMimeTypes, mediaPlayer: $mediaPlayer)';
+  final _this = this as PlayLibraryItemRequest;
+  return 'PlayLibraryItemRequest(deviceInfo: ${_this.deviceInfo}, forceDirectPlay: ${_this.forceDirectPlay}, forceTranscode: ${_this.forceTranscode}, supportedMimeTypes: ${_this.supportedMimeTypes}, mediaPlayer: ${_this.mediaPlayer})';
 }
 
 
@@ -253,16 +258,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayLibraryItemRequest&&(identical(other.deviceInfo, deviceInfo) || other.deviceInfo == deviceInfo)&&(identical(other.forceDirectPlay, forceDirectPlay) || other.forceDirectPlay == forceDirectPlay)&&(identical(other.forceTranscode, forceTranscode) || other.forceTranscode == forceTranscode)&&const DeepCollectionEquality().equals(other._supportedMimeTypes, _supportedMimeTypes)&&(identical(other.mediaPlayer, mediaPlayer) || other.mediaPlayer == mediaPlayer));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayLibraryItemRequest&&(identical(other.deviceInfo, deviceInfo) || other.deviceInfo == deviceInfo)&&(identical(other.forceDirectPlay, forceDirectPlay) || other.forceDirectPlay == forceDirectPlay)&&(identical(other.forceTranscode, forceTranscode) || other.forceTranscode == forceTranscode)&&const DeepCollectionEquality().equals(other.supportedMimeTypes, _supportedMimeTypes)&&(identical(other.mediaPlayer, mediaPlayer) || other.mediaPlayer == mediaPlayer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceInfo,forceDirectPlay,forceTranscode,const DeepCollectionEquality().hash(_supportedMimeTypes),mediaPlayer);
+int get hashCode {
+    return Object.hash(runtimeType,deviceInfo,forceDirectPlay,forceTranscode,const DeepCollectionEquality().hash(_supportedMimeTypes),mediaPlayer);
+}
 
 @override
 String toString() {
-  return 'PlayLibraryItemRequest(deviceInfo: $deviceInfo, forceDirectPlay: $forceDirectPlay, forceTranscode: $forceTranscode, supportedMimeTypes: $supportedMimeTypes, mediaPlayer: $mediaPlayer)';
+    return 'PlayLibraryItemRequest(deviceInfo: $deviceInfo, forceDirectPlay: $forceDirectPlay, forceTranscode: $forceTranscode, supportedMimeTypes: $supportedMimeTypes, mediaPlayer: $mediaPlayer)';
 }
 
 

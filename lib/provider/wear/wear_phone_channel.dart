@@ -6,6 +6,7 @@ Future<bool> sendWearCredentialsToWatch({
   required String serverUrl,
   required String accessToken,
   String? refreshToken,
+  Map<String, String>? headers,
 }) async {
   const channel = MethodChannel('de.vito0912.yaabsa/wear_data');
   try {
@@ -13,6 +14,7 @@ Future<bool> sendWearCredentialsToWatch({
       'serverUrl': serverUrl,
       'accessToken': accessToken,
       'refreshToken': refreshToken,
+      'headers': headers,
     });
     return sent ?? false;
   } on PlatformException catch (_) {

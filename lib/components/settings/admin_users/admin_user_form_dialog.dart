@@ -1,11 +1,14 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
 import 'package:yaabsa/api/admin/admin_user_upsert_request.dart';
 import 'package:yaabsa/api/library/library.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
-import 'package:yaabsa/components/settings/admin_users/admin_user_multi_select_card.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_permissions_editor.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/lists/multi_select_list_card.dart';
 
 enum AdminUserFormMode { create, edit }
 
@@ -125,20 +128,20 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
     super.dispose();
   }
 
-  List<AdminUserSelectableOption> _libraryOptions() {
+  List<YaabsaMultiSelectOption> _libraryOptions() {
     final libraries = List<Library>.from(widget.availableLibraries)
       ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
 
     return libraries
-        .map((library) => AdminUserSelectableOption(id: library.id, label: library.name, subtitle: library.mediaType))
+        .map((library) => YaabsaMultiSelectOption(id: library.id, label: library.name, subtitle: library.mediaType))
         .toList(growable: false);
   }
 
-  List<AdminUserSelectableOption> _tagOptions() {
+  List<YaabsaMultiSelectOption> _tagOptions() {
     final tags = widget.availableTags.map((entry) => entry.trim()).where((entry) => entry.isNotEmpty).toSet().toList()
       ..sort((left, right) => left.toLowerCase().compareTo(right.toLowerCase()));
 
-    return tags.map((tag) => AdminUserSelectableOption(id: tag, label: tag)).toList(growable: false);
+    return tags.map((tag) => YaabsaMultiSelectOption(id: tag, label: tag)).toList(growable: false);
   }
 
   List<String> _normalizedSelection(Set<String> selection) {
@@ -336,36 +339,29 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
               children: [
                 Text('Account', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 10),
-                TextField(
+                StyledTextField(
                   controller: _usernameController,
                   enabled: !_isSubmitting,
                   onChanged: (_) => _revalidateUsername(),
                   textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    labelText: 'Username',
-                    border: const OutlineInputBorder(),
-                    errorText: _usernameError,
-                  ),
+                  label: 'Username',
+                  errorText: _usernameError,
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                StyledTextField(
                   controller: _emailController,
                   enabled: !_isSubmitting,
                   onChanged: (_) => _revalidateEmail(),
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: const OutlineInputBorder(),
-                    errorText: _emailError,
-                  ),
+                  label: 'Email',
+                  errorText: _emailError,
                 ),
                 const SizedBox(height: 12),
                 YaabsaExpressiveDropdownField<String>(
                   value: _type,
                   decoration: InputDecoration(
                     labelText: 'Account type',
-                    border: const OutlineInputBorder(),
                     helperText: _canEditType ? null : 'Root account type cannot be changed.',
                   ),
                   options: accountTypeOptions
@@ -378,7 +374,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                   onChanged: (_isSubmitting || !_canEditType) ? null : _onTypeChanged,
                 ),
                 const SizedBox(height: 8),
-                SwitchListTile.adaptive(
+                YaabsaSwitchTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('User is active'),
                   subtitle: Text(
@@ -394,17 +390,14 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                         },
                 ),
                 const SizedBox(height: 8),
-                TextField(
+                StyledTextField(
                   controller: _passwordController,
                   enabled: !_isSubmitting,
                   onChanged: (_) => _revalidatePassword(),
                   obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: _isCreateMode ? 'Password' : 'New password',
-                    helperText: _isCreateMode ? null : 'Leave empty to keep current password.',
-                    border: const OutlineInputBorder(),
-                    errorText: _passwordError,
-                  ),
+                  label: _isCreateMode ? 'Password' : 'New password',
+                  helperText: _isCreateMode ? null : 'Leave empty to keep current password.',
+                  errorText: _passwordError,
                 ),
               ],
             ),
@@ -433,7 +426,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: const Text('Can access all libraries'),
@@ -450,7 +443,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                     },
             ),
             if (!_permissions.accessAllLibraries)
-              AdminUserMultiSelectCard(
+              YaabsaMultiSelectListCard(
                 title: 'Libraries',
                 options: _libraryOptions(),
                 selectedIds: _selectedLibraries,
@@ -463,7 +456,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                 },
               ),
             const SizedBox(height: 8),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: const Text('Can access all tags'),
@@ -480,7 +473,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                     },
             ),
             if (!_permissions.accessAllTags)
-              SwitchListTile.adaptive(
+              YaabsaSwitchTile.adaptive(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Invert selected tags'),
@@ -493,7 +486,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                       },
               ),
             if (!_permissions.accessAllTags)
-              AdminUserMultiSelectCard(
+              YaabsaMultiSelectListCard(
                 title: 'Tags',
                 options: _tagOptions(),
                 selectedIds: _selectedTags,
@@ -593,7 +586,11 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                           ? null
                           : _unlinkOpenId,
                       icon: _isUnlinking
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                            )
                           : const Icon(Icons.link_off_rounded),
                       label: const Text('Unlink OpenID'),
                     ),
@@ -606,7 +603,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                   FilledButton.icon(
                     onPressed: (_isSubmitting || _isUnlinking) ? null : _submit,
                     icon: _isSubmitting
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.save_outlined),
                     label: Text(_isCreateMode ? 'Create user' : 'Save changes'),
                   ),

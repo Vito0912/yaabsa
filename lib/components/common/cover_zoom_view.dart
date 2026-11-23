@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Map<String, String> normalizeImageRequestHeaders(Map<String, dynamic>? headers) {
   if (headers == null || headers.isEmpty) {
@@ -124,7 +125,7 @@ class _CoverZoomView extends StatelessWidget {
                                       : loadingProgress.cumulativeBytesLoaded / expectedBytes;
 
                                   return Center(
-                                    child: CircularProgressIndicator(
+                                    child: YaabsaCircularProgressIndicator(
                                       value: progress,
                                       strokeWidth: 2.8,
                                       color: Colors.white,

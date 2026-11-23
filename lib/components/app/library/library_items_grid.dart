@@ -5,6 +5,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
 
@@ -12,6 +13,7 @@ const int _libraryPrefetchThreshold = 8;
 const int _libraryApproxScrollPastCount = 24;
 
 typedef LibraryGridSelectionCallback = void Function(String itemId, int index);
+typedef LibraryGridContextMenuCallback = void Function(LibraryItem item, int index, Offset position);
 
 class LibraryItemsGrid extends StatelessWidget {
   const LibraryItemsGrid({
@@ -27,9 +29,12 @@ class LibraryItemsGrid extends StatelessWidget {
     this.onToggleSelection,
     this.onEnterSelectionMode,
     this.onPlayItem,
+    this.onOpenItem,
+    this.playbackStateHandler,
     this.subtitleBuilder,
     this.canEditItems = false,
     this.onEditItem,
+    this.onItemContextMenu,
   });
 
   final ScrollController scrollController;
@@ -43,15 +48,22 @@ class LibraryItemsGrid extends StatelessWidget {
   final LibraryGridSelectionCallback? onToggleSelection;
   final LibraryGridSelectionCallback? onEnterSelectionMode;
   final void Function(LibraryItem item, int index)? onPlayItem;
+  final void Function(LibraryItem item, int index)? onOpenItem;
+  final BGAudioHandler? playbackStateHandler;
   final LibraryViewSubtitle? Function(LibraryItem item)? subtitleBuilder;
   final bool canEditItems;
   final void Function(LibraryItem item, int index)? onEditItem;
+  final LibraryGridContextMenuCallback? onItemContextMenu;
 
   @override
   Widget build(BuildContext context) {
     return LibraryGridLayoutBuilder(
-      builder: (context, gridLayout, _, _) {
+      builder: (context, gridLayout, tileWidth, _) {
         final loadedCount = items.length;
+        final coverCacheSize = libraryGridCoverCacheSize(
+          tileWidth: tileWidth,
+          devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
+        );
         final estimatedItemCount = estimateLibraryItemCount(
           loadedCount: loadedCount,
           totalItems: totalItems,
@@ -84,21 +96,31 @@ class LibraryItemsGrid extends StatelessWidget {
               api,
               showProgress: true,
               squareCover: true,
+              coverCacheSize: coverCacheSize,
               subtitle: subtitleBuilder?.call(item),
               enableHoverSelection: true,
+              playbackStateHandler: playbackStateHandler,
               onPlay: onPlayItem == null ? null : () => onPlayItem!(item, index),
               canEdit: canEditItems,
               onEdit: onEditItem == null ? null : () => onEditItem!(item, index),
+              onContextMenu: onItemContextMenu == null ? null : (position) => onItemContextMenu!(item, index, position),
               selectionMode: selectionMode,
               isSelected: selectedItemIds.contains(item.id),
               onToggleSelection: onToggleSelection == null ? null : () => onToggleSelection!(item.id, index),
               onEnterSelectionMode: onEnterSelectionMode == null ? null : () => onEnterSelectionMode!(item.id, index),
+              onActivate: onOpenItem == null ? null : () => onOpenItem!(item, index),
             );
           },
         );
       },
     );
   }
+}
+
+int libraryGridCoverCacheSize({required double tileWidth, required double devicePixelRatio}) {
+  const horizontalCardPadding = 16.0;
+  final logicalCoverSize = (tileWidth - horizontalCardPadding).clamp(1.0, tileWidth);
+  return (logicalCoverSize * devicePixelRatio).ceil();
 }
 
 int estimateLibraryItemCount({required int loadedCount, required int totalItems, required bool hasNextPage}) {

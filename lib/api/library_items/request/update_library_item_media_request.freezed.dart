@@ -29,16 +29,21 @@ $UpdateLibraryItemMediaRequestCopyWith<UpdateLibraryItemMediaRequest> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLibraryItemMediaRequest&&(identical(other.metadata, metadata) || other.metadata == metadata)&&const DeepCollectionEquality().equals(other.tags, tags)&&(identical(other.url, url) || other.url == url));
+  final _this = this as UpdateLibraryItemMediaRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLibraryItemMediaRequest&&(identical(other.metadata, _this.metadata) || other.metadata == _this.metadata)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&(identical(other.url, _this.url) || other.url == _this.url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metadata,const DeepCollectionEquality().hash(tags),url);
+int get hashCode {
+  final _this = this as UpdateLibraryItemMediaRequest;
+  return Object.hash(runtimeType,_this.metadata,const DeepCollectionEquality().hash(_this.tags),_this.url);
+}
 
 @override
 String toString() {
-  return 'UpdateLibraryItemMediaRequest(metadata: $metadata, tags: $tags, url: $url)';
+  final _this = this as UpdateLibraryItemMediaRequest;
+  return 'UpdateLibraryItemMediaRequest(metadata: ${_this.metadata}, tags: ${_this.tags}, url: ${_this.url})';
 }
 
 
@@ -252,16 +257,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLibraryItemMediaRequest&&(identical(other.metadata, metadata) || other.metadata == metadata)&&const DeepCollectionEquality().equals(other._tags, _tags)&&(identical(other.url, url) || other.url == url));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLibraryItemMediaRequest&&(identical(other.metadata, metadata) || other.metadata == metadata)&&const DeepCollectionEquality().equals(other.tags, _tags)&&(identical(other.url, url) || other.url == url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metadata,const DeepCollectionEquality().hash(_tags),url);
+int get hashCode {
+    return Object.hash(runtimeType,metadata,const DeepCollectionEquality().hash(_tags),url);
+}
 
 @override
 String toString() {
-  return 'UpdateLibraryItemMediaRequest(metadata: $metadata, tags: $tags, url: $url)';
+    return 'UpdateLibraryItemMediaRequest(metadata: $metadata, tags: $tags, url: $url)';
 }
 
 
@@ -330,16 +337,21 @@ $UpdateLibraryItemMediaMetadataPatchCopyWith<UpdateLibraryItemMediaMetadataPatch
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLibraryItemMediaMetadataPatch&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author)&&const DeepCollectionEquality().equals(other.authors, authors)&&const DeepCollectionEquality().equals(other.narrators, narrators)&&const DeepCollectionEquality().equals(other.series, series)&&const DeepCollectionEquality().equals(other.genres, genres)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.publishedYear, publishedYear) || other.publishedYear == publishedYear)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.abridged, abridged) || other.abridged == abridged)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.itunesPageUrl, itunesPageUrl) || other.itunesPageUrl == itunesPageUrl)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&(identical(other.type, type) || other.type == type));
+  final _this = this as UpdateLibraryItemMediaMetadataPatch;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLibraryItemMediaMetadataPatch&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.subtitle, _this.subtitle) || other.subtitle == _this.subtitle)&&(identical(other.author, _this.author) || other.author == _this.author)&&const DeepCollectionEquality().equals(other.authors, _this.authors)&&const DeepCollectionEquality().equals(other.narrators, _this.narrators)&&const DeepCollectionEquality().equals(other.series, _this.series)&&const DeepCollectionEquality().equals(other.genres, _this.genres)&&(identical(other.publisher, _this.publisher) || other.publisher == _this.publisher)&&(identical(other.publishedYear, _this.publishedYear) || other.publishedYear == _this.publishedYear)&&(identical(other.publishedDate, _this.publishedDate) || other.publishedDate == _this.publishedDate)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.explicit, _this.explicit) || other.explicit == _this.explicit)&&(identical(other.abridged, _this.abridged) || other.abridged == _this.abridged)&&(identical(other.isbn, _this.isbn) || other.isbn == _this.isbn)&&(identical(other.asin, _this.asin) || other.asin == _this.asin)&&(identical(other.feedUrl, _this.feedUrl) || other.feedUrl == _this.feedUrl)&&(identical(other.itunesPageUrl, _this.itunesPageUrl) || other.itunesPageUrl == _this.itunesPageUrl)&&(identical(other.itunesId, _this.itunesId) || other.itunesId == _this.itunesId)&&(identical(other.releaseDate, _this.releaseDate) || other.releaseDate == _this.releaseDate)&&(identical(other.type, _this.type) || other.type == _this.type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,title,subtitle,author,const DeepCollectionEquality().hash(authors),const DeepCollectionEquality().hash(narrators),const DeepCollectionEquality().hash(series),const DeepCollectionEquality().hash(genres),publisher,publishedYear,publishedDate,description,language,explicit,abridged,isbn,asin,feedUrl,itunesPageUrl,itunesId,releaseDate,type]);
+int get hashCode {
+  final _this = this as UpdateLibraryItemMediaMetadataPatch;
+  return Object.hashAll([runtimeType,_this.title,_this.subtitle,_this.author,const DeepCollectionEquality().hash(_this.authors),const DeepCollectionEquality().hash(_this.narrators),const DeepCollectionEquality().hash(_this.series),const DeepCollectionEquality().hash(_this.genres),_this.publisher,_this.publishedYear,_this.publishedDate,_this.description,_this.language,_this.explicit,_this.abridged,_this.isbn,_this.asin,_this.feedUrl,_this.itunesPageUrl,_this.itunesId,_this.releaseDate,_this.type]);
+}
 
 @override
 String toString() {
-  return 'UpdateLibraryItemMediaMetadataPatch(title: $title, subtitle: $subtitle, author: $author, authors: $authors, narrators: $narrators, series: $series, genres: $genres, publisher: $publisher, publishedYear: $publishedYear, publishedDate: $publishedDate, description: $description, language: $language, explicit: $explicit, abridged: $abridged, isbn: $isbn, asin: $asin, feedUrl: $feedUrl, itunesPageUrl: $itunesPageUrl, itunesId: $itunesId, releaseDate: $releaseDate, type: $type)';
+  final _this = this as UpdateLibraryItemMediaMetadataPatch;
+  return 'UpdateLibraryItemMediaMetadataPatch(title: ${_this.title}, subtitle: ${_this.subtitle}, author: ${_this.author}, authors: ${_this.authors}, narrators: ${_this.narrators}, series: ${_this.series}, genres: ${_this.genres}, publisher: ${_this.publisher}, publishedYear: ${_this.publishedYear}, publishedDate: ${_this.publishedDate}, description: ${_this.description}, language: ${_this.language}, explicit: ${_this.explicit}, abridged: ${_this.abridged}, isbn: ${_this.isbn}, asin: ${_this.asin}, feedUrl: ${_this.feedUrl}, itunesPageUrl: ${_this.itunesPageUrl}, itunesId: ${_this.itunesId}, releaseDate: ${_this.releaseDate}, type: ${_this.type})';
 }
 
 
@@ -601,16 +613,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLibraryItemMediaMetadataPatch&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author)&&const DeepCollectionEquality().equals(other._authors, _authors)&&const DeepCollectionEquality().equals(other._narrators, _narrators)&&const DeepCollectionEquality().equals(other._series, _series)&&const DeepCollectionEquality().equals(other._genres, _genres)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.publishedYear, publishedYear) || other.publishedYear == publishedYear)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.abridged, abridged) || other.abridged == abridged)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.itunesPageUrl, itunesPageUrl) || other.itunesPageUrl == itunesPageUrl)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLibraryItemMediaMetadataPatch&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author)&&const DeepCollectionEquality().equals(other.authors, _authors)&&const DeepCollectionEquality().equals(other.narrators, _narrators)&&const DeepCollectionEquality().equals(other.series, _series)&&const DeepCollectionEquality().equals(other.genres, _genres)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.publishedYear, publishedYear) || other.publishedYear == publishedYear)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.abridged, abridged) || other.abridged == abridged)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.itunesPageUrl, itunesPageUrl) || other.itunesPageUrl == itunesPageUrl)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&(identical(other.type, type) || other.type == type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,title,subtitle,author,const DeepCollectionEquality().hash(_authors),const DeepCollectionEquality().hash(_narrators),const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_genres),publisher,publishedYear,publishedDate,description,language,explicit,abridged,isbn,asin,feedUrl,itunesPageUrl,itunesId,releaseDate,type]);
+int get hashCode {
+    return Object.hashAll([runtimeType,title,subtitle,author,const DeepCollectionEquality().hash(_authors),const DeepCollectionEquality().hash(_narrators),const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_genres),publisher,publishedYear,publishedDate,description,language,explicit,abridged,isbn,asin,feedUrl,itunesPageUrl,itunesId,releaseDate,type]);
+}
 
 @override
 String toString() {
-  return 'UpdateLibraryItemMediaMetadataPatch(title: $title, subtitle: $subtitle, author: $author, authors: $authors, narrators: $narrators, series: $series, genres: $genres, publisher: $publisher, publishedYear: $publishedYear, publishedDate: $publishedDate, description: $description, language: $language, explicit: $explicit, abridged: $abridged, isbn: $isbn, asin: $asin, feedUrl: $feedUrl, itunesPageUrl: $itunesPageUrl, itunesId: $itunesId, releaseDate: $releaseDate, type: $type)';
+    return 'UpdateLibraryItemMediaMetadataPatch(title: $title, subtitle: $subtitle, author: $author, authors: $authors, narrators: $narrators, series: $series, genres: $genres, publisher: $publisher, publishedYear: $publishedYear, publishedDate: $publishedDate, description: $description, language: $language, explicit: $explicit, abridged: $abridged, isbn: $isbn, asin: $asin, feedUrl: $feedUrl, itunesPageUrl: $itunesPageUrl, itunesId: $itunesId, releaseDate: $releaseDate, type: $type)';
 }
 
 

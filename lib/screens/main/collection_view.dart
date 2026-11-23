@@ -73,16 +73,28 @@ class CollectionView extends HookConsumerWidget {
             .toList(growable: false);
 
         return ManagedMultiBookView(
-          title: 'Collections',
           createLabel: 'New collection',
           emptyTitle: 'No collections yet.',
           emptyMessage: 'Create one to group books you want to revisit together.',
+          emptyIcon: Icons.collections_bookmark_outlined,
           onCreate: canCreateCollections
               ? () => _createCollection(context: context, ref: ref, libraryId: libraryId)
               : null,
           scrollController: scrollController,
           api: api,
           cards: cards,
+          hasNextPage: state.hasNextPage,
+          isLoadingNextPage: state.isLoadingNextPage,
+          nextPageError: state.nextPageError ?? state.error,
+          refreshError: state.error,
+          onLoadMore: () {
+            final notifier = ref.read(collectionsProvider(libraryId).notifier);
+            if (state.error != null) {
+              notifier.refresh(withLoading: false, requireServer: true);
+            } else {
+              notifier.loadNextPage();
+            }
+          },
           onRefresh: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: false),
         );
       },
@@ -173,10 +185,18 @@ Future<void> _createCollection({
     booksTitle: 'Edit books',
     createLabel: 'Create',
     selectionRequired: true,
-    onCreate: ({required name, description, required bookIds}) {
-      return ref
+    onCreate: ({required name, description, required bookIds}) async {
+      final created = await ref
           .read(collectionsProvider(libraryId).notifier)
           .createCollection(name: name, description: description, bookIds: bookIds);
+      if (!context.mounted) {
+        return;
+      }
+
+      context.push(
+        Uri(path: '/collection/${created.id}', queryParameters: {'libraryId': libraryId}).toString(),
+        extra: MultiBookEntryData.fromCollection(created),
+      );
     },
     successMessage: 'Collection created.',
     errorFallback: 'Could not create collection.',

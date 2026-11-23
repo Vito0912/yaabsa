@@ -29,16 +29,21 @@ $UpdateAdminAuthenticationSettingsResponseCopyWith<UpdateAdminAuthenticationSett
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateAdminAuthenticationSettingsResponse&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.serverSettings, serverSettings) || other.serverSettings == serverSettings));
+  final _this = this as UpdateAdminAuthenticationSettingsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateAdminAuthenticationSettingsResponse&&(identical(other.updated, _this.updated) || other.updated == _this.updated)&&(identical(other.serverSettings, _this.serverSettings) || other.serverSettings == _this.serverSettings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,updated,serverSettings);
+int get hashCode {
+  final _this = this as UpdateAdminAuthenticationSettingsResponse;
+  return Object.hash(runtimeType,_this.updated,_this.serverSettings);
+}
 
 @override
 String toString() {
-  return 'UpdateAdminAuthenticationSettingsResponse(updated: $updated, serverSettings: $serverSettings)';
+  final _this = this as UpdateAdminAuthenticationSettingsResponse;
+  return 'UpdateAdminAuthenticationSettingsResponse(updated: ${_this.updated}, serverSettings: ${_this.serverSettings})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateAdminAuthenticationSettingsResponse&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.serverSettings, serverSettings) || other.serverSettings == serverSettings));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateAdminAuthenticationSettingsResponse&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.serverSettings, serverSettings) || other.serverSettings == serverSettings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,updated,serverSettings);
+int get hashCode {
+    return Object.hash(runtimeType,updated,serverSettings);
+}
 
 @override
 String toString() {
-  return 'UpdateAdminAuthenticationSettingsResponse(updated: $updated, serverSettings: $serverSettings)';
+    return 'UpdateAdminAuthenticationSettingsResponse(updated: $updated, serverSettings: $serverSettings)';
 }
 
 

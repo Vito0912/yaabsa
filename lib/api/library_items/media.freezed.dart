@@ -26,16 +26,21 @@ $MediaCopyWith<Media> get copyWith => _$MediaCopyWithImpl<Media>(this as Media, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Media&&(identical(other.podcastMedia, podcastMedia) || other.podcastMedia == podcastMedia)&&(identical(other.bookMedia, bookMedia) || other.bookMedia == bookMedia));
+  final _this = this as Media;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Media&&(identical(other.podcastMedia, _this.podcastMedia) || other.podcastMedia == _this.podcastMedia)&&(identical(other.bookMedia, _this.bookMedia) || other.bookMedia == _this.bookMedia));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,podcastMedia,bookMedia);
+int get hashCode {
+  final _this = this as Media;
+  return Object.hash(runtimeType,_this.podcastMedia,_this.bookMedia);
+}
 
 @override
 String toString() {
-  return 'Media(podcastMedia: $podcastMedia, bookMedia: $bookMedia)';
+  final _this = this as Media;
+  return 'Media(podcastMedia: ${_this.podcastMedia}, bookMedia: ${_this.bookMedia})';
 }
 
 
@@ -248,16 +253,18 @@ _$MediaCopyWith<_Media> get copyWith => __$MediaCopyWithImpl<_Media>(this, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Media&&(identical(other.podcastMedia, podcastMedia) || other.podcastMedia == podcastMedia)&&(identical(other.bookMedia, bookMedia) || other.bookMedia == bookMedia));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Media&&(identical(other.podcastMedia, podcastMedia) || other.podcastMedia == podcastMedia)&&(identical(other.bookMedia, bookMedia) || other.bookMedia == bookMedia));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,podcastMedia,bookMedia);
+int get hashCode {
+    return Object.hash(runtimeType,podcastMedia,bookMedia);
+}
 
 @override
 String toString() {
-  return 'Media(podcastMedia: $podcastMedia, bookMedia: $bookMedia)';
+    return 'Media(podcastMedia: $podcastMedia, bookMedia: $bookMedia)';
 }
 
 

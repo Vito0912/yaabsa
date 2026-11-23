@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -21,6 +23,7 @@ Future<void> processLibraryItemAdded({
   try {
     await _updateStoredDownloadSnapshot(container: container, item: item);
     await invalidateCachedLibraryItemEntries(container: container, itemId: item.id, libraryId: item.libraryId);
+    container.invalidate(libraryFilterDataProvider);
   } catch (e, s) {
     logger('Failed to sync local item add for ${item.id}: $e\n$s', tag: 'LibraryItemSync', level: InfoLevel.warning);
   }
@@ -46,6 +49,7 @@ Future<void> processLibraryItemUpdate({
   try {
     await _updateStoredDownloadSnapshot(container: container, item: item);
     await invalidateCachedLibraryItemEntries(container: container, itemId: item.id, libraryId: item.libraryId);
+    container.invalidate(libraryFilterDataProvider);
   } catch (e, s) {
     logger('Failed to sync local item update for ${item.id}: $e\n$s', tag: 'LibraryItemSync', level: InfoLevel.warning);
   }
@@ -83,6 +87,7 @@ Future<void> processLibraryItemRemovedById({
 
   try {
     await invalidateCachedLibraryItemEntries(container: container, itemId: normalizedItemId, libraryId: libraryId);
+    container.invalidate(libraryFilterDataProvider);
   } catch (e, s) {
     logger(
       'Failed to sync local item removal for $normalizedItemId: $e\n$s',

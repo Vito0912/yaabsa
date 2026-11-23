@@ -18,6 +18,7 @@ import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemChapterEditor extends ConsumerStatefulWidget {
   const LibraryItemChapterEditor({super.key, required this.item, required this.onSaved});
@@ -430,7 +431,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
               _draft.removeSelected();
             },
           ),
-          if (_saving) const LinearProgressIndicator(),
+          if (_saving) const YaabsaLinearProgressIndicator(),
           if (_conflict)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

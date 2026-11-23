@@ -1,8 +1,10 @@
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<List<String>?> showBookEditorSheet({
   required BuildContext context,
@@ -164,14 +166,10 @@ class _BookEditorSheetState extends ConsumerState<_BookEditorSheet> {
           final searchPane = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
+              YaabsaSearchField(
                 controller: _searchController,
-                textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
-                  labelText: 'Search books',
-                  hintText: 'Title, author, or series',
-                  prefixIcon: Icon(Icons.search_rounded),
-                ),
+                label: 'Search books',
+                hintText: 'Title, author, or series',
               ),
               const SizedBox(height: 8),
               Expanded(
@@ -278,7 +276,7 @@ class _SearchResultsList extends StatelessWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, stackTrace) {
         return Center(
           child: Text(

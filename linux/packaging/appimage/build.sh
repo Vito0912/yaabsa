@@ -4,7 +4,7 @@ set -euo pipefail
 app_name="yaabsa"
 packaging_dir="linux/packaging/appimage"
 output_dir="output/linux"
-icon_path="assets/logo_blue_fill.svg"
+icon_path="assets/logo_blue_fill.png"
 extra_shared_objects=("libmpv.so.2")
 
 source linux/packaging/arch.sh
@@ -30,9 +30,9 @@ cp -a "${bundle_dir}" "${app_dir}"
 
 install -Dm644 "${packaging_dir}/${app_name}.desktop" "${app_dir}/${app_name}.desktop"
 install -Dm755 "${packaging_dir}/AppRun" "${app_dir}/AppRun"
-install -Dm644 "${icon_path}" "${app_dir}/${app_name}.svg"
-install -Dm644 "${icon_path}" "${app_dir}/usr/share/icons/hicolor/128x128/apps/${app_name}.svg"
-install -Dm644 "${icon_path}" "${app_dir}/usr/share/icons/hicolor/256x256/apps/${app_name}.svg"
+install -Dm644 "${icon_path}" "${app_dir}/${app_name}.png"
+install -Dm644 "${icon_path}" "${app_dir}/usr/share/icons/hicolor/128x128/apps/${app_name}.png"
+install -Dm644 "${icon_path}" "${app_dir}/usr/share/icons/hicolor/256x256/apps/${app_name}.png"
 
 mkdir -p "${app_dir}/usr/lib"
 

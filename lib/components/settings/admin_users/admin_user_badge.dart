@@ -13,7 +13,7 @@ class AdminUserBadge extends StatelessWidget {
         ?.copyWith(color: color, fontWeight: FontWeight.w700, height: 1);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
@@ -22,8 +22,10 @@ class AdminUserBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[Icon(icon, size: 11, color: color), const SizedBox(width: 4)],
-          Text(label, style: textStyle),
+          if (icon != null) ...[Icon(icon, size: 11, color: color), const SizedBox(width: 3)],
+          Flexible(
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: textStyle),
+          ),
         ],
       ),
     );

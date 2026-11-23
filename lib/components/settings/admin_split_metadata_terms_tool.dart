@@ -1,3 +1,5 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -7,6 +9,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/settings/admin_tool_library_selector.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminSplitMetadataTermsTool extends ConsumerWidget {
   const AdminSplitMetadataTermsTool({super.key, required this.splitType, this.onCompleted});
@@ -195,13 +198,11 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
-              TextField(
+              StyledTextField(
                 controller: _delimiterController,
                 enabled: !busy,
-                decoration: const InputDecoration(
-                  labelText: 'Delimiter',
-                  helperText: 'Example: "," splits "Fantasy, Sci-Fi" into two values.',
-                ),
+                label: 'Delimiter',
+                helperText: 'Example: "," splits "Fantasy, Sci-Fi" into two values.',
               ),
               const SizedBox(height: 10),
               if (_errorMessage != null && _errorMessage!.isNotEmpty)
@@ -212,7 +213,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
               if (_isLoadingLibraries)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(child: YaabsaCircularProgressIndicator()),
                 )
               else
                 AdminToolLibrarySelector(
@@ -225,7 +226,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
                   },
                   enabled: !busy,
                 ),
-              if (_isRunning) ...[const SizedBox(height: 12), const LinearProgressIndicator(minHeight: 4)],
+              if (_isRunning) ...[const SizedBox(height: 12), const YaabsaLinearProgressIndicator(minHeight: 4)],
             ],
           ),
         ),

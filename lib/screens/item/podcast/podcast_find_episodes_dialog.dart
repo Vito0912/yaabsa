@@ -1,7 +1,9 @@
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/podcast/podcast_feed.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 Future<List<PodcastFeedEpisode>?> showPodcastFindEpisodesDialog({
   required BuildContext context,
@@ -144,43 +146,39 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: YaabsaSearchField(
                       controller: _searchController,
                       onChanged: (value) {
                         setState(() {
                           _searchQuery = value;
                         });
                       },
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        hintText: 'Search episodes',
-                        suffixIcon: _searchQuery.trim().isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: 'Clear search',
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _searchQuery = '';
-                                  });
-                                },
-                                icon: const Icon(Icons.close_rounded),
-                              ),
-                        border: const OutlineInputBorder(),
-                      ),
+                      isDense: true,
+                      hintText: 'Search episodes',
+                      suffixIcon: _searchQuery.trim().isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton.filledTonal(
+                  YaabsaActionIconButton(
+                    icon: _sortDescending ? Icons.expand_more_rounded : Icons.expand_less_rounded,
+                    variant: YaabsaActionButtonVariant.filledTonal,
                     tooltip: _sortDescending ? 'Sort newest first' : 'Sort oldest first',
                     onPressed: () {
                       setState(() {
                         _sortDescending = !_sortDescending;
                       });
                     },
-                    icon: Icon(_sortDescending ? Icons.expand_more_rounded : Icons.expand_less_rounded),
                   ),
                 ],
               ),

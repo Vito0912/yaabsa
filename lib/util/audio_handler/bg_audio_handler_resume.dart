@@ -266,6 +266,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
 
     _lastQueueItem = lastPlayedItem;
     _restoredPosition = resumePosition;
+    final artHeaders = _artRequestHeadersInternal;
     _restoredMediaItem = MediaItem(
       id: finalSnapshot.episodeId ?? finalSnapshot.itemId,
       album: finalSnapshot.subtitle ?? finalSnapshot.author ?? '',
@@ -276,6 +277,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       duration: totalDuration > Duration.zero ? totalDuration : null,
       isLive: false,
       artUri: notificationArtworkUri(finalSnapshot.cover),
+      artHeaders: artHeaders.isEmpty ? null : artHeaders,
     );
     _setLastPlayedMiniPlayerSnapshot(isEnabled ? finalSnapshot : null);
 

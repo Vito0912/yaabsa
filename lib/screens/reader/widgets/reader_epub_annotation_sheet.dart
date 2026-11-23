@@ -1,5 +1,7 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:foliate_reader/foliate_reader.dart';
+import 'package:yaabsa/screens/reader/widgets/reader_annotation_details_presentation.dart';
 
 enum ReaderAnnotationSheetActionType { update, delete }
 
@@ -55,65 +57,11 @@ class _AnnotationDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final note = annotation.note?.trim() ?? '';
-
-    return Center(
-      heightFactor: 1,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(child: Text('Note', style: Theme.of(context).textTheme.titleMedium)),
-                  IconButton.filledTonal(
-                    onPressed: () => Navigator.pop(context, _AnnotationDetailsAction.edit),
-                    tooltip: 'Edit annotation',
-                    visualDensity: VisualDensity.compact,
-                    iconSize: 20,
-                    icon: const Icon(Icons.edit_outlined),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Container(
-                constraints: const BoxConstraints(minHeight: 72),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                alignment: Alignment.topLeft,
-                child: SelectableText(
-                  note.isEmpty ? 'No note added' : note,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: note.isEmpty ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
-                    fontStyle: note.isEmpty ? FontStyle.italic : FontStyle.normal,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: () => Navigator.pop(context, _AnnotationDetailsAction.delete),
-                    style: TextButton.styleFrom(foregroundColor: colorScheme.error),
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete'),
-                  ),
-                  const Spacer(),
-                  FilledButton.tonal(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+    return ReaderAnnotationDetailsPresentation(
+      note: annotation.note,
+      onEdit: () => Navigator.pop(context, _AnnotationDetailsAction.edit),
+      onDelete: () => Navigator.pop(context, _AnnotationDetailsAction.delete),
+      onClose: () => Navigator.pop(context),
     );
   }
 }
@@ -163,17 +111,14 @@ class _AnnotationEditorSheetState extends State<_AnnotationEditorSheet> {
                 ],
               ),
               const SizedBox(height: 16),
-              TextField(
+              StyledTextField(
                 controller: _noteController,
                 minLines: 3,
                 maxLines: 6,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Note',
-                  hintText: 'Add an optional note',
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Note',
+                hintText: 'Add an optional note',
+                alignLabelWithHint: true,
               ),
               const SizedBox(height: 20),
               Text('Color', style: Theme.of(context).textTheme.labelLarge),

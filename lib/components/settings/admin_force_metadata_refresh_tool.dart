@@ -7,6 +7,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/settings/admin_tool_library_selector.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminForceMetadataRefreshTool extends ConsumerWidget {
   const AdminForceMetadataRefreshTool({super.key, this.onCompleted});
@@ -185,7 +186,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
               if (_isLoadingLibraries)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(child: YaabsaCircularProgressIndicator()),
                 )
               else
                 AdminToolLibrarySelector(
@@ -198,7 +199,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
                   },
                   enabled: !busy,
                 ),
-              if (_isRunning) ...[const SizedBox(height: 12), const LinearProgressIndicator(minHeight: 4)],
+              if (_isRunning) ...[const SizedBox(height: 12), const YaabsaLinearProgressIndicator(minHeight: 4)],
             ],
           ),
         ),

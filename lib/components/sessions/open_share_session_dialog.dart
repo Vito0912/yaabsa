@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/open_share_session.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<bool?> showOpenShareSessionDialog(
   BuildContext context, {
@@ -171,7 +172,7 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
             style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             onPressed: _isDeleting ? null : _delete,
             child: _isDeleting
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 : const Text('Delete'),
           ),
       ],

@@ -8,6 +8,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class Downloads extends ConsumerStatefulWidget {
   const Downloads({super.key});
@@ -157,7 +158,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
             .watch(storedDownloadsProvider)
             .when(
               skipLoadingOnReload: true,
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: YaabsaCircularProgressIndicator()),
               error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
               data: (downloads) {
                 if (!identical(_cachedDownloads, downloads)) {
@@ -218,7 +219,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
 
                 return Column(
                   children: [
-                    if (_isDeleting) const LinearProgressIndicator(minHeight: 2),
+                    if (_isDeleting) const YaabsaLinearProgressIndicator(minHeight: 2),
                     Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1120),
@@ -335,7 +336,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
               },
             );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:yaabsa/features/player/widgets/playback_button.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:just_audio/just_audio.dart';
@@ -22,28 +23,17 @@ class ControlButton extends StatelessWidget {
           final isPlaying = playerState?.playing ?? false;
           final castActive = castSnapshot.data ?? false;
 
-          if (playerState == null ||
+          final isLoading =
+              playerState == null ||
               playerState.processingState == ProcessingState.loading ||
-              (!castActive && playerState.processingState == ProcessingState.buffering)) {
-            return RepaintBoundary(
-              child: SizedBox.square(
-                dimension: buttonSize ?? (prominent ? 68 : 48),
-                child: const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(strokeWidth: 2.5)),
-              ),
-            );
-          }
+              (!castActive && playerState.processingState == ProcessingState.buffering);
 
-          return IconButton.filled(
-            style: prominent
-                ? IconButton.styleFrom(
-                    minimumSize: Size.square(buttonSize ?? 68),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  )
-                : IconButton.styleFrom(minimumSize: Size.square(buttonSize ?? 48)),
-            iconSize: iconSize ?? (prominent ? 34 : 26),
-            tooltip: isPlaying ? 'Pause' : 'Play',
-            icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
+          return PlaybackButton(
+            isPlaying: isPlaying,
+            isLoading: isLoading,
+            prominent: prominent,
+            iconSize: iconSize,
+            buttonSize: buttonSize,
             onPressed: () {
               if (isPlaying) {
                 audioHandler.pause();

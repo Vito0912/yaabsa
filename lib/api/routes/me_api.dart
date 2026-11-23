@@ -503,6 +503,21 @@ class MeApi {
     );
   }
 
+  Future<bool> deleteMediaProgress(
+    String progressId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) {
+    return ABSApi.makeApiDeleteRequest(
+      route: '/api/me/progress/$progressId',
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
   Future<void> batchUpdateMediaProgress(
     List<Map<String, dynamic>> updatePayloads, {
     CancelToken? cancelToken,

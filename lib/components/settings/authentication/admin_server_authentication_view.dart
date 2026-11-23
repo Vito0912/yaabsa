@@ -11,6 +11,7 @@ import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/components/settings/authentication/admin_authentication_settings_panel.dart';
 import 'package:yaabsa/components/settings/authentication/admin_authentication_settings_validation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerAuthenticationView extends ConsumerStatefulWidget {
   const AdminServerAuthenticationView({super.key});
@@ -828,14 +829,14 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
         if (_isLoading && !_hasLoadedSettings) {
           return const Padding(
             padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           );
         }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
+            if (_isLoading) const YaabsaLinearProgressIndicator(minHeight: 2),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -994,7 +995,11 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                     final saveButton = FilledButton.icon(
                       onPressed: _canSaveSettings ? _saveSettings : null,
                       icon: _isSavingSettings
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                            )
                           : const Icon(Icons.save_outlined),
                       label: const Text('Save Authentication Settings'),
                     );
@@ -1038,7 +1043,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),

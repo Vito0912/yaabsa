@@ -81,7 +81,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       final response = await absApi.getLibraryApi().getLibraryItems(
         libraryId,
         request,
-        extra: forceServer ? const <String, dynamic>{'doNotCache': true} : null,
+        extra: forceServer || request.filter == 'issues' ? const <String, dynamic>{'doNotCache': true} : null,
       );
       final data = response.data;
       if (data == null) {
@@ -207,6 +207,16 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     final existingIndex = currentLoadedState.items.indexWhere((item) => item.id == mutation.itemId);
     if (hasLibraryMismatch && existingIndex == -1) {
       return;
+    }
+
+    if (currentLoadedState.filter == 'issues') {
+      final item = mutation.item;
+      final wasIssue = mutation.previousItem?.hasIssue ?? (existingIndex >= 0);
+      final isIssue = item?.hasIssue ?? false;
+      if (mutation.type != LibraryItemMutationType.updated || wasIssue != isIssue) {
+        ref.invalidateSelf();
+        return;
+      }
     }
 
     final nextItems = List<LibraryItem>.from(currentLoadedState.items);

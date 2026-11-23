@@ -235,9 +235,8 @@ extension _ReaderNavigation on _ReaderState {
               leading: const Icon(Icons.bookmark_rounded),
               title: Text(bookmark.text ?? 'Page $page'),
               subtitle: const Text('Bookmark'),
-              trailing: IconButton(
+              trailing: YaabsaDeleteIconButton(
                 tooltip: 'Remove bookmark',
-                icon: const Icon(Icons.delete_outline_rounded),
                 onPressed: () {
                   _readerSetState(() {
                     _pdfBookmarks.remove(bookmark);
@@ -260,9 +259,8 @@ extension _ReaderNavigation on _ReaderState {
               entry.noteText ?? (entry.type == AnnotationType.underline ? 'Underlined passage' : 'Highlighted passage'),
             ),
             subtitle: Text('Page ${entry.pageNumber}'),
-            trailing: IconButton(
+            trailing: YaabsaDeleteIconButton(
               tooltip: 'Remove saved passage',
-              icon: const Icon(Icons.delete_outline_rounded),
               onPressed: () => _removePdfAnnotation(entry.cfi),
             ),
             onTap: () {
@@ -291,9 +289,8 @@ extension _ReaderNavigation on _ReaderState {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: entry.note?.isNotEmpty == true ? Text(label) : null,
-          trailing: IconButton(
+          trailing: YaabsaDeleteIconButton(
             tooltip: 'Remove $label',
-            icon: const Icon(Icons.delete_outline_rounded),
             onPressed: () => unawaited(_removeEpubAnnotation(entry)),
           ),
           onTap: () {

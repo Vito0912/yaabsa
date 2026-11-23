@@ -29,16 +29,21 @@ $SearchProviderOptionCopyWith<SearchProviderOption> get copyWith => _$SearchProv
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchProviderOption&&(identical(other.value, value) || other.value == value)&&(identical(other.text, text) || other.text == text));
+  final _this = this as SearchProviderOption;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchProviderOption&&(identical(other.value, _this.value) || other.value == _this.value)&&(identical(other.text, _this.text) || other.text == _this.text));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,value,text);
+int get hashCode {
+  final _this = this as SearchProviderOption;
+  return Object.hash(runtimeType,_this.value,_this.text);
+}
 
 @override
 String toString() {
-  return 'SearchProviderOption(value: $value, text: $text)';
+  final _this = this as SearchProviderOption;
+  return 'SearchProviderOption(value: ${_this.value}, text: ${_this.text})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchProviderOption&&(identical(other.value, value) || other.value == value)&&(identical(other.text, text) || other.text == text));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchProviderOption&&(identical(other.value, value) || other.value == value)&&(identical(other.text, text) || other.text == text));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,value,text);
+int get hashCode {
+    return Object.hash(runtimeType,value,text);
+}
 
 @override
 String toString() {
-  return 'SearchProviderOption(value: $value, text: $text)';
+    return 'SearchProviderOption(value: $value, text: $text)';
 }
 
 

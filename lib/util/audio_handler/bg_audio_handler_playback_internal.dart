@@ -287,7 +287,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     if (_chapterNotificationEnabled) {
       _updateMediaItemForChapterNotification();
     } else {
-      mediaItem.add(_currentMediaItem?.toMediaItem());
+      mediaItem.add(_currentMediaItem?.toMediaItem(artHeaders: _artRequestHeadersInternal));
     }
 
     if (_currentMediaItem == null) {

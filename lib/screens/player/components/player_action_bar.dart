@@ -6,6 +6,7 @@ import 'package:yaabsa/components/player/common/volume_slider.dart';
 import 'package:yaabsa/screens/player/chapter_quick_picker.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/screens/player/queue_quick_picker.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 class PlayerActionBar extends StatelessWidget {
   const PlayerActionBar({
@@ -62,7 +63,12 @@ class PlayerActionBar extends StatelessWidget {
           }
         : SizedBox.square(
             dimension: 48,
-            child: IconButton(tooltip: action.label, onPressed: override, icon: Icon(action.icon)),
+            child: YaabsaActionIconButton(
+              icon: action.icon,
+              tooltip: action.label,
+              tone: YaabsaActionTone.neutral,
+              onPressed: override,
+            ),
           );
 
     if (!showLabels && !grouped) {

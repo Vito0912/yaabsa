@@ -209,12 +209,28 @@ class SessionRepository {
         ? null
         : await db.getStoredDownload(itemId, userId, episodeId: episodeId, allowIncomplete: true);
     final downloaded = storedDownload != null && storedDownload.numberOfDownloadedTracks > 0 ? storedDownload : null;
+    final cachedItem =
+        getLiveLibraryItemSnapshot(itemId) ??
+        ref.read(libraryItemProvider(itemId, episodeId: episodeId)).value ??
+        downloaded?.item;
+    final LibraryItem item;
+    if (cachedItem != null) {
+      item = cachedItem;
+    } else {
+      item = await ref.read(libraryItemProvider(itemId, episodeId: episodeId).future);
+    }
+
+    final serverFilesUnavailable = item.hasIssue;
+    if (serverFilesUnavailable && downloaded == null) {
+      throw StateError('${item.issueLabel}: this item’s files are unavailable on the server.');
+    }
+
     final canReachServer = ref.read(serverReachabilityProvider);
 
     if (itemId == _currentSession?.libraryItemId && episodeId == _currentSession?.episodeId) return null;
 
     var openedServerSession = false;
-    if (downloaded == null || (!downloaded.isComplete && api != null && canReachServer)) {
+    if (downloaded == null || (!serverFilesUnavailable && !downloaded.isComplete && api != null && canReachServer)) {
       if (api == null) {
         logger('No API available and no local download found.', tag: 'SessionRepository', level: InfoLevel.warning);
         return null;
@@ -459,12 +475,17 @@ class SessionRepository {
       if (canReachServer) {
         final pending = await ref.read(appDatabaseProvider).getSync(updatedSession.id);
         final syncedRemotely = await _syncLocalSessionProgressDirectly(updatedSession);
-        if (syncedRemotely && pending != null) {
-          await ref.read(appDatabaseProvider).deleteSyncIfUnchanged(pending);
+        if (syncedRemotely) {
+          if (pending != null) {
+            await ref.read(appDatabaseProvider).deleteSyncIfUnchanged(pending);
+          }
+
+          PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.sync);
           return true;
         }
       }
 
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
       logger('Session is local; storing bound sync locally', tag: 'SessionRepository', level: InfoLevel.debug);
       return true;
     }
@@ -482,7 +503,10 @@ class SessionRepository {
     );
 
     final api = ref.read(absApiProvider);
-    if (!canReachServer || api == null || api.user?.id != session.userId) return true;
+    if (!canReachServer || api == null || api.user?.id != session.userId) {
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
+      return true;
+    }
 
     final db = ref.read(appDatabaseProvider);
     final pending = await db.getSync(binding.sessionId);
@@ -499,6 +523,7 @@ class SessionRepository {
       if (result) {
         await db.deleteSyncIfUnchanged(pending);
         PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.sync);
+        return true;
       }
     } catch (e) {
       logger(
@@ -507,6 +532,8 @@ class SessionRepository {
         level: InfoLevel.warning,
       );
     }
+
+    PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
     return true;
   }
 
@@ -520,7 +547,6 @@ class SessionRepository {
     try {
       await api.getSessionApi().syncLocalSession(currentSession);
 
-      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.localSync);
       return true;
     } catch (e) {
       logger('Failed direct local session sync: $e', tag: 'SessionRepository', level: InfoLevel.warning);
@@ -557,7 +583,6 @@ class SessionRepository {
     );
 
     await ref.read(appDatabaseProvider).addOrUpdateSync(sync, replaceTimeListened: sessionLocal);
-    PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
     logger('Sync stored locally for session ${session.id}', tag: 'SessionRepository', level: InfoLevel.debug);
     return true;
   }

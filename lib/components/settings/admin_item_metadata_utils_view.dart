@@ -13,6 +13,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 enum _MetadataTermType { tag, genre }
 
@@ -263,7 +264,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
         if (_isLoading && _tags.isEmpty && _genres.isEmpty && _providers.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           );
         }
 
@@ -355,7 +356,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

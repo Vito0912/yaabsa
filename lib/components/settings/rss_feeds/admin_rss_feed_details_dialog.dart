@@ -1,9 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
 
 Future<void> showAdminRssFeedDetailsDialog({
   required BuildContext context,
@@ -158,21 +159,14 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
 
   Widget _buildCover() {
     final imageUrl = widget.coverImageUrl?.trim();
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return const SizedBox(width: 64, height: 64, child: Icon(Icons.rss_feed_rounded));
-    }
+    final coverUrl = imageUrl == null || imageUrl.isEmpty ? null : imageUrl;
 
-    return ClipRRect(
+    return YaabsaCoverImage(
+      image: coverUrl == null ? null : NetworkImage(coverUrl),
+      width: 64,
+      height: 64,
       borderRadius: BorderRadius.circular(10),
-      child: Image.network(
-        imageUrl,
-        width: 64,
-        height: 64,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return const SizedBox(width: 64, height: 64, child: Icon(Icons.rss_feed_rounded));
-        },
-      ),
+      placeholder: const Icon(Icons.rss_feed_rounded),
     );
   }
 

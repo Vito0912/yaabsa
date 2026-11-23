@@ -13,6 +13,7 @@ import 'package:yaabsa/components/sessions/listening_session_list.dart';
 import 'package:yaabsa/components/sessions/listening_sessions_pagination_controls.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class CurrentUserListeningSessionsTab extends ConsumerStatefulWidget {
   const CurrentUserListeningSessionsTab({super.key});
@@ -328,7 +329,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
         }
 
         if (_isLoading && _sessions.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: YaabsaCircularProgressIndicator());
         }
 
         return ScreenRefreshIndicator(
@@ -370,7 +371,10 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
               ),
               if (_isLoading)
                 centeredContent(
-                  const Padding(padding: EdgeInsets.only(bottom: 8), child: LinearProgressIndicator(minHeight: 2)),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: YaabsaLinearProgressIndicator(minHeight: 2),
+                  ),
                 ),
               if (_selectedSessionIds.isNotEmpty)
                 centeredContent(
@@ -387,7 +391,11 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
                                   unawaited(_bulkDeleteSelectedSessions(currentUser));
                                 },
                           icon: _isBulkDeleting
-                              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                                )
                               : const Icon(Icons.delete_outline_rounded),
                           label: const Text('Delete Selected'),
                         ),
@@ -410,7 +418,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, _) => Center(child: Text('Failed to load user: $error')),
     );
   }

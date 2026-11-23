@@ -4,7 +4,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SettingSwitchTile extends ConsumerWidget {
   const SettingSwitchTile({
@@ -56,64 +58,18 @@ class SettingSwitchTile extends ConsumerWidget {
   final ValueChanged<bool>? onValueChanged;
   final bool isLoading;
 
-  Widget _buildTile(
-    BuildContext context,
-    bool currentValue,
-    ValueChanged<bool>? onChangedHandler,
-    String? subtitleText,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget _buildTile(bool currentValue, ValueChanged<bool>? onChangedHandler, String? subtitleText) {
     final isEnabled = onChangedHandler != null && enabled;
 
-    return SwitchListTile(
+    return SettingsSwitchPresentation(
+      label: label,
+      description: subtitleText,
       value: currentValue,
       onChanged: onChangedHandler,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: isEnabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-              ),
-            ),
-          ),
-          if (icon != null && tooltip != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 6.0),
-              child: Tooltip(
-                message: tooltip!,
-                child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
-              ),
-            ),
-        ],
-      ),
-      subtitle: subtitleText != null && subtitleText.isNotEmpty
-          ? Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                subtitleText,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: isEnabled
-                      ? colorScheme.onSurfaceVariant
-                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                ),
-              ),
-            )
-          : null,
-      secondary: isLoading
-          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-          : null,
-      thumbIcon: WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states) {
-        if (states.contains(WidgetState.selected)) {
-          return const Icon(Icons.check, size: 16);
-        }
-        return const Icon(Icons.close, size: 16);
-      }),
+      enabled: isEnabled,
+      icon: icon,
+      tooltip: tooltip,
+      isLoading: isLoading,
     );
   }
 
@@ -136,7 +92,7 @@ class SettingSwitchTile extends ConsumerWidget {
         );
       }
 
-      return _buildTile(context, value!, enabled && !isLoading ? onValueChanged : null, subtitleText);
+      return _buildTile(value!, enabled && !isLoading ? onValueChanged : null, subtitleText);
     }
 
     final settingKeyValue = settingKey!;
@@ -161,7 +117,6 @@ class SettingSwitchTile extends ConsumerWidget {
         data: (stringValue) {
           final currentValue = SettingsParser.decodeValue<bool>(stringValue, resolvedDefaultValue);
           return _buildTile(
-            context,
             currentValue,
             enabled && !isLoading
                 ? onBeforeChanged == null
@@ -183,7 +138,7 @@ class SettingSwitchTile extends ConsumerWidget {
         },
         loading: () => const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5)),
+          child: SizedBox(width: 20, height: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2.5)),
         ),
         error: (error, _) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -206,7 +161,6 @@ class SettingSwitchTile extends ConsumerWidget {
         final bool currentValue = SettingsParser.decodeValue<bool>(snapshot.data?.value, fallbackValue);
 
         return _buildTile(
-          context,
           currentValue,
           enabled && !isLoading
               ? onBeforeChanged == null

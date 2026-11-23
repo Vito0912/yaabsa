@@ -8,6 +8,8 @@ import 'package:yaabsa/provider/common/stored_downloads_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<void> showDownloadFiles(BuildContext context, String itemId, {String? episodeId}) {
   if (!context.isMobile) {
@@ -134,7 +136,7 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
     final colors = Theme.of(context).colorScheme;
     if (download == null) {
       final entry = ref.watch(storedDownloadEntryProvider(widget.itemId, episodeId: widget.episodeId));
-      if (entry.isLoading) return const Center(child: CircularProgressIndicator());
+      if (entry.isLoading) return const Center(child: YaabsaCircularProgressIndicator());
       if (entry.hasError) return const Center(child: Text('Could not load this download'));
       return const Center(child: Text('This download has been removed'));
     }
@@ -192,7 +194,7 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
                   FilledButton.tonalIcon(
                     onPressed: _busy || !canDownload || !files.hasValue ? null : () => _download(),
                     icon: _busy && _deletingInode == null
-                        ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.download_rounded),
                     label: const Text('Download missing'),
                   )
@@ -219,7 +221,7 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
                   deleting: _deletingInode == entries[index].inode,
                 ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: YaabsaCircularProgressIndicator()),
               error: (error, _) => Center(
                 child: TextButton.icon(
                   onPressed: () =>
@@ -280,9 +282,9 @@ class _DownloadFileRow extends ConsumerWidget {
       title: Text(file.name, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: Text('$label${file.size != null && file.size! > 0 ? ' · ${formatBytes(file.size!)}' : ''}'),
       trailing: deleting
-          ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2))
+          ? const SizedBox.square(dimension: 22, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
           : file.downloaded
-          ? IconButton(tooltip: 'Delete file', onPressed: onDelete, icon: const Icon(Icons.delete_outline_rounded))
+          ? YaabsaDeleteIconButton(tooltip: 'Delete file', onPressed: onDelete)
           : status != null
           ? RepaintBoundary(child: ItemDownloadIndicator(status: status))
           : IconButton.filledTonal(

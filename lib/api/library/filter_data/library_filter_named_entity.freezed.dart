@@ -29,16 +29,21 @@ $LibraryFilterNamedEntityCopyWith<LibraryFilterNamedEntity> get copyWith => _$Li
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFilterNamedEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+  final _this = this as LibraryFilterNamedEntity;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFilterNamedEntity&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name);
+int get hashCode {
+  final _this = this as LibraryFilterNamedEntity;
+  return Object.hash(runtimeType,_this.id,_this.name);
+}
 
 @override
 String toString() {
-  return 'LibraryFilterNamedEntity(id: $id, name: $name)';
+  final _this = this as LibraryFilterNamedEntity;
+  return 'LibraryFilterNamedEntity(id: ${_this.id}, name: ${_this.name})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFilterNamedEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFilterNamedEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name);
+int get hashCode {
+    return Object.hash(runtimeType,id,name);
+}
 
 @override
 String toString() {
-  return 'LibraryFilterNamedEntity(id: $id, name: $name)';
+    return 'LibraryFilterNamedEntity(id: $id, name: $name)';
 }
 
 

@@ -1,3 +1,4 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/audio_file_download_mode.dart';
@@ -70,17 +71,14 @@ class _AudioFileDownloadDialogState extends State<AudioFileDownloadDialog> {
                   contentPadding: EdgeInsets.zero,
                 ),
               if (_mode == AudioFileDownloadMode.custom)
-                TextField(
+                StyledTextField(
                   controller: _countController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    labelText: 'Number of files',
-                    helperText: 'Includes the current file',
-                    errorText: _error,
-                    border: const OutlineInputBorder(),
-                  ),
                   onSubmitted: (_) => _download(),
+                  label: 'Number of files',
+                  helperText: 'Includes the current file',
+                  errorText: _error,
                 ),
               if (_mode == AudioFileDownloadMode.all)
                 CheckboxListTile(

@@ -9,6 +9,7 @@ import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/provider/common/library_author_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AuthorDetailView extends ConsumerWidget {
   const AuthorDetailView({super.key, required this.authorId});
@@ -37,7 +38,7 @@ class AuthorDetailView extends ConsumerWidget {
             description: null,
             isLoadingDetails: true,
           ),
-          const Expanded(child: Center(child: CircularProgressIndicator())),
+          const Expanded(child: Center(child: YaabsaCircularProgressIndicator())),
         ],
       ),
       error: (error, stackTrace) => ConnectionIssueView.requestFailed(
@@ -165,7 +166,7 @@ class _AuthorTopSection extends StatelessWidget {
                       ),
                     ] else if (isLoadingDetails) ...[
                       const SizedBox(height: 8),
-                      const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2)),
+                      const SizedBox(width: 20, height: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2)),
                     ],
                   ],
                 ),

@@ -31,7 +31,8 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 String toString() {
-  return 'User(id: $id, username: $username, email: $email, type: $type, token: $token, accessToken: $accessToken, refreshToken: $refreshToken, apiKey: $apiKey, mediaProgress: $mediaProgress, seriesHideFromContinueListening: $seriesHideFromContinueListening, bookmarks: $bookmarks, isActive: $isActive, isLocked: $isLocked, lastSeen: $lastSeen, createdAt: $createdAt, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected, hasOpenIdLink: $hasOpenIdLink, setting: $setting, server: $server)';
+  final _this = this as User;
+  return 'User(id: ${_this.id}, username: ${_this.username}, email: ${_this.email}, type: ${_this.type}, token: ${_this.token}, accessToken: ${_this.accessToken}, refreshToken: ${_this.refreshToken}, apiKey: ${_this.apiKey}, mediaProgress: ${_this.mediaProgress}, seriesHideFromContinueListening: ${_this.seriesHideFromContinueListening}, bookmarks: ${_this.bookmarks}, isActive: ${_this.isActive}, isLocked: ${_this.isLocked}, lastSeen: ${_this.lastSeen}, createdAt: ${_this.createdAt}, permissions: ${_this.permissions}, librariesAccessible: ${_this.librariesAccessible}, itemTagsSelected: ${_this.itemTagsSelected}, hasOpenIdLink: ${_this.hasOpenIdLink}, setting: ${_this.setting}, server: ${_this.server})';
 }
 
 
@@ -296,7 +297,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'User(id: $id, username: $username, email: $email, type: $type, token: $token, accessToken: $accessToken, refreshToken: $refreshToken, apiKey: $apiKey, mediaProgress: $mediaProgress, seriesHideFromContinueListening: $seriesHideFromContinueListening, bookmarks: $bookmarks, isActive: $isActive, isLocked: $isLocked, lastSeen: $lastSeen, createdAt: $createdAt, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected, hasOpenIdLink: $hasOpenIdLink, setting: $setting, server: $server)';
+    return 'User(id: $id, username: $username, email: $email, type: $type, token: $token, accessToken: $accessToken, refreshToken: $refreshToken, apiKey: $apiKey, mediaProgress: $mediaProgress, seriesHideFromContinueListening: $seriesHideFromContinueListening, bookmarks: $bookmarks, isActive: $isActive, isLocked: $isLocked, lastSeen: $lastSeen, createdAt: $createdAt, permissions: $permissions, librariesAccessible: $librariesAccessible, itemTagsSelected: $itemTagsSelected, hasOpenIdLink: $hasOpenIdLink, setting: $setting, server: $server)';
 }
 
 

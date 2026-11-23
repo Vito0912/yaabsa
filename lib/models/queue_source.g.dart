@@ -21,6 +21,10 @@ _MediaSourceDescriptor _$MediaSourceDescriptorFromJson(Map<String, dynamic> json
   displayName: json['displayName'] as String?,
   descending: json['descending'] as bool? ?? false,
   revision: (json['revision'] as num?)?.toInt(),
+  listeningTrigger:
+      $enumDecodeNullable(_$ListeningDownloadTriggerEnumMap, json['listeningTrigger']) ??
+      ListeningDownloadTrigger.minutes,
+  listeningThreshold: (json['listeningThreshold'] as num?)?.toInt() ?? 30,
 );
 
 Map<String, dynamic> _$MediaSourceDescriptorToJson(_MediaSourceDescriptor instance) => <String, dynamic>{
@@ -30,6 +34,8 @@ Map<String, dynamic> _$MediaSourceDescriptorToJson(_MediaSourceDescriptor instan
   'displayName': instance.displayName,
   'descending': instance.descending,
   'revision': instance.revision,
+  'listeningTrigger': _$ListeningDownloadTriggerEnumMap[instance.listeningTrigger]!,
+  'listeningThreshold': instance.listeningThreshold,
 };
 
 const _$MediaSourceTypeEnumMap = {
@@ -38,6 +44,15 @@ const _$MediaSourceTypeEnumMap = {
   MediaSourceType.playlist: 'playlist',
   MediaSourceType.collection: 'collection',
   MediaSourceType.latestEpisodes: 'latestEpisodes',
+  MediaSourceType.continueListening: 'continueListening',
+  MediaSourceType.continueSeries: 'continueSeries',
+  MediaSourceType.continueReading: 'continueReading',
+  MediaSourceType.listeningThreshold: 'listeningThreshold',
+};
+
+const _$ListeningDownloadTriggerEnumMap = {
+  ListeningDownloadTrigger.minutes: 'minutes',
+  ListeningDownloadTrigger.progress: 'progress',
 };
 
 _QueueCandidate _$QueueCandidateFromJson(Map<String, dynamic> json) => _QueueCandidate(

@@ -26,16 +26,21 @@ $AdvancedTopItemCopyWith<AdvancedTopItem> get copyWith => _$AdvancedTopItemCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTopItem&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
+  final _this = this as AdvancedTopItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTopItem&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.mediaType, _this.mediaType) || other.mediaType == _this.mediaType)&&(identical(other.totalListeningTime, _this.totalListeningTime) || other.totalListeningTime == _this.totalListeningTime)&&(identical(other.sessions, _this.sessions) || other.sessions == _this.sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,author,mediaType,totalListeningTime,sessions);
+int get hashCode {
+  final _this = this as AdvancedTopItem;
+  return Object.hash(runtimeType,_this.id,_this.title,_this.author,_this.mediaType,_this.totalListeningTime,_this.sessions);
+}
 
 @override
 String toString() {
-  return 'AdvancedTopItem(id: $id, title: $title, author: $author, mediaType: $mediaType, totalListeningTime: $totalListeningTime, sessions: $sessions)';
+  final _this = this as AdvancedTopItem;
+  return 'AdvancedTopItem(id: ${_this.id}, title: ${_this.title}, author: ${_this.author}, mediaType: ${_this.mediaType}, totalListeningTime: ${_this.totalListeningTime}, sessions: ${_this.sessions})';
 }
 
 
@@ -232,16 +237,18 @@ _$AdvancedTopItemCopyWith<_AdvancedTopItem> get copyWith => __$AdvancedTopItemCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTopItem&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTopItem&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,author,mediaType,totalListeningTime,sessions);
+int get hashCode {
+    return Object.hash(runtimeType,id,title,author,mediaType,totalListeningTime,sessions);
+}
 
 @override
 String toString() {
-  return 'AdvancedTopItem(id: $id, title: $title, author: $author, mediaType: $mediaType, totalListeningTime: $totalListeningTime, sessions: $sessions)';
+    return 'AdvancedTopItem(id: $id, title: $title, author: $author, mediaType: $mediaType, totalListeningTime: $totalListeningTime, sessions: $sessions)';
 }
 
 
@@ -298,16 +305,21 @@ $AdvancedTopEntityCopyWith<AdvancedTopEntity> get copyWith => _$AdvancedTopEntit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTopEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
+  final _this = this as AdvancedTopEntity;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTopEntity&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.totalListeningTime, _this.totalListeningTime) || other.totalListeningTime == _this.totalListeningTime)&&(identical(other.sessions, _this.sessions) || other.sessions == _this.sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,totalListeningTime,sessions);
+int get hashCode {
+  final _this = this as AdvancedTopEntity;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.totalListeningTime,_this.sessions);
+}
 
 @override
 String toString() {
-  return 'AdvancedTopEntity(id: $id, name: $name, totalListeningTime: $totalListeningTime, sessions: $sessions)';
+  final _this = this as AdvancedTopEntity;
+  return 'AdvancedTopEntity(id: ${_this.id}, name: ${_this.name}, totalListeningTime: ${_this.totalListeningTime}, sessions: ${_this.sessions})';
 }
 
 
@@ -500,16 +512,18 @@ _$AdvancedTopEntityCopyWith<_AdvancedTopEntity> get copyWith => __$AdvancedTopEn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTopEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTopEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,totalListeningTime,sessions);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,totalListeningTime,sessions);
+}
 
 @override
 String toString() {
-  return 'AdvancedTopEntity(id: $id, name: $name, totalListeningTime: $totalListeningTime, sessions: $sessions)';
+    return 'AdvancedTopEntity(id: $id, name: $name, totalListeningTime: $totalListeningTime, sessions: $sessions)';
 }
 
 
@@ -564,16 +578,21 @@ $AdvancedTimeBucketCopyWith<AdvancedTimeBucket> get copyWith => _$AdvancedTimeBu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTimeBucket&&(identical(other.label, label) || other.label == label)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime));
+  final _this = this as AdvancedTimeBucket;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTimeBucket&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.totalListeningTime, _this.totalListeningTime) || other.totalListeningTime == _this.totalListeningTime));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,label,totalListeningTime);
+int get hashCode {
+  final _this = this as AdvancedTimeBucket;
+  return Object.hash(runtimeType,_this.label,_this.totalListeningTime);
+}
 
 @override
 String toString() {
-  return 'AdvancedTimeBucket(label: $label, totalListeningTime: $totalListeningTime)';
+  final _this = this as AdvancedTimeBucket;
+  return 'AdvancedTimeBucket(label: ${_this.label}, totalListeningTime: ${_this.totalListeningTime})';
 }
 
 
@@ -762,16 +781,18 @@ _$AdvancedTimeBucketCopyWith<_AdvancedTimeBucket> get copyWith => __$AdvancedTim
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTimeBucket&&(identical(other.label, label) || other.label == label)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTimeBucket&&(identical(other.label, label) || other.label == label)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,label,totalListeningTime);
+int get hashCode {
+    return Object.hash(runtimeType,label,totalListeningTime);
+}
 
 @override
 String toString() {
-  return 'AdvancedTimeBucket(label: $label, totalListeningTime: $totalListeningTime)';
+    return 'AdvancedTimeBucket(label: $label, totalListeningTime: $totalListeningTime)';
 }
 
 
@@ -824,16 +845,21 @@ $AdvancedListeningStatsCopyWith<AdvancedListeningStats> get copyWith => _$Advanc
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedListeningStats&&(identical(other.loadedPages, loadedPages) || other.loadedPages == loadedPages)&&(identical(other.totalSessions, totalSessions) || other.totalSessions == totalSessions)&&(identical(other.totalAvailableSessions, totalAvailableSessions) || other.totalAvailableSessions == totalAvailableSessions)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.totalBookListeningTime, totalBookListeningTime) || other.totalBookListeningTime == totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, totalPodcastListeningTime) || other.totalPodcastListeningTime == totalPodcastListeningTime)&&(identical(other.averageSessionTime, averageSessionTime) || other.averageSessionTime == averageSessionTime)&&(identical(other.medianSessionTime, medianSessionTime) || other.medianSessionTime == medianSessionTime)&&(identical(other.longestSessionTime, longestSessionTime) || other.longestSessionTime == longestSessionTime)&&(identical(other.uniqueItems, uniqueItems) || other.uniqueItems == uniqueItems)&&(identical(other.uniqueAuthors, uniqueAuthors) || other.uniqueAuthors == uniqueAuthors)&&(identical(other.longestStreakDays, longestStreakDays) || other.longestStreakDays == longestStreakDays)&&(identical(other.firstSessionAt, firstSessionAt) || other.firstSessionAt == firstSessionAt)&&(identical(other.lastSessionAt, lastSessionAt) || other.lastSessionAt == lastSessionAt)&&(identical(other.favoriteWeekday, favoriteWeekday) || other.favoriteWeekday == favoriteWeekday)&&(identical(other.favoriteHour, favoriteHour) || other.favoriteHour == favoriteHour)&&const DeepCollectionEquality().equals(other.topItems, topItems)&&const DeepCollectionEquality().equals(other.topAuthors, topAuthors)&&const DeepCollectionEquality().equals(other.weekdayBreakdown, weekdayBreakdown)&&const DeepCollectionEquality().equals(other.hourlyBreakdown, hourlyBreakdown)&&const DeepCollectionEquality().equals(other.monthlyBreakdown, monthlyBreakdown));
+  final _this = this as AdvancedListeningStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedListeningStats&&(identical(other.loadedPages, _this.loadedPages) || other.loadedPages == _this.loadedPages)&&(identical(other.totalSessions, _this.totalSessions) || other.totalSessions == _this.totalSessions)&&(identical(other.totalAvailableSessions, _this.totalAvailableSessions) || other.totalAvailableSessions == _this.totalAvailableSessions)&&(identical(other.totalListeningTime, _this.totalListeningTime) || other.totalListeningTime == _this.totalListeningTime)&&(identical(other.totalBookListeningTime, _this.totalBookListeningTime) || other.totalBookListeningTime == _this.totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, _this.totalPodcastListeningTime) || other.totalPodcastListeningTime == _this.totalPodcastListeningTime)&&(identical(other.averageSessionTime, _this.averageSessionTime) || other.averageSessionTime == _this.averageSessionTime)&&(identical(other.medianSessionTime, _this.medianSessionTime) || other.medianSessionTime == _this.medianSessionTime)&&(identical(other.longestSessionTime, _this.longestSessionTime) || other.longestSessionTime == _this.longestSessionTime)&&(identical(other.uniqueItems, _this.uniqueItems) || other.uniqueItems == _this.uniqueItems)&&(identical(other.uniqueAuthors, _this.uniqueAuthors) || other.uniqueAuthors == _this.uniqueAuthors)&&(identical(other.longestStreakDays, _this.longestStreakDays) || other.longestStreakDays == _this.longestStreakDays)&&(identical(other.firstSessionAt, _this.firstSessionAt) || other.firstSessionAt == _this.firstSessionAt)&&(identical(other.lastSessionAt, _this.lastSessionAt) || other.lastSessionAt == _this.lastSessionAt)&&(identical(other.favoriteWeekday, _this.favoriteWeekday) || other.favoriteWeekday == _this.favoriteWeekday)&&(identical(other.favoriteHour, _this.favoriteHour) || other.favoriteHour == _this.favoriteHour)&&const DeepCollectionEquality().equals(other.topItems, _this.topItems)&&const DeepCollectionEquality().equals(other.topAuthors, _this.topAuthors)&&const DeepCollectionEquality().equals(other.weekdayBreakdown, _this.weekdayBreakdown)&&const DeepCollectionEquality().equals(other.hourlyBreakdown, _this.hourlyBreakdown)&&const DeepCollectionEquality().equals(other.monthlyBreakdown, _this.monthlyBreakdown));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,loadedPages,totalSessions,totalAvailableSessions,totalListeningTime,totalBookListeningTime,totalPodcastListeningTime,averageSessionTime,medianSessionTime,longestSessionTime,uniqueItems,uniqueAuthors,longestStreakDays,firstSessionAt,lastSessionAt,favoriteWeekday,favoriteHour,const DeepCollectionEquality().hash(topItems),const DeepCollectionEquality().hash(topAuthors),const DeepCollectionEquality().hash(weekdayBreakdown),const DeepCollectionEquality().hash(hourlyBreakdown),const DeepCollectionEquality().hash(monthlyBreakdown)]);
+int get hashCode {
+  final _this = this as AdvancedListeningStats;
+  return Object.hashAll([runtimeType,_this.loadedPages,_this.totalSessions,_this.totalAvailableSessions,_this.totalListeningTime,_this.totalBookListeningTime,_this.totalPodcastListeningTime,_this.averageSessionTime,_this.medianSessionTime,_this.longestSessionTime,_this.uniqueItems,_this.uniqueAuthors,_this.longestStreakDays,_this.firstSessionAt,_this.lastSessionAt,_this.favoriteWeekday,_this.favoriteHour,const DeepCollectionEquality().hash(_this.topItems),const DeepCollectionEquality().hash(_this.topAuthors),const DeepCollectionEquality().hash(_this.weekdayBreakdown),const DeepCollectionEquality().hash(_this.hourlyBreakdown),const DeepCollectionEquality().hash(_this.monthlyBreakdown)]);
+}
 
 @override
 String toString() {
-  return 'AdvancedListeningStats(loadedPages: $loadedPages, totalSessions: $totalSessions, totalAvailableSessions: $totalAvailableSessions, totalListeningTime: $totalListeningTime, totalBookListeningTime: $totalBookListeningTime, totalPodcastListeningTime: $totalPodcastListeningTime, averageSessionTime: $averageSessionTime, medianSessionTime: $medianSessionTime, longestSessionTime: $longestSessionTime, uniqueItems: $uniqueItems, uniqueAuthors: $uniqueAuthors, longestStreakDays: $longestStreakDays, firstSessionAt: $firstSessionAt, lastSessionAt: $lastSessionAt, favoriteWeekday: $favoriteWeekday, favoriteHour: $favoriteHour, topItems: $topItems, topAuthors: $topAuthors, weekdayBreakdown: $weekdayBreakdown, hourlyBreakdown: $hourlyBreakdown, monthlyBreakdown: $monthlyBreakdown)';
+  final _this = this as AdvancedListeningStats;
+  return 'AdvancedListeningStats(loadedPages: ${_this.loadedPages}, totalSessions: ${_this.totalSessions}, totalAvailableSessions: ${_this.totalAvailableSessions}, totalListeningTime: ${_this.totalListeningTime}, totalBookListeningTime: ${_this.totalBookListeningTime}, totalPodcastListeningTime: ${_this.totalPodcastListeningTime}, averageSessionTime: ${_this.averageSessionTime}, medianSessionTime: ${_this.medianSessionTime}, longestSessionTime: ${_this.longestSessionTime}, uniqueItems: ${_this.uniqueItems}, uniqueAuthors: ${_this.uniqueAuthors}, longestStreakDays: ${_this.longestStreakDays}, firstSessionAt: ${_this.firstSessionAt}, lastSessionAt: ${_this.lastSessionAt}, favoriteWeekday: ${_this.favoriteWeekday}, favoriteHour: ${_this.favoriteHour}, topItems: ${_this.topItems}, topAuthors: ${_this.topAuthors}, weekdayBreakdown: ${_this.weekdayBreakdown}, hourlyBreakdown: ${_this.hourlyBreakdown}, monthlyBreakdown: ${_this.monthlyBreakdown})';
 }
 
 
@@ -1090,16 +1116,18 @@ _$AdvancedListeningStatsCopyWith<_AdvancedListeningStats> get copyWith => __$Adv
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedListeningStats&&(identical(other.loadedPages, loadedPages) || other.loadedPages == loadedPages)&&(identical(other.totalSessions, totalSessions) || other.totalSessions == totalSessions)&&(identical(other.totalAvailableSessions, totalAvailableSessions) || other.totalAvailableSessions == totalAvailableSessions)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.totalBookListeningTime, totalBookListeningTime) || other.totalBookListeningTime == totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, totalPodcastListeningTime) || other.totalPodcastListeningTime == totalPodcastListeningTime)&&(identical(other.averageSessionTime, averageSessionTime) || other.averageSessionTime == averageSessionTime)&&(identical(other.medianSessionTime, medianSessionTime) || other.medianSessionTime == medianSessionTime)&&(identical(other.longestSessionTime, longestSessionTime) || other.longestSessionTime == longestSessionTime)&&(identical(other.uniqueItems, uniqueItems) || other.uniqueItems == uniqueItems)&&(identical(other.uniqueAuthors, uniqueAuthors) || other.uniqueAuthors == uniqueAuthors)&&(identical(other.longestStreakDays, longestStreakDays) || other.longestStreakDays == longestStreakDays)&&(identical(other.firstSessionAt, firstSessionAt) || other.firstSessionAt == firstSessionAt)&&(identical(other.lastSessionAt, lastSessionAt) || other.lastSessionAt == lastSessionAt)&&(identical(other.favoriteWeekday, favoriteWeekday) || other.favoriteWeekday == favoriteWeekday)&&(identical(other.favoriteHour, favoriteHour) || other.favoriteHour == favoriteHour)&&const DeepCollectionEquality().equals(other._topItems, _topItems)&&const DeepCollectionEquality().equals(other._topAuthors, _topAuthors)&&const DeepCollectionEquality().equals(other._weekdayBreakdown, _weekdayBreakdown)&&const DeepCollectionEquality().equals(other._hourlyBreakdown, _hourlyBreakdown)&&const DeepCollectionEquality().equals(other._monthlyBreakdown, _monthlyBreakdown));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedListeningStats&&(identical(other.loadedPages, loadedPages) || other.loadedPages == loadedPages)&&(identical(other.totalSessions, totalSessions) || other.totalSessions == totalSessions)&&(identical(other.totalAvailableSessions, totalAvailableSessions) || other.totalAvailableSessions == totalAvailableSessions)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.totalBookListeningTime, totalBookListeningTime) || other.totalBookListeningTime == totalBookListeningTime)&&(identical(other.totalPodcastListeningTime, totalPodcastListeningTime) || other.totalPodcastListeningTime == totalPodcastListeningTime)&&(identical(other.averageSessionTime, averageSessionTime) || other.averageSessionTime == averageSessionTime)&&(identical(other.medianSessionTime, medianSessionTime) || other.medianSessionTime == medianSessionTime)&&(identical(other.longestSessionTime, longestSessionTime) || other.longestSessionTime == longestSessionTime)&&(identical(other.uniqueItems, uniqueItems) || other.uniqueItems == uniqueItems)&&(identical(other.uniqueAuthors, uniqueAuthors) || other.uniqueAuthors == uniqueAuthors)&&(identical(other.longestStreakDays, longestStreakDays) || other.longestStreakDays == longestStreakDays)&&(identical(other.firstSessionAt, firstSessionAt) || other.firstSessionAt == firstSessionAt)&&(identical(other.lastSessionAt, lastSessionAt) || other.lastSessionAt == lastSessionAt)&&(identical(other.favoriteWeekday, favoriteWeekday) || other.favoriteWeekday == favoriteWeekday)&&(identical(other.favoriteHour, favoriteHour) || other.favoriteHour == favoriteHour)&&const DeepCollectionEquality().equals(other.topItems, _topItems)&&const DeepCollectionEquality().equals(other.topAuthors, _topAuthors)&&const DeepCollectionEquality().equals(other.weekdayBreakdown, _weekdayBreakdown)&&const DeepCollectionEquality().equals(other.hourlyBreakdown, _hourlyBreakdown)&&const DeepCollectionEquality().equals(other.monthlyBreakdown, _monthlyBreakdown));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,loadedPages,totalSessions,totalAvailableSessions,totalListeningTime,totalBookListeningTime,totalPodcastListeningTime,averageSessionTime,medianSessionTime,longestSessionTime,uniqueItems,uniqueAuthors,longestStreakDays,firstSessionAt,lastSessionAt,favoriteWeekday,favoriteHour,const DeepCollectionEquality().hash(_topItems),const DeepCollectionEquality().hash(_topAuthors),const DeepCollectionEquality().hash(_weekdayBreakdown),const DeepCollectionEquality().hash(_hourlyBreakdown),const DeepCollectionEquality().hash(_monthlyBreakdown)]);
+int get hashCode {
+    return Object.hashAll([runtimeType,loadedPages,totalSessions,totalAvailableSessions,totalListeningTime,totalBookListeningTime,totalPodcastListeningTime,averageSessionTime,medianSessionTime,longestSessionTime,uniqueItems,uniqueAuthors,longestStreakDays,firstSessionAt,lastSessionAt,favoriteWeekday,favoriteHour,const DeepCollectionEquality().hash(_topItems),const DeepCollectionEquality().hash(_topAuthors),const DeepCollectionEquality().hash(_weekdayBreakdown),const DeepCollectionEquality().hash(_hourlyBreakdown),const DeepCollectionEquality().hash(_monthlyBreakdown)]);
+}
 
 @override
 String toString() {
-  return 'AdvancedListeningStats(loadedPages: $loadedPages, totalSessions: $totalSessions, totalAvailableSessions: $totalAvailableSessions, totalListeningTime: $totalListeningTime, totalBookListeningTime: $totalBookListeningTime, totalPodcastListeningTime: $totalPodcastListeningTime, averageSessionTime: $averageSessionTime, medianSessionTime: $medianSessionTime, longestSessionTime: $longestSessionTime, uniqueItems: $uniqueItems, uniqueAuthors: $uniqueAuthors, longestStreakDays: $longestStreakDays, firstSessionAt: $firstSessionAt, lastSessionAt: $lastSessionAt, favoriteWeekday: $favoriteWeekday, favoriteHour: $favoriteHour, topItems: $topItems, topAuthors: $topAuthors, weekdayBreakdown: $weekdayBreakdown, hourlyBreakdown: $hourlyBreakdown, monthlyBreakdown: $monthlyBreakdown)';
+    return 'AdvancedListeningStats(loadedPages: $loadedPages, totalSessions: $totalSessions, totalAvailableSessions: $totalAvailableSessions, totalListeningTime: $totalListeningTime, totalBookListeningTime: $totalBookListeningTime, totalPodcastListeningTime: $totalPodcastListeningTime, averageSessionTime: $averageSessionTime, medianSessionTime: $medianSessionTime, longestSessionTime: $longestSessionTime, uniqueItems: $uniqueItems, uniqueAuthors: $uniqueAuthors, longestStreakDays: $longestStreakDays, firstSessionAt: $firstSessionAt, lastSessionAt: $lastSessionAt, favoriteWeekday: $favoriteWeekday, favoriteHour: $favoriteHour, topItems: $topItems, topAuthors: $topAuthors, weekdayBreakdown: $weekdayBreakdown, hourlyBreakdown: $hourlyBreakdown, monthlyBreakdown: $monthlyBreakdown)';
 }
 
 

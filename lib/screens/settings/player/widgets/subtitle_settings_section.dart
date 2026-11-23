@@ -4,6 +4,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SubtitleSettingsSection extends ConsumerWidget {
   const SubtitleSettingsSection({super.key});
@@ -48,7 +49,7 @@ class SubtitleSettingsSection extends ConsumerWidget {
       },
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

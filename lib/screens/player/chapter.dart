@@ -1,8 +1,11 @@
 import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/features/player/widgets/player_chapter_item_presentation.dart';
+import 'package:yaabsa/features/player/widgets/player_collection_empty_presentation.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ChapterView extends StatefulWidget {
   const ChapterView({super.key, this.maxHeight, this.emptyMode = PlayerCollectionEmptyMode.full});
@@ -31,7 +34,7 @@ class _ChapterViewState extends State<ChapterView> {
       builder: (context, asyncSnapshot) {
         final mediaItem = asyncSnapshot.data;
         if (mediaItem == null) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: YaabsaCircularProgressIndicator());
         }
         final chapters = mediaItem.chapters;
         if (chapters == null || chapters.isEmpty) {
@@ -40,8 +43,16 @@ class _ChapterViewState extends State<ChapterView> {
           }
 
           final empty = widget.emptyMode == PlayerCollectionEmptyMode.compact
-              ? const _ChapterCompactEmptyState()
-              : _ChapterEmptyState(title: mediaItem.title);
+              ? const PlayerCollectionEmptyPresentation(
+                  icon: Icons.menu_book_outlined,
+                  title: 'No chapters available',
+                  density: PlayerCollectionEmptyDensity.compact,
+                )
+              : PlayerCollectionEmptyPresentation(
+                  icon: Icons.menu_book_outlined,
+                  title: 'No chapters available',
+                  subtitle: mediaItem.title,
+                );
 
           if (widget.maxHeight != null) {
             return SizedBox(height: widget.maxHeight, child: empty);
@@ -79,19 +90,11 @@ class _ChapterViewState extends State<ChapterView> {
               itemCount: chapters.length,
               itemBuilder: (context, index) {
                 final chapter = chapters[index];
-                return Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    title: Text(chapter.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(
-                      '${chapter.start.toDuration.toHhMmString()} - ${chapter.end.toDuration.toHhMmString()}',
-                    ),
-                    selected: chapter == currentChapter,
-                    selectedTileColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
-                    onTap: () {
-                      audioHandler.seekAbsolute(chapter.start.toDuration);
-                    },
-                  ),
+                return PlayerChapterItemPresentation(
+                  title: chapter.title,
+                  timeRange: '${chapter.start.toDuration.toHhMmString()} - ${chapter.end.toDuration.toHhMmString()}',
+                  selected: chapter == currentChapter,
+                  onPressed: () => audioHandler.seekAbsolute(chapter.start.toDuration),
                 );
               },
             );
@@ -104,61 +107,6 @@ class _ChapterViewState extends State<ChapterView> {
           },
         );
       },
-    );
-  }
-}
-
-class _ChapterCompactEmptyState extends StatelessWidget {
-  const _ChapterCompactEmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.menu_book_outlined, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          const SizedBox(width: 6),
-          Text(
-            'No chapters available',
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ChapterEmptyState extends StatelessWidget {
-  const _ChapterEmptyState({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.menu_book_outlined, size: 36, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            const SizedBox(height: 10),
-            Text('No chapters available', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

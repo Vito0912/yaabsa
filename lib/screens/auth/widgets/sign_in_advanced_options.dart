@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 
 class SignInAdvancedOptions extends StatelessWidget {
   const SignInAdvancedOptions({
@@ -56,58 +58,75 @@ class SignInAdvancedOptions extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (allowsApiKey)
-                    SwitchListTile.adaptive(
+                    YaabsaSwitchTile.adaptive(
                       value: useApiKey,
                       contentPadding: EdgeInsets.zero,
                       onChanged: isLoading ? null : onUseApiKeyChanged,
                       title: const Text('Use API Key'),
                       subtitle: const Text('Authenticate with a generated API key instead of username/password.'),
                     ),
-                  OutlinedButton.icon(
-                    onPressed: isLoading ? null : onImportMagicConfig,
-                    icon: const Icon(Icons.qr_code_2_rounded),
-                    label: const Text('Import Authentication Code'),
-                  ),
-                  Row(
-                    children: [
-                      Text('Custom Headers', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: isLoading ? null : onAddHeader,
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Add Header'),
-                      ),
-                    ],
-                  ),
-                  if (customHeaders.isEmpty)
-                    Text(
-                      'No custom headers configured.',
-                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                    )
-                  else
-                    ...customHeaders.entries.map((entry) {
-                      return ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(entry.key, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: Text(entry.value, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        trailing: Wrap(
-                          spacing: 0,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      children: [
+                        Row(
                           children: [
-                            IconButton(
-                              tooltip: 'Edit header',
-                              onPressed: isLoading ? null : () => onEditHeader(entry.key),
-                              icon: const Icon(Icons.edit_outlined),
-                            ),
-                            IconButton(
-                              tooltip: 'Remove header',
-                              onPressed: isLoading ? null : () => onRemoveHeader(entry.key),
-                              icon: const Icon(Icons.delete_outline),
+                            Text('Custom Headers', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            TextButton.icon(
+                              onPressed: isLoading ? null : onAddHeader,
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Add Header'),
                             ),
                           ],
                         ),
-                      );
-                    }),
+                        if (customHeaders.isEmpty)
+                          Text(
+                            'No custom headers configured.',
+                            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                          )
+                        else
+                          ...customHeaders.entries.map((entry) {
+                            return ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(entry.key, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              subtitle: Text(entry.value, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              trailing: Wrap(
+                                spacing: 4,
+                                children: [
+                                  YaabsaActionIconButton(
+                                    icon: Icons.edit_outlined,
+                                    tooltip: 'Edit header',
+                                    onPressed: isLoading ? null : () => onEditHeader(entry.key),
+                                    iconSize: 24,
+                                    buttonSize: 48,
+                                    compact: false,
+                                    variant: YaabsaActionButtonVariant.outlined,
+                                    shape: YaabsaActionButtonShape.rounded,
+                                  ),
+                                  YaabsaDeleteIconButton(
+                                    tooltip: 'Remove header',
+                                    onPressed: isLoading ? null : () => onRemoveHeader(entry.key),
+                                    iconSize: 24,
+                                    buttonSize: 48,
+                                    compact: false,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: OutlinedButton.icon(
+                      onPressed: isLoading ? null : onImportMagicConfig,
+                      icon: const Icon(Icons.qr_code_2_rounded),
+                      label: const Text('Import Authentication Code'),
+                    ),
+                  ),
                 ],
               ),
             ),

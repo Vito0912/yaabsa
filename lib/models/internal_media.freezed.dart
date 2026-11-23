@@ -31,7 +31,8 @@ $InternalMediaCopyWith<InternalMedia> get copyWith => _$InternalMediaCopyWithImp
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, subtitle: $subtitle, author: $author, narrator: $narrator, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
+  final _this = this as InternalMedia;
+  return 'InternalMedia(libraryId: ${_this.libraryId}, itemId: ${_this.itemId}, episodeId: ${_this.episodeId}, sessionId: ${_this.sessionId}, title: ${_this.title}, subtitle: ${_this.subtitle}, author: ${_this.author}, narrator: ${_this.narrator}, series: ${_this.series}, seriesPosition: ${_this.seriesPosition}, cover: ${_this.cover}, tracks: ${_this.tracks}, chapters: ${_this.chapters}, duration: ${_this.duration}, local: ${_this.local}, saf: ${_this.saf})';
 }
 
 
@@ -253,7 +254,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, subtitle: $subtitle, author: $author, narrator: $narrator, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
+    return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, subtitle: $subtitle, author: $author, narrator: $narrator, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
 }
 
 
@@ -323,16 +324,21 @@ $InternalTrackCopyWith<InternalTrack> get copyWith => _$InternalTrackCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+  final _this = this as InternalTrack;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalTrack&&(identical(other.index, _this.index) || other.index == _this.index)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.mimeType, _this.mimeType) || other.mimeType == _this.mimeType)&&(identical(other.start, _this.start) || other.start == _this.start)&&(identical(other.end, _this.end) || other.end == _this.end));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end);
+int get hashCode {
+  final _this = this as InternalTrack;
+  return Object.hash(runtimeType,_this.index,_this.duration,_this.url,_this.mimeType,_this.start,_this.end);
+}
 
 @override
 String toString() {
-  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end)';
+  final _this = this as InternalTrack;
+  return 'InternalTrack(index: ${_this.index}, duration: ${_this.duration}, url: ${_this.url}, mimeType: ${_this.mimeType}, start: ${_this.start}, end: ${_this.end})';
 }
 
 
@@ -532,16 +538,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end);
+int get hashCode {
+    return Object.hash(runtimeType,index,duration,url,mimeType,start,end);
+}
 
 @override
 String toString() {
-  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end)';
+    return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end)';
 }
 
 
@@ -601,16 +609,21 @@ $InternalChapterCopyWith<InternalChapter> get copyWith => _$InternalChapterCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalChapter&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.title, title) || other.title == title));
+  final _this = this as InternalChapter;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalChapter&&(identical(other.start, _this.start) || other.start == _this.start)&&(identical(other.end, _this.end) || other.end == _this.end)&&(identical(other.title, _this.title) || other.title == _this.title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,start,end,title);
+int get hashCode {
+  final _this = this as InternalChapter;
+  return Object.hash(runtimeType,_this.start,_this.end,_this.title);
+}
 
 @override
 String toString() {
-  return 'InternalChapter(start: $start, end: $end, title: $title)';
+  final _this = this as InternalChapter;
+  return 'InternalChapter(start: ${_this.start}, end: ${_this.end}, title: ${_this.title})';
 }
 
 
@@ -804,16 +817,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalChapter&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.title, title) || other.title == title));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalChapter&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.title, title) || other.title == title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,start,end,title);
+int get hashCode {
+    return Object.hash(runtimeType,start,end,title);
+}
 
 @override
 String toString() {
-  return 'InternalChapter(start: $start, end: $end, title: $title)';
+    return 'InternalChapter(start: $start, end: $end, title: $title)';
 }
 
 
@@ -870,16 +885,21 @@ $QueueItemCopyWith<QueueItem> get copyWith => _$QueueItemCopyWithImpl<QueueItem>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueItem&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
+  final _this = this as QueueItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueItem&&(identical(other.itemId, _this.itemId) || other.itemId == _this.itemId)&&(identical(other.episodeId, _this.episodeId) || other.episodeId == _this.episodeId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemId,episodeId);
+int get hashCode {
+  final _this = this as QueueItem;
+  return Object.hash(runtimeType,_this.itemId,_this.episodeId);
+}
 
 @override
 String toString() {
-  return 'QueueItem(itemId: $itemId, episodeId: $episodeId)';
+  final _this = this as QueueItem;
+  return 'QueueItem(itemId: ${_this.itemId}, episodeId: ${_this.episodeId})';
 }
 
 
@@ -1071,16 +1091,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueItem&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueItem&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemId,episodeId);
+int get hashCode {
+    return Object.hash(runtimeType,itemId,episodeId);
+}
 
 @override
 String toString() {
-  return 'QueueItem(itemId: $itemId, episodeId: $episodeId)';
+    return 'QueueItem(itemId: $itemId, episodeId: $episodeId)';
 }
 
 

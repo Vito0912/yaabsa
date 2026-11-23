@@ -29,16 +29,21 @@ $GenresResponseCopyWith<GenresResponse> get copyWith => _$GenresResponseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GenresResponse&&const DeepCollectionEquality().equals(other.genres, genres));
+  final _this = this as GenresResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GenresResponse&&const DeepCollectionEquality().equals(other.genres, _this.genres));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(genres));
+int get hashCode {
+  final _this = this as GenresResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.genres));
+}
 
 @override
 String toString() {
-  return 'GenresResponse(genres: $genres)';
+  final _this = this as GenresResponse;
+  return 'GenresResponse(genres: ${_this.genres})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GenresResponse&&const DeepCollectionEquality().equals(other._genres, _genres));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GenresResponse&&const DeepCollectionEquality().equals(other.genres, _genres));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_genres));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_genres));
+}
 
 @override
 String toString() {
-  return 'GenresResponse(genres: $genres)';
+    return 'GenresResponse(genres: $genres)';
 }
 
 

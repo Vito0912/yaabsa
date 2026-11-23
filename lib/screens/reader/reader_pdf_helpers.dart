@@ -210,11 +210,12 @@ extension _ReaderPdfHelpers on _ReaderState {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: TextField(
+                child: StyledTextField(
                   controller: noteController,
                   maxLines: 3,
                   minLines: 1,
-                  decoration: const InputDecoration(labelText: 'Note', hintText: 'Add an optional note'),
+                  label: 'Note',
+                  hintText: 'Add an optional note',
                 ),
               ),
               Row(

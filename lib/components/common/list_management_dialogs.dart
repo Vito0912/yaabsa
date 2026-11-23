@@ -1,3 +1,4 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -159,22 +160,21 @@ class _ListManagementFormDialogState extends State<_ListManagementFormDialog> {
                 ),
                 const SizedBox(height: 12),
               ],
-              TextField(
+              StyledTextField(
                 controller: _nameController,
                 autofocus: true,
                 textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  errorText: _showValidationErrors && !_isNameValid ? 'Name is required.' : null,
-                ),
+                label: 'Name',
+                errorText: _showValidationErrors && !_isNameValid ? 'Name is required.' : null,
               ),
               const SizedBox(height: 12),
-              TextField(
+              StyledTextField(
                 controller: _descriptionController,
                 minLines: 2,
                 maxLines: 4,
                 textInputAction: TextInputAction.newline,
-                decoration: const InputDecoration(labelText: 'Description', hintText: 'Optional'),
+                label: 'Description',
+                hintText: 'Optional',
               ),
             ],
           ),

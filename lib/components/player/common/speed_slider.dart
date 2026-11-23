@@ -1,8 +1,9 @@
-import 'package:yaabsa/models/playback_feature.dart';
-import 'package:yaabsa/components/common/feature_gate.dart';
-import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
+import 'package:yaabsa/components/common/feature_gate.dart';
+import 'package:yaabsa/features/player/widgets/playback_speed_sheet.dart';
+import 'package:yaabsa/models/playback_feature.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 Future<void> showPlaybackSpeedSheet(BuildContext context, {double? currentSpeed}) {
   if (!audioHandler.supportsFeature(PlaybackFeature.speed)) {
@@ -17,17 +18,20 @@ Future<void> showPlaybackSpeedSheet(BuildContext context, {double? currentSpeed}
     builder: (sheetContext) {
       return SafeArea(
         top: false,
-        child: _SpeedSheet(initialSpeed: currentSpeed ?? audioHandler.effectivePlaybackSpeed),
+        child: PlaybackSpeedSheet(
+          initialSpeed: currentSpeed ?? audioHandler.effectivePlaybackSpeed,
+          onApplySpeed: audioHandler.setSpeed,
+        ),
       );
     },
   );
 }
 
 class SpeedSlider extends StatelessWidget {
-  static const double minSpeed = 0.5;
-  static const double maxSpeed = 3.0;
-  static const double defaultSpeed = 1.0;
-  static const double step = 0.1;
+  static const double minSpeed = PlaybackSpeedSheet.minSpeed;
+  static const double maxSpeed = PlaybackSpeedSheet.maxSpeed;
+  static const double defaultSpeed = PlaybackSpeedSheet.defaultSpeed;
+  static const double step = PlaybackSpeedSheet.step;
 
   const SpeedSlider({super.key});
 
@@ -48,191 +52,23 @@ class SpeedSlider extends StatelessWidget {
       builder: (context, snapshot) {
         final speed = (snapshot.data ?? defaultSpeed).clamp(minSpeed, maxSpeed);
 
-        return SizedBox(
-          height: 48,
-          width: 48,
-
-          child: IconButton(
-            onPressed: () => showPlaybackSpeedSheet(context, currentSpeed: speed),
-
-            icon: Text(
-              '${speed.toStringAsFixed(1)}x',
-              style: TextStyle(
-                letterSpacing: -1.25,
-                fontFeatures: [const FontFeature.tabularFigures()],
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                fontSize: 16,
-              ),
+        return YaabsaActionIconButton(
+          iconWidget: Text(
+            '${speed.toStringAsFixed(1)}x',
+            style: TextStyle(
+              letterSpacing: -1.25,
+              fontFeatures: [const FontFeature.tabularFigures()],
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              fontSize: 16,
             ),
           ),
+          iconSize: 24,
+          buttonSize: 48,
+          compact: false,
+          tooltip: 'Playback speed',
+          onPressed: () => showPlaybackSpeedSheet(context, currentSpeed: speed),
         );
       },
     );
-  }
-}
-
-class _SpeedSheet extends StatefulWidget {
-  const _SpeedSheet({required this.initialSpeed});
-
-  final double initialSpeed;
-
-  @override
-  State<_SpeedSheet> createState() => _SpeedSheetState();
-}
-
-class _SpeedSheetState extends State<_SpeedSheet> {
-  final TextEditingController _customController = TextEditingController();
-  late double _value;
-
-  @override
-  void initState() {
-    super.initState();
-    _value = _clampSpeed(widget.initialSpeed);
-  }
-
-  @override
-  void dispose() {
-    _customController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomInset),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Playback speed', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          Text('${_formatSheetSpeed(_value)}x', style: Theme.of(context).textTheme.titleMedium),
-          Slider(
-            value: _value,
-            min: SpeedSlider.minSpeed,
-            max: SpeedSlider.maxSpeed,
-            divisions: 25,
-            label: '${_value.toStringAsFixed(1)}x',
-            onChanged: (newValue) {
-              setState(() {
-                _value = _roundToStep(newValue);
-              });
-            },
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _PresetButton(value: 0.8, onTap: _setValue),
-              _PresetButton(value: 1.0, onTap: _setValue),
-              _PresetButton(value: 1.2, onTap: _setValue),
-              _PresetButton(value: 1.5, onTap: _setValue),
-              _PresetButton(value: 2.0, onTap: _setValue),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _customController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
-            decoration: const InputDecoration(
-              labelText: 'Custom value',
-              hintText: '0.5 - 3.0',
-              suffixText: 'x',
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (_) => _applyCustomValue(),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton(
-                  onPressed: () {
-                    final didApplyCustom = _applyCustomValue();
-
-                    if (!didApplyCustom) {
-                      audioHandler.setSpeed(_value);
-                    }
-
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Apply'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _setValue(double value) {
-    setState(() {
-      _value = _roundToStep(value);
-      _customController.clear();
-    });
-  }
-
-  bool _applyCustomValue() {
-    final raw = _customController.text.trim();
-
-    if (raw.isEmpty) {
-      return false;
-    }
-
-    final parsed = double.tryParse(raw);
-
-    if (parsed == null) {
-      return false;
-    }
-
-    final clamped = _clampSpeed(parsed);
-
-    setState(() {
-      _value = clamped;
-    });
-    audioHandler.setSpeed(clamped);
-
-    return true;
-  }
-
-  double _clampSpeed(double value) {
-    return value.clamp(SpeedSlider.minSpeed, SpeedSlider.maxSpeed).toDouble();
-  }
-
-  double _roundToStep(double value) {
-    final normalized = (value / SpeedSlider.step).round() * SpeedSlider.step;
-
-    return _clampSpeed(normalized);
-  }
-
-  String _formatSheetSpeed(double value) {
-    final roundedToTenth = (value * 10).round() / 10;
-
-    if ((value - roundedToTenth).abs() < 0.000000001) {
-      return roundedToTenth.toStringAsFixed(1);
-    }
-
-    return value.toString();
-  }
-}
-
-class _PresetButton extends StatelessWidget {
-  const _PresetButton({required this.value, required this.onTap});
-
-  final double value;
-  final ValueChanged<double> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ActionChip(label: Text('${value.toStringAsFixed(1)}x'), onPressed: () => onTap(value));
   }
 }

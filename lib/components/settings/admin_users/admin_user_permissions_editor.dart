@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
 
 class AdminUserPermissionsEditor extends StatelessWidget {
@@ -77,7 +78,7 @@ class _PermissionSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile.adaptive(
+    return YaabsaSwitchTile.adaptive(
       dense: true,
       contentPadding: EdgeInsets.zero,
       title: Text(label),

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 void showPlayerBookmarksSheet(BuildContext context) {
   final messenger = ScaffoldMessenger.of(context);
@@ -33,16 +34,15 @@ class BookmarksButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 48,
-      height: 48,
-      child: IconButton(
-        iconSize: iconSize,
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        tooltip: audioHandler.isReaderNarration ? 'Use reader bookmarks' : 'Bookmarks',
-        icon: const Icon(Icons.bookmarks_rounded),
-        onPressed: audioHandler.isReaderNarration ? null : () => showPlayerBookmarksSheet(context),
-      ),
+    final isReaderNarration = audioHandler.isReaderNarration;
+    return YaabsaActionIconButton(
+      icon: Icons.bookmarks_rounded,
+      iconSize: iconSize ?? 24,
+      buttonSize: 48,
+      compact: false,
+      enabled: !isReaderNarration,
+      tooltip: isReaderNarration ? 'Use reader bookmarks' : 'Bookmarks',
+      onPressed: isReaderNarration ? null : () => showPlayerBookmarksSheet(context),
     );
   }
 }

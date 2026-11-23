@@ -29,16 +29,21 @@ $CreateBookmarkRequestCopyWith<CreateBookmarkRequest> get copyWith => _$CreateBo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateBookmarkRequest&&(identical(other.time, time) || other.time == time)&&(identical(other.title, title) || other.title == title));
+  final _this = this as CreateBookmarkRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateBookmarkRequest&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.title, _this.title) || other.title == _this.title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,time,title);
+int get hashCode {
+  final _this = this as CreateBookmarkRequest;
+  return Object.hash(runtimeType,_this.time,_this.title);
+}
 
 @override
 String toString() {
-  return 'CreateBookmarkRequest(time: $time, title: $title)';
+  final _this = this as CreateBookmarkRequest;
+  return 'CreateBookmarkRequest(time: ${_this.time}, title: ${_this.title})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateBookmarkRequest&&(identical(other.time, time) || other.time == time)&&(identical(other.title, title) || other.title == title));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateBookmarkRequest&&(identical(other.time, time) || other.time == time)&&(identical(other.title, title) || other.title == title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,time,title);
+int get hashCode {
+    return Object.hash(runtimeType,time,title);
+}
 
 @override
 String toString() {
-  return 'CreateBookmarkRequest(time: $time, title: $title)';
+    return 'CreateBookmarkRequest(time: $time, title: $title)';
 }
 
 

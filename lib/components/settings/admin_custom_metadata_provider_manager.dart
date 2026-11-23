@@ -1,8 +1,11 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/custom_metadata_provider.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 typedef CreateCustomMetadataProviderCallback = Future<CustomMetadataProvider?> Function(
   CreateCustomMetadataProviderRequest payload,
@@ -255,7 +258,11 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                             ],
                           ),
                           trailing: processingThisProvider
-                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                                )
                               : SizedBox(
                                   width: 92,
                                   child: Row(
@@ -266,10 +273,9 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                                         onPressed: _isBusy ? null : () => _editProvider(provider),
                                         icon: const Icon(Icons.edit_outlined),
                                       ),
-                                      IconButton(
+                                      YaabsaDeleteIconButton(
                                         tooltip: 'Delete provider',
                                         onPressed: _isBusy ? null : () => _deleteProvider(provider),
-                                        icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                                       ),
                                     ],
                                   ),
@@ -389,27 +395,20 @@ class _CreateCustomMetadataProviderDialogState extends State<_CreateCustomMetada
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
+              StyledTextField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  errorText: _showValidation && !_isNameValid ? 'Name is required.' : null,
-                ),
+                label: 'Name',
+                errorText: _showValidation && !_isNameValid ? 'Name is required.' : null,
               ),
               const SizedBox(height: 12),
-              TextField(
+              StyledTextField(
                 controller: _urlController,
-                decoration: InputDecoration(
-                  labelText: 'URL',
-                  hintText: 'https://example.com/path',
-                  errorText: _showValidation && !_isUrlValid ? 'Enter a valid http or https URL.' : null,
-                ),
+                label: 'URL',
+                hintText: 'https://example.com/path',
+                errorText: _showValidation && !_isUrlValid ? 'Enter a valid http or https URL.' : null,
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _authController,
-                decoration: const InputDecoration(labelText: 'Auth Header Value', hintText: 'Optional'),
-              ),
+              StyledTextField(controller: _authController, label: 'Auth Header Value', hintText: 'Optional'),
             ],
           ),
         ),

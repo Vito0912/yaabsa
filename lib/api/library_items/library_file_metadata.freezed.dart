@@ -29,16 +29,21 @@ $LibraryFileMetadataCopyWith<LibraryFileMetadata> get copyWith => _$LibraryFileM
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFileMetadata&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.ext, ext) || other.ext == ext)&&(identical(other.path, path) || other.path == path)&&(identical(other.relPath, relPath) || other.relPath == relPath)&&(identical(other.size, size) || other.size == size)&&(identical(other.mtimeMs, mtimeMs) || other.mtimeMs == mtimeMs)&&(identical(other.ctimeMs, ctimeMs) || other.ctimeMs == ctimeMs)&&(identical(other.birthtimeMs, birthtimeMs) || other.birthtimeMs == birthtimeMs));
+  final _this = this as LibraryFileMetadata;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFileMetadata&&(identical(other.filename, _this.filename) || other.filename == _this.filename)&&(identical(other.ext, _this.ext) || other.ext == _this.ext)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.relPath, _this.relPath) || other.relPath == _this.relPath)&&(identical(other.size, _this.size) || other.size == _this.size)&&(identical(other.mtimeMs, _this.mtimeMs) || other.mtimeMs == _this.mtimeMs)&&(identical(other.ctimeMs, _this.ctimeMs) || other.ctimeMs == _this.ctimeMs)&&(identical(other.birthtimeMs, _this.birthtimeMs) || other.birthtimeMs == _this.birthtimeMs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,filename,ext,path,relPath,size,mtimeMs,ctimeMs,birthtimeMs);
+int get hashCode {
+  final _this = this as LibraryFileMetadata;
+  return Object.hash(runtimeType,_this.filename,_this.ext,_this.path,_this.relPath,_this.size,_this.mtimeMs,_this.ctimeMs,_this.birthtimeMs);
+}
 
 @override
 String toString() {
-  return 'LibraryFileMetadata(filename: $filename, ext: $ext, path: $path, relPath: $relPath, size: $size, mtimeMs: $mtimeMs, ctimeMs: $ctimeMs, birthtimeMs: $birthtimeMs)';
+  final _this = this as LibraryFileMetadata;
+  return 'LibraryFileMetadata(filename: ${_this.filename}, ext: ${_this.ext}, path: ${_this.path}, relPath: ${_this.relPath}, size: ${_this.size}, mtimeMs: ${_this.mtimeMs}, ctimeMs: ${_this.ctimeMs}, birthtimeMs: ${_this.birthtimeMs})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFileMetadata&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.ext, ext) || other.ext == ext)&&(identical(other.path, path) || other.path == path)&&(identical(other.relPath, relPath) || other.relPath == relPath)&&(identical(other.size, size) || other.size == size)&&(identical(other.mtimeMs, mtimeMs) || other.mtimeMs == mtimeMs)&&(identical(other.ctimeMs, ctimeMs) || other.ctimeMs == ctimeMs)&&(identical(other.birthtimeMs, birthtimeMs) || other.birthtimeMs == birthtimeMs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFileMetadata&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.ext, ext) || other.ext == ext)&&(identical(other.path, path) || other.path == path)&&(identical(other.relPath, relPath) || other.relPath == relPath)&&(identical(other.size, size) || other.size == size)&&(identical(other.mtimeMs, mtimeMs) || other.mtimeMs == mtimeMs)&&(identical(other.ctimeMs, ctimeMs) || other.ctimeMs == ctimeMs)&&(identical(other.birthtimeMs, birthtimeMs) || other.birthtimeMs == birthtimeMs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,filename,ext,path,relPath,size,mtimeMs,ctimeMs,birthtimeMs);
+int get hashCode {
+    return Object.hash(runtimeType,filename,ext,path,relPath,size,mtimeMs,ctimeMs,birthtimeMs);
+}
 
 @override
 String toString() {
-  return 'LibraryFileMetadata(filename: $filename, ext: $ext, path: $path, relPath: $relPath, size: $size, mtimeMs: $mtimeMs, ctimeMs: $ctimeMs, birthtimeMs: $birthtimeMs)';
+    return 'LibraryFileMetadata(filename: $filename, ext: $ext, path: $path, relPath: $relPath, size: $size, mtimeMs: $mtimeMs, ctimeMs: $ctimeMs, birthtimeMs: $birthtimeMs)';
 }
 
 

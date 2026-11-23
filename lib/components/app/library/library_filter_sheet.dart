@@ -5,7 +5,9 @@ import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/components/common/expressive_expandable_card.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/features/library/widgets/library_control_sheet.dart';
+import 'package:yaabsa/ui/components/feedback/feedback_panel.dart';
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
 
 class LibraryFilterSheet extends StatelessWidget {
   const LibraryFilterSheet({
@@ -63,52 +65,35 @@ class LibraryFilterSheet extends StatelessWidget {
 
     final visibleSections = sections.where((section) => section.options.isNotEmpty).toList(growable: false);
 
-    return SafeArea(
-      top: false,
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.88,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text('Library Filters', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                  ),
-                  if (activeFilter != null)
-                    TextButton.icon(
-                      onPressed: () => Navigator.of(context).pop(''),
-                      icon: const Icon(Icons.filter_alt_off_rounded),
-                      label: const Text('Clear'),
-                    ),
-                  IconButton(
-                    tooltip: 'Close',
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
+    final hasActiveFilter = activeFilter != null && activeFilter!.isNotEmpty;
+
+    return LibraryControlSheet(
+      title: 'Filter',
+      headerAction: hasActiveFilter
+          ? TextButton.icon(
+              onPressed: () => Navigator.of(context).pop(''),
+              icon: const Icon(Icons.filter_alt_off_rounded),
+              label: const Text('Clear'),
+            )
+          : null,
+      child: visibleSections.isEmpty
+          ? const YaabsaFeedbackPanel(
+              icon: Icons.filter_list_off_rounded,
+              title: 'No filter options available',
+              message: 'This library does not have any filter values yet.',
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
+              itemCount: visibleSections.length,
+              itemBuilder: (context, index) {
+                final section = visibleSections[index];
+                return _FilterSection(
+                  section: section,
+                  activeFilter: activeFilter,
+                  onSelect: (queryValue) => Navigator.of(context).pop(queryValue),
+                );
+              },
             ),
-            Expanded(
-              child: visibleSections.isEmpty
-                  ? const Center(child: Text('No filter options are available for this library yet.'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                      itemCount: visibleSections.length,
-                      itemBuilder: (context, index) {
-                        final section = visibleSections[index];
-                        return _FilterSection(
-                          section: section,
-                          activeFilter: activeFilter,
-                          onSelect: (queryValue) => Navigator.of(context).pop(queryValue),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -232,11 +217,19 @@ class _FilterSection extends StatefulWidget {
 class _FilterSectionState extends State<_FilterSection> {
   String _search = '';
   late bool _isExpanded;
+  late final TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
     _isExpanded = widget.section.options.any((option) => option.queryValue == widget.activeFilter);
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -258,12 +251,8 @@ class _FilterSectionState extends State<_FilterSection> {
     final denseListHeight = math.min(filteredOptions.length * 44.0, 240.0);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final cardColor = _isExpanded
-        ? colorScheme.secondaryContainer.withValues(alpha: 0.62)
-        : colorScheme.surfaceContainerHigh;
-    final borderColor = _isExpanded
-        ? colorScheme.primary.withValues(alpha: 0.62)
-        : colorScheme.outlineVariant.withValues(alpha: 0.48);
+    final cardColor = _isExpanded ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLow;
+    final borderColor = _isExpanded ? colorScheme.primary : colorScheme.outlineVariant.withValues(alpha: 0.48);
 
     return ExpressiveExpandableCard(
       title: widget.section.title,
@@ -280,17 +269,17 @@ class _FilterSectionState extends State<_FilterSection> {
       cardColor: cardColor,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: borderColor, width: _isExpanded ? 1.25 : 1),
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: borderColor),
       ),
       children: [
         if (showSearchField)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: StyledTextField(
+            child: YaabsaSearchField(
+              controller: _searchController,
               label: 'Search options',
-              hintText: 'Type to filter',
-              prefixIcon: const Icon(Icons.search_rounded),
+              hintText: 'Search this section',
               onChanged: (value) {
                 setState(() {
                   _search = value.trim();
@@ -304,21 +293,30 @@ class _FilterSectionState extends State<_FilterSection> {
             child: Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('No matching options')),
           )
         else if (filteredOptions.length <= 8)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: filteredOptions
-                  .map(
-                    (option) => ChoiceChip(
-                      label: Text(option.label),
-                      selected: option.queryValue == widget.activeFilter,
-                      onSelected: (_) => widget.onSelect(option.queryValue),
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final maxChipWidth = math.max(120.0, constraints.maxWidth - 24);
+
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: filteredOptions
+                      .map(
+                        (option) => ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxChipWidth),
+                          child: ChoiceChip(
+                            label: Text(option.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            selected: option.queryValue == widget.activeFilter,
+                            onSelected: (_) => widget.onSelect(option.queryValue),
+                          ),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              );
+            },
           )
         else
           SizedBox(
@@ -333,9 +331,12 @@ class _FilterSectionState extends State<_FilterSection> {
                 return ListTile(
                   dense: true,
                   visualDensity: VisualDensity.compact,
-                  contentPadding: EdgeInsets.zero,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  selected: isSelected,
+                  selectedTileColor: colorScheme.secondaryContainer,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   title: Text(option.label),
-                  trailing: isSelected ? const Icon(Icons.check_rounded) : null,
+                  trailing: isSelected ? Icon(Icons.check_rounded, color: colorScheme.primary) : null,
                   onTap: () => widget.onSelect(option.queryValue),
                 );
               },

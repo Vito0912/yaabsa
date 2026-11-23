@@ -29,16 +29,21 @@ $UpdateAdminApiKeyRequestCopyWith<UpdateAdminApiKeyRequest> get copyWith => _$Up
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateAdminApiKeyRequest&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  final _this = this as UpdateAdminApiKeyRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateAdminApiKeyRequest&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userId,isActive);
+int get hashCode {
+  final _this = this as UpdateAdminApiKeyRequest;
+  return Object.hash(runtimeType,_this.userId,_this.isActive);
+}
 
 @override
 String toString() {
-  return 'UpdateAdminApiKeyRequest(userId: $userId, isActive: $isActive)';
+  final _this = this as UpdateAdminApiKeyRequest;
+  return 'UpdateAdminApiKeyRequest(userId: ${_this.userId}, isActive: ${_this.isActive})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateAdminApiKeyRequest&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateAdminApiKeyRequest&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userId,isActive);
+int get hashCode {
+    return Object.hash(runtimeType,userId,isActive);
+}
 
 @override
 String toString() {
-  return 'UpdateAdminApiKeyRequest(userId: $userId, isActive: $isActive)';
+    return 'UpdateAdminApiKeyRequest(userId: $userId, isActive: $isActive)';
 }
 
 

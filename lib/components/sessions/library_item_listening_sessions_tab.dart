@@ -9,13 +9,14 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/sessions/listening_session_editor_dialog.dart';
 import 'package:yaabsa/components/sessions/listening_session_list.dart';
 import 'package:yaabsa/components/sessions/listening_sessions_pagination_controls.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemListeningSessionsTab extends ConsumerStatefulWidget {
   const LibraryItemListeningSessionsTab({super.key, required this.item, this.initialEpisodeId});
@@ -339,7 +340,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
         }
 
         if (_isLoading && _sessions.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: YaabsaCircularProgressIndicator());
         }
 
         return ScreenRefreshIndicator(
@@ -353,11 +354,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
                   padding: const EdgeInsets.only(bottom: 12),
                   child: YaabsaExpressiveDropdownField<String?>(
                     value: _selectedEpisodeId,
-                    decoration: const InputDecoration(
-                      labelText: 'Filter by Episode',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
+                    decoration: const InputDecoration(labelText: 'Filter by Episode', isDense: true),
                     options: [
                       const YaabsaDropdownOption<String?>(value: null, label: 'All Episodes'),
                       ..._episodes.map(
@@ -400,7 +397,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
                 onNext: _currentPage < (_numPages - 1) ? _goToNextPage : null,
               ),
               if (_isLoading)
-                const Padding(padding: EdgeInsets.only(bottom: 8), child: LinearProgressIndicator(minHeight: 2)),
+                const Padding(padding: EdgeInsets.only(bottom: 8), child: YaabsaLinearProgressIndicator(minHeight: 2)),
               if (_selectedSessionIds.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -415,7 +412,11 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
                                 unawaited(_bulkDeleteSelectedSessions(currentUser));
                               },
                         icon: _isBulkDeleting
-                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                              )
                             : const Icon(Icons.delete_outline_rounded),
                         label: const Text('Delete Selected'),
                       ),
@@ -435,7 +436,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, _) => Center(child: Text('Failed to load user: $error')),
     );
   }

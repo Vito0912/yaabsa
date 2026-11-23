@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
+import 'package:yaabsa/features/player/widgets/sleep_timer_active_presentation.dart';
+import 'package:yaabsa/features/player/widgets/sleep_timer_custom_input.dart';
 
 class SleepTimerModal extends ConsumerStatefulWidget {
   const SleepTimerModal({super.key});
@@ -61,7 +63,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (sleepTimer.isActive) ...[const SizedBox(height: 8), _ActiveTimerCard(sleepTimer: sleepTimer)],
+                if (sleepTimer.isActive) ...[const SizedBox(height: 8), _buildActiveTimerPresentation(sleepTimer)],
                 const SizedBox(height: 8),
                 Text('Quick start', style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 8),
@@ -88,39 +90,15 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _customController,
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.done,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          onChanged: (_) {
-                            if (!chapterMode) setState(() => _selectedMinutes = null);
-                          },
-                          onSubmitted: (_) => _handleCustomInput(chapterMode),
-                          decoration: InputDecoration(
-                            labelText: chapterMode ? 'Number of chapters' : 'Minutes',
-                            hintText: chapterMode ? '1' : 'Minutes',
-                            suffixText: chapterMode ? 'chapters' : 'min',
-                            border: const OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      FilledButton.icon(
-                        onPressed: () => _handleCustomInput(chapterMode),
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                        icon: const Icon(Icons.bedtime),
-                        label: const Text('Set'),
-                      ),
-                    ],
-                  ),
+                SleepTimerCustomInput(
+                  controller: _customController,
+                  chapterMode: chapterMode,
+                  onChanged: (_) {
+                    if (!chapterMode) {
+                      setState(() => _selectedMinutes = null);
+                    }
+                  },
+                  onSet: () => _handleCustomInput(chapterMode),
                 ),
                 if (sleepTimer.isActive) ...[
                   const SizedBox(height: 20),
@@ -234,50 +212,14 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
     Navigator.of(context).pop();
     HapticFeedback.lightImpact();
   }
-}
 
-class _ActiveTimerCard extends StatelessWidget {
-  const _ActiveTimerCard({required this.sleepTimer});
-
-  final SleepTimerData sleepTimer;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+  Widget _buildActiveTimerPresentation(SleepTimerData sleepTimer) {
     final description = sleepTimer.isChapterTimer
         ? '${sleepTimer.remainingChapters} chapter${sleepTimer.remainingChapters == 1 ? '' : 's'} remaining'
               ' • ${sleepTimer.remainingTime.toCompactRemainingString()} remaining'
         : '${sleepTimer.remainingTime.toCompactRemainingString()} remaining';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: colors.secondaryContainer, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        children: [
-          Icon(
-            sleepTimer.isRunning ? Icons.timer_outlined : Icons.pause_circle_outline,
-            color: colors.onSecondaryContainer,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  sleepTimer.isRunning ? 'Timer active' : 'Timer paused',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(color: colors.onSecondaryContainer),
-                ),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSecondaryContainer),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return SleepTimerActivePresentation(isRunning: sleepTimer.isRunning, description: description);
   }
 }
 

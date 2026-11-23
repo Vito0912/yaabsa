@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:audio_service/audio_service.dart';
+import 'package:yaabsa/util/android_cover_cache.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:background_downloader/background_downloader.dart' show TaskRecord, TaskStatus;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -29,6 +30,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
+import 'package:yaabsa/api/list/response/library_list_page.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
@@ -46,6 +48,8 @@ import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/common/collection_provider.dart';
+import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/provider/player/queue_source_provider.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
@@ -53,11 +57,14 @@ import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/util/globals.dart' show packageInfo, downloadHandler;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/audio_handler/playback_error_classifier.dart';
+import 'package:yaabsa/util/audio_handler/playback_keep_alive.dart';
+import 'package:yaabsa/util/audio_handler/playback_keep_alive_level.dart';
 import 'package:yaabsa/util/audio_handler/playback_diagnostics.dart';
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/audio_handler/auto/android_auto_browse_models.dart';
+import 'package:yaabsa/util/audio_handler/auto/car_list_ranges.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/android_live_updates.dart';
@@ -76,11 +83,13 @@ part 'bg_audio_handler_resume.dart';
 part 'bg_audio_handler_sleep_timer.dart';
 part 'bg_audio_handler_queue.dart';
 part 'bg_audio_handler_preferences.dart';
+part 'bg_audio_handler_keep_alive.dart';
 part 'bg_audio_handler_audio_session.dart';
 part 'bg_audio_handler_state.dart';
 part 'bg_audio_handler_cast.dart';
 part 'bg_audio_handler_playback_internal.dart';
 part 'bg_audio_handler_source.dart';
+part 'bg_audio_handler_download_handoff.dart';
 part 'bg_audio_handler_reader.dart';
 part 'bg_audio_handler_speech.dart';
 part 'bg_audio_handler_reader_progress.dart';
@@ -93,6 +102,7 @@ part 'auto/bg_audio_handler_android_auto_media.dart';
 part 'auto/bg_audio_handler_android_auto_browse.dart';
 part 'auto/bg_audio_handler_automotive.dart';
 part 'auto/bg_audio_handler_car_requests.dart';
+part 'auto/bg_audio_handler_car_lists.dart';
 part 'auto/bg_audio_handler_car_support.dart';
 part 'auto/bg_audio_handler_car_library_icons.dart';
 part 'auto/bg_audio_handler_automotive_browse_actions.dart';
@@ -165,6 +175,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   ];
   StreamSubscription<InternalChapter?>? _chapterSubscription;
   StreamSubscription<String?>? _skipSilenceSubscription;
+  final PlaybackKeepAlive _playbackKeepAlive = PlaybackKeepAlive();
+  final List<StreamSubscription<Object?>> _playbackKeepAliveSubscriptions = [];
+  PlaybackKeepAliveLevel _playbackKeepAliveLevel = PlaybackKeepAliveLevel.off;
+
   StreamSubscription<AudioEffectStatus>? _volumeBoostAvailabilitySubscription;
   StreamSubscription<String?>? _equalizerEnabledSubscription;
   StreamSubscription<String?>? _equalizerBandGainsSubscription;
@@ -226,6 +240,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   int get sleepTimerPlaybackGeneration => _sleepTimerPlaybackGeneration;
   late final BehaviorSubject<double> _volumeSubject;
   bool _isDisposing = false;
+  bool _downloadHandoffInProgress = false;
   List<PlayerQueueEntry> queueList = [];
   List<PlayerQueueEntry> _originalQueueList = [];
   QueueItem? _lastQueueItem;
@@ -976,12 +991,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           final generation = _androidAutoBrowseCache.generation;
 
           final decorated = await _aaosAttachBrowseActions(this, children, limit: actionLimit);
+          final prepared = await prepareAndroidCarArtwork(decorated, packageName: packageInfo.packageName);
 
           if (generation != _androidAutoBrowseCache.generation) {
             throw const AndroidAutoBrowseStaleRequestException();
           }
 
-          return decorated;
+          return prepared;
         } on AndroidAutoBrowseStaleRequestException {
           if (!await _androidAutoIsAutomotiveSystem()) {
             rethrow;
@@ -1004,7 +1020,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         return null;
       }
 
-      return (await _aaosAttachBrowseActions(this, [item])).first;
+      final decorated = await _aaosAttachBrowseActions(this, [item]);
+      final prepared = await prepareAndroidCarArtwork(decorated, packageName: packageInfo.packageName);
+      return prepared.first;
     }, zoneValues: {#carBrowseRequest: true});
   }
 
@@ -1015,7 +1033,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       final actionLimit = extras?[_aaosBrowseActionLimitKey] as int? ?? 0;
 
-      return _aaosAttachBrowseActions(this, items, limit: actionLimit);
+      final decorated = await _aaosAttachBrowseActions(this, items, limit: actionLimit);
+      return prepareAndroidCarArtwork(decorated, packageName: packageInfo.packageName);
     }, zoneValues: {#carBrowseRequest: true});
   }
 
@@ -1208,6 +1227,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   bool get shouldShowPlayerNow {
     return _shouldShowPlayerNowInternal();
+  }
+
+  Future<void> useDownloadedAudio(String itemId, String userId) {
+    return _useDownloadedAudio(itemId, userId);
   }
 
   Future<void> playLibraryItem(
@@ -1941,7 +1964,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     required bool internal,
     bool Function()? continuationIsCurrent,
   }) {
-    if (_currentMediaItem == null || ((_castConnecting || _castTrackLoading) && _castHandoffPosition == null)) {
+    final seekMedia = _currentMediaItem;
+
+    if (seekMedia == null || ((_castConnecting || _castTrackLoading) && _castHandoffPosition == null)) {
       return Future.value();
     }
 
@@ -1950,17 +1975,19 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _sleepTimerPendingSeeks++;
 
-    final operation = _sleepTimerSeekQueue
-        .catchError((Object _) {})
-        .then(
-          (_) => _performSleepTimerAwareSeek(
-            position,
-            internal: internal,
-            navigationGeneration: navigationGeneration,
-            seekRequestGeneration: seekRequestGeneration,
-            continuationIsCurrent: continuationIsCurrent,
-          ),
-        );
+    final operation = _sleepTimerSeekQueue.catchError((Object _) {}).then((_) async {
+      if (_isDisposing || !identical(_currentMediaItem, seekMedia)) {
+        return;
+      }
+
+      await _performSleepTimerAwareSeek(
+        position,
+        internal: internal,
+        navigationGeneration: navigationGeneration,
+        seekRequestGeneration: seekRequestGeneration,
+        continuationIsCurrent: continuationIsCurrent,
+      );
+    });
 
     _sleepTimerSeekQueue = operation.catchError((Object _) {});
 
@@ -2023,11 +2050,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _syncService.markProgressDirty();
       }
 
+      if (!_isInternalSeek && _streamRecoveryResumePosition != null) {
+        _streamRecoveryResumePosition = boundedPosition;
+      }
+
       final shouldRecordPausedManualSeek =
           _internalSeekGuardDepth == 0 &&
           !playerControlState.playing &&
           (playerControlState.processingState == ProcessingState.ready ||
-              playerControlState.processingState == ProcessingState.completed);
+              playerControlState.processingState == ProcessingState.completed ||
+              playerControlState.processingState == ProcessingState.idle);
 
       if (shouldRecordPausedManualSeek) {
         _markPausedManualSeek(boundedPosition);
@@ -2083,21 +2115,35 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       final relativeTrackPosition = boundedPosition - _currentMediaItem!.startDurationForTrack(newTrackIndex);
 
-      if (newTrackIndex != _currentTrackIndex) {
-        _currentTrackIndex = newTrackIndex;
-        await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
+      try {
+        if (newTrackIndex != _currentTrackIndex) {
+          _currentTrackIndex = newTrackIndex;
+          await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
 
-        if (!kIsWeb && Platform.isLinux) {
-          _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((
-            _,
-          ) async {
-            if (identical(_currentMediaItem, seekMedia) && seekRequestGeneration == _sleepTimerSeekRequestGeneration) {
-              await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
-            }
-          });
+          if (!kIsWeb && Platform.isLinux) {
+            unawaited(
+              _player.playerStateStream
+                  .firstWhere((state) => state.processingState == ProcessingState.ready)
+                  .then((_) async {
+                    if (identical(_currentMediaItem, seekMedia) &&
+                        seekRequestGeneration == _sleepTimerSeekRequestGeneration) {
+                      await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
+                    }
+                  })
+                  .catchError((Object _) {}),
+            );
+          }
+        } else {
+          await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
         }
-      } else {
-        await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
+      } catch (error) {
+        logger('Player seek to $boundedPosition failed: $error', tag: 'AudioHandler', level: InfoLevel.warning);
+
+        return;
+      }
+
+      if (_isDisposing || !identical(_currentMediaItem, seekMedia)) {
+        return;
       }
 
       _refreshChapterNotificationState(customPosition: boundedPosition);
@@ -2171,6 +2217,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     late MediaItem nextMediaItem;
+    final artHeaders = _artRequestHeadersInternal;
 
     if (_chapterNotificationEnabled) {
       final searchPos = customPosition ?? position;
@@ -2186,9 +2233,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         duration: _chapterNotificationDuration,
         isLive: false,
         artUri: notificationArtworkUri(currentItem.cover),
+        artHeaders: artHeaders.isEmpty ? null : artHeaders,
       );
     } else {
-      nextMediaItem = currentItem.toMediaItem();
+      nextMediaItem = currentItem.toMediaItem(artHeaders: artHeaders);
     }
 
     if (_androidAutoIsAutomotiveSystemCache == true) {
@@ -2412,6 +2460,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
     _volumeSubject = BehaviorSubject<double>.seeded(_readLastVolumeSetting());
     _initializeAudioSession();
+    _setupPlaybackKeepAlive();
 
     if (!kIsWeb && Platform.isAndroid) {
       _volumeBoostAvailabilitySubscription = _loudnessEnhancer!.statusStream.listen((status) {
@@ -2552,12 +2601,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           return;
         }
 
-        unawaited(
-          _ref
-              .read(smartDownloadManagerProvider.notifier)
-              .deleteFinishedContinueDownload(itemId: finishedMedia.itemId, episodeId: finishedMedia.episodeId),
-        );
-        _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'playback completed');
+        _ref
+            .read(smartDownloadManagerProvider.notifier)
+            .requestReconcile(reason: 'playback completed', refreshSources: false);
         unawaited(
           refreshPersonalizedShelfForCompletedItem(
             container: _ref,
@@ -3109,6 +3155,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> dispose() async {
     _isDisposing = true;
+    await _disposePlaybackKeepAlive();
+
     await _disposeReaderSpeech();
     await _speechPlaybackSubject.close();
     await _readerProgressSync.dispose();

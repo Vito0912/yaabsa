@@ -5,6 +5,10 @@ import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/buttons/media_play_button.dart';
+import 'package:yaabsa/ui/components/cards/surface_card.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PodcastEpisodeTile extends StatelessWidget {
   const PodcastEpisodeTile({
@@ -23,6 +27,7 @@ class PodcastEpisodeTile extends StatelessWidget {
     this.onDownloadPressed,
     this.onDeletePressed,
     this.onMoreActionSelected,
+    this.showMarkAsFinished = true,
     this.showMarkAsUnfinished = false,
     this.showPinAction = false,
     this.showAddToPlaylist = false,
@@ -48,6 +53,7 @@ class PodcastEpisodeTile extends StatelessWidget {
   final VoidCallback? onDownloadPressed;
   final VoidCallback? onDeletePressed;
   final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
+  final bool showMarkAsFinished;
   final bool showMarkAsUnfinished;
   final bool showPinAction;
   final bool showAddToPlaylist;
@@ -63,35 +69,27 @@ class PodcastEpisodeTile extends StatelessWidget {
     final effectiveSelectionMode = allowSelection && selectionMode;
     final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
     final isFinished = podcastEpisodeCompleted(progress);
-    final statusLabel = isFinished
-        ? 'Complete'
-        : podcastEpisodeInProgress(progress)
-        ? 'In Progress'
-        : 'Incomplete';
 
-    final duration = episode.audioFile?.duration;
+    final duration = episode.audioFile?.duration ?? episode.duration;
     final durationLabel = duration == null ? null : formatDurationShort(Duration(seconds: duration.round()));
     final publishedLabel = podcastFormatEpisodeDate(episode);
     final descriptionPreview = podcastEpisodeDescriptionPreview(episode);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final backgroundColor = isHighlighted
-        ? colorScheme.primaryContainer.withValues(alpha: 0.62)
-        : isCurrentEpisode
-        ? colorScheme.primaryContainer.withValues(alpha: 0.18)
-        : (isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.25) : colorScheme.surfaceContainerLow);
+    final backgroundColor = _backgroundColor(
+      colorScheme,
+      isHighlighted: isHighlighted,
+      isCurrentEpisode: isCurrentEpisode,
+      isSelected: isSelected,
+    );
+    final borderColor = _borderColor(
+      colorScheme,
+      isHighlighted: isHighlighted,
+      isCurrentEpisode: isCurrentEpisode,
+      isSelected: isSelected,
+    );
     final showProgressRing = progressValue > 0 && !isFinished;
-    final isPlayEnabled = onPlayPressed != null;
-    final playIcon = isCurrentEpisode && isPlayingCurrentEpisode
-        ? Icons.pause_rounded
-        : (isFinished ? Icons.replay_rounded : Icons.play_arrow_rounded);
     final playTooltip = isCurrentEpisode && isPlayingCurrentEpisode ? 'Pause' : (isFinished ? 'Replay' : 'Play');
-    final playBackgroundColor = isPlayEnabled
-        ? (isFinished ? colorScheme.primary : colorScheme.surface.withAlpha(230))
-        : colorScheme.surfaceContainerHighest;
-    final playIconColor = isPlayEnabled
-        ? (isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant)
-        : colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
     const playButtonTouchSize = 48.0;
     const playButtonVisualSize = 40.0;
     Widget secondaryActionButton(Widget child) {
@@ -102,19 +100,27 @@ class PodcastEpisodeTile extends StatelessWidget {
       );
     }
 
+    const cardRadius = 20.0;
+    final onTap = effectiveSelectionMode ? () => onSelectedChanged?.call(!isSelected) : onOpenDetails;
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 550),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(14)),
-      child: Material(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(cardRadius),
+        border: Border.all(color: borderColor),
+      ),
+      child: YaabsaSurfaceCard(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        padding: EdgeInsets.zero,
+        borderRadius: cardRadius,
         child: InkWell(
-          onTap: effectiveSelectionMode ? () => onSelectedChanged?.call(!isSelected) : onOpenDetails,
+          onTap: onTap,
           onLongPress: allowSelection ? () => onSelectedChanged?.call(!isSelected) : null,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+          borderRadius: BorderRadius.circular(cardRadius),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -123,14 +129,13 @@ class PodcastEpisodeTile extends StatelessWidget {
                   children: [
                     if (effectiveSelectionMode) ...[
                       Padding(
-                        padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+                        padding: const EdgeInsets.only(top: 4, right: 8),
                         child: SizedBox(
                           width: 24,
                           height: 24,
                           child: Checkbox(value: isSelected, onChanged: onSelectedChanged),
                         ),
                       ),
-                      const SizedBox(width: 4),
                     ],
                     Expanded(
                       child: Column(
@@ -140,28 +145,28 @@ class PodcastEpisodeTile extends StatelessWidget {
                             podcastEpisodeTitle(episode),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleSmall,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           if (podcastEpisodeSubtitle(episode) != null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 2),
+                              padding: const EdgeInsets.only(top: 3),
                               child: Text(
                                 podcastEpisodeSubtitle(episode)!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.onSurfaceVariant),
                               ),
                             ),
                           if (descriptionPreview != null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 2),
+                              padding: const EdgeInsets.only(top: 5),
                               child: Text(
                                 descriptionPreview,
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                    ?.copyWith(color: colorScheme.onSurfaceVariant),
                               ),
                             ),
                         ],
@@ -173,74 +178,56 @@ class PodcastEpisodeTile extends StatelessWidget {
                         width: playButtonTouchSize,
                         height: playButtonTouchSize,
                         child: Center(
-                          child: Container(
-                            width: playButtonVisualSize,
-                            height: playButtonVisualSize,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                              color: playBackgroundColor,
-                            ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                if (showProgressRing)
-                                  SizedBox(
-                                    width: playButtonVisualSize - 4,
-                                    height: playButtonVisualSize - 4,
-                                    child: CircularProgressIndicator(
-                                      value: progressValue,
-                                      strokeWidth: 3,
-                                      backgroundColor: Colors.white24,
-                                      valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                                    ),
-                                  ),
-                                IconButton(
-                                  onPressed: onPlayPressed,
-                                  tooltip: playTooltip,
-                                  constraints: const BoxConstraints.tightFor(
-                                    width: playButtonVisualSize,
-                                    height: playButtonVisualSize,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(playIcon, color: playIconColor, size: isFinished ? 20 : 18),
-                                  splashRadius: 10,
-                                ),
-                              ],
-                            ),
+                          child: YaabsaMediaPlayButton(
+                            size: playButtonVisualSize,
+                            tooltip: playTooltip,
+                            isPlaying: isCurrentEpisode && isPlayingCurrentEpisode,
+                            isFinished: isFinished,
+                            isLoading: false,
+                            onPressed: onPlayPressed,
+                            progress: showProgressRing ? progressValue : null,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       secondaryActionButton(
-                        IconButton.filledTonal(
-                          onPressed: isCurrentEpisode ? null : onQueueToggle,
-                          icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
+                        YaabsaActionIconButton(
+                          icon: isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded,
+                          variant: YaabsaActionButtonVariant.filledTonal,
+                          shape: YaabsaActionButtonShape.rounded,
                           tooltip: isCurrentEpisode
                               ? 'Currently playing'
                               : (isQueued ? 'Remove from queue' : 'Add to queue'),
-                          visualDensity: VisualDensity.compact,
+                          onPressed: isCurrentEpisode ? null : onQueueToggle,
                         ),
                       ),
                       if (canDownload && !context.isMobile) ...[
                         secondaryActionButton(
-                          IconButton.filledTonal(
-                            onPressed: isDownloading ? null : (isDownloaded ? onDeletePressed : onDownloadPressed),
-                            icon: isDownloading
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2.2),
-                                  )
-                                : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
-                            tooltip: isDownloading ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
-                            visualDensity: VisualDensity.compact,
-                          ),
+                          isDownloaded && !isDownloading
+                              ? YaabsaDeleteIconButton(tooltip: 'Delete download', onPressed: onDeletePressed)
+                              : YaabsaActionIconButton(
+                                  icon: isDownloading ? null : Icons.download_rounded,
+                                  iconWidget: isDownloading
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: YaabsaCircularProgressIndicator(strokeWidth: 2.2),
+                                        )
+                                      : null,
+                                  variant: YaabsaActionButtonVariant.filledTonal,
+                                  shape: YaabsaActionButtonShape.rounded,
+                                  enabled: !isDownloading,
+                                  onPressed: onDownloadPressed,
+                                  tooltip: isDownloading ? 'Downloading' : 'Download',
+                                ),
                         ),
                       ],
                       if (onMoreActionSelected != null) ...[
                         secondaryActionButton(
                           ItemMoreActionsButton(
                             onActionSelected: onMoreActionSelected!,
+                            shape: YaabsaActionButtonShape.rounded,
+                            showMarkAsFinished: showMarkAsFinished,
                             showMarkAsUnfinished: showMarkAsUnfinished,
                             showSelect: allowSelection,
                             showPinAction: showPinAction,
@@ -252,29 +239,16 @@ class PodcastEpisodeTile extends StatelessWidget {
                     ],
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
-                  runSpacing: 6,
+                  runSpacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (publishedLabel != null)
-                      Text(
-                        publishedLabel,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
+                      _episodeInfoChip(context, icon: Icons.calendar_today_rounded, label: publishedLabel),
                     if (durationLabel != null)
-                      Text(
-                        durationLabel,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                    Text(
-                      statusLabel,
-                      style: Theme.of(context).textTheme.labelMedium
-                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    ),
+                      _episodeInfoChip(context, icon: Icons.schedule_rounded, label: durationLabel),
                   ],
                 ),
               ],
@@ -284,4 +258,55 @@ class PodcastEpisodeTile extends StatelessWidget {
       ),
     );
   }
+
+  Color _backgroundColor(
+    ColorScheme colorScheme, {
+    required bool isHighlighted,
+    required bool isCurrentEpisode,
+    required bool isSelected,
+  }) {
+    if (isHighlighted) {
+      return colorScheme.primaryContainer.withValues(alpha: 0.64);
+    }
+    if (isCurrentEpisode) {
+      return colorScheme.primaryContainer.withValues(alpha: 0.24);
+    }
+    if (isSelected) {
+      return colorScheme.primaryContainer.withValues(alpha: 0.18);
+    }
+    return colorScheme.surfaceContainerLow;
+  }
+
+  Color _borderColor(
+    ColorScheme colorScheme, {
+    required bool isHighlighted,
+    required bool isCurrentEpisode,
+    required bool isSelected,
+  }) {
+    if (isHighlighted) {
+      return colorScheme.primary.withValues(alpha: 0.72);
+    }
+    if (isCurrentEpisode) {
+      return colorScheme.primary.withValues(alpha: 0.48);
+    }
+    if (isSelected) {
+      return colorScheme.primary.withValues(alpha: 0.34);
+    }
+    return colorScheme.outlineVariant.withValues(alpha: 0.42);
+  }
+}
+
+Widget _episodeInfoChip(BuildContext context, {required IconData icon, required String label}) {
+  final theme = Theme.of(context);
+  final foreground = theme.colorScheme.onSurfaceVariant;
+
+  return Chip(
+    avatar: Icon(icon, size: 16, color: foreground),
+    label: Text(label),
+    labelStyle: theme.textTheme.labelMedium?.copyWith(color: foreground),
+    visualDensity: VisualDensity.compact,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    side: BorderSide.none,
+    backgroundColor: theme.colorScheme.surfaceContainerHigh,
+  );
 }

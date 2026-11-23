@@ -2,7 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_provider_dropdown.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ManualMatchSearchCard extends StatelessWidget {
   const ManualMatchSearchCard({
@@ -49,7 +50,7 @@ class ManualMatchSearchCard extends StatelessWidget {
             final searchButton = FilledButton.icon(
               onPressed: searching ? null : onSearch,
               icon: searching
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                  ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                   : const Icon(Icons.search_rounded),
               label: Text(searching ? 'Searching...' : 'Search'),
             );
@@ -109,7 +110,7 @@ class ManualMatchSearchCard extends StatelessWidget {
         decoration: yaabsaFieldDecoration(context, label: 'Providers'),
         child: const Row(
           children: [
-            SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2.0)),
+            SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2.0)),
             SizedBox(width: 8),
             Text('Loading...'),
           ],

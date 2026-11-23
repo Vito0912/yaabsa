@@ -29,16 +29,21 @@ $DaysOfWeekCopyWith<DaysOfWeek> get copyWith => _$DaysOfWeekCopyWithImpl<DaysOfW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DaysOfWeek&&(identical(other.monday, monday) || other.monday == monday)&&(identical(other.tuesday, tuesday) || other.tuesday == tuesday)&&(identical(other.wednesday, wednesday) || other.wednesday == wednesday)&&(identical(other.thursday, thursday) || other.thursday == thursday)&&(identical(other.friday, friday) || other.friday == friday)&&(identical(other.saturday, saturday) || other.saturday == saturday)&&(identical(other.sunday, sunday) || other.sunday == sunday));
+  final _this = this as DaysOfWeek;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DaysOfWeek&&(identical(other.monday, _this.monday) || other.monday == _this.monday)&&(identical(other.tuesday, _this.tuesday) || other.tuesday == _this.tuesday)&&(identical(other.wednesday, _this.wednesday) || other.wednesday == _this.wednesday)&&(identical(other.thursday, _this.thursday) || other.thursday == _this.thursday)&&(identical(other.friday, _this.friday) || other.friday == _this.friday)&&(identical(other.saturday, _this.saturday) || other.saturday == _this.saturday)&&(identical(other.sunday, _this.sunday) || other.sunday == _this.sunday));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,monday,tuesday,wednesday,thursday,friday,saturday,sunday);
+int get hashCode {
+  final _this = this as DaysOfWeek;
+  return Object.hash(runtimeType,_this.monday,_this.tuesday,_this.wednesday,_this.thursday,_this.friday,_this.saturday,_this.sunday);
+}
 
 @override
 String toString() {
-  return 'DaysOfWeek(monday: $monday, tuesday: $tuesday, wednesday: $wednesday, thursday: $thursday, friday: $friday, saturday: $saturday, sunday: $sunday)';
+  final _this = this as DaysOfWeek;
+  return 'DaysOfWeek(monday: ${_this.monday}, tuesday: ${_this.tuesday}, wednesday: ${_this.wednesday}, thursday: ${_this.thursday}, friday: ${_this.friday}, saturday: ${_this.saturday}, sunday: ${_this.sunday})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DaysOfWeek&&(identical(other.monday, monday) || other.monday == monday)&&(identical(other.tuesday, tuesday) || other.tuesday == tuesday)&&(identical(other.wednesday, wednesday) || other.wednesday == wednesday)&&(identical(other.thursday, thursday) || other.thursday == thursday)&&(identical(other.friday, friday) || other.friday == friday)&&(identical(other.saturday, saturday) || other.saturday == saturday)&&(identical(other.sunday, sunday) || other.sunday == sunday));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DaysOfWeek&&(identical(other.monday, monday) || other.monday == monday)&&(identical(other.tuesday, tuesday) || other.tuesday == tuesday)&&(identical(other.wednesday, wednesday) || other.wednesday == wednesday)&&(identical(other.thursday, thursday) || other.thursday == thursday)&&(identical(other.friday, friday) || other.friday == friday)&&(identical(other.saturday, saturday) || other.saturday == saturday)&&(identical(other.sunday, sunday) || other.sunday == sunday));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,monday,tuesday,wednesday,thursday,friday,saturday,sunday);
+int get hashCode {
+    return Object.hash(runtimeType,monday,tuesday,wednesday,thursday,friday,saturday,sunday);
+}
 
 @override
 String toString() {
-  return 'DaysOfWeek(monday: $monday, tuesday: $tuesday, wednesday: $wednesday, thursday: $thursday, friday: $friday, saturday: $saturday, sunday: $sunday)';
+    return 'DaysOfWeek(monday: $monday, tuesday: $tuesday, wednesday: $wednesday, thursday: $thursday, friday: $friday, saturday: $saturday, sunday: $sunday)';
 }
 
 

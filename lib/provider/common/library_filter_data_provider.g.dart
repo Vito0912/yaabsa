@@ -56,7 +56,7 @@ final class LibraryFilterDataProvider
   }
 }
 
-String _$libraryFilterDataHash() => r'b0d068fa7b27aa2beb6662a610e112aa1a1f0817';
+String _$libraryFilterDataHash() => r'58c73ce05b2275aa63a8486bd22301ddf5096a1f';
 
 final class LibraryFilterDataFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<LibraryFilterData?>, String> {

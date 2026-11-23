@@ -26,6 +26,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 enum LibraryItemEditorTab { details, chapters, match, embedding, encoder }
 
@@ -878,7 +879,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
                                         );
                                     }
                                   },
-                                  loading: () => const Center(child: CircularProgressIndicator()),
+                                  loading: () => const Center(child: YaabsaCircularProgressIndicator()),
                                   error: (error, _) => Center(
                                     child: Padding(
                                       padding: const EdgeInsets.all(20),

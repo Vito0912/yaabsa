@@ -1,3 +1,5 @@
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
+
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -6,9 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/server_log_entry.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerLogsView extends ConsumerStatefulWidget {
   const AdminServerLogsView({super.key});
@@ -336,27 +339,14 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        labelText: 'Search logs',
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                    ),
+                    child: YaabsaSearchField(controller: _searchController, label: 'Search logs', isDense: true),
                   ),
                   const SizedBox(width: 12),
                   SizedBox(
                     width: 170,
                     child: YaabsaExpressiveDropdownField<int>(
-                      key: ValueKey<int>(_listenerLogLevel.value),
                       value: _listenerLogLevel.value,
-                      decoration: const InputDecoration(
-                        labelText: 'Server Log Level',
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: 'Server Log Level', isDense: true),
                       options: LogLevel.values
                           .map(
                             (level) => YaabsaDropdownOption<int>(value: level.value, label: level.name.toUpperCase()),
@@ -392,7 +382,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                   const Text('Auto-scroll'),
                   const Spacer(),
                   if (_isUpdatingLogLevel)
-                    const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                    const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
                 ],
               ),
               if (_errorMessage != null && _errorMessage!.isNotEmpty)
@@ -408,7 +398,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(child: YaabsaCircularProgressIndicator())
                       : _visibleLogText.isEmpty
                       ? const Center(child: Text('No logs found for the current search.'))
                       : Scrollbar(
@@ -435,7 +425,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

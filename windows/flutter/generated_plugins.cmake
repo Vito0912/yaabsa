@@ -7,17 +7,15 @@ list(APPEND FLUTTER_PLUGIN_LIST
   audio_service_win
   connectivity_plus
   desktop_drop
+  dynamic_color
   file_selector_windows
   flutter_inappwebview_windows
   flutter_secure_storage_windows
-  flutter_tts
   just_audio_windows_plus
   permission_handler_windows
-  screen_retriever_windows
-  share_plus
-  tray_manager
   url_launcher_windows
-  window_manager
+  share_plus
+  yaabsa_flutter_tts_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

@@ -29,16 +29,21 @@ $SmartDownloadPolicyCopyWith<SmartDownloadPolicy> get copyWith => _$SmartDownloa
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SmartDownloadPolicy&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.maxAgeDays, maxAgeDays) || other.maxAgeDays == maxAgeDays)&&(identical(other.maxStorageBytes, maxStorageBytes) || other.maxStorageBytes == maxStorageBytes)&&(identical(other.deleteAfterHours, deleteAfterHours) || other.deleteAfterHours == deleteAfterHours)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.descending, descending) || other.descending == descending));
+  final _this = this as SmartDownloadPolicy;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SmartDownloadPolicy&&(identical(other.targetCount, _this.targetCount) || other.targetCount == _this.targetCount)&&(identical(other.maxAgeDays, _this.maxAgeDays) || other.maxAgeDays == _this.maxAgeDays)&&(identical(other.maxStorageBytes, _this.maxStorageBytes) || other.maxStorageBytes == _this.maxStorageBytes)&&(identical(other.deleteAfterHours, _this.deleteAfterHours) || other.deleteAfterHours == _this.deleteAfterHours)&&(identical(other.downloadType, _this.downloadType) || other.downloadType == _this.downloadType)&&(identical(other.descending, _this.descending) || other.descending == _this.descending));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,targetCount,maxAgeDays,maxStorageBytes,deleteAfterHours,downloadType,descending);
+int get hashCode {
+  final _this = this as SmartDownloadPolicy;
+  return Object.hash(runtimeType,_this.targetCount,_this.maxAgeDays,_this.maxStorageBytes,_this.deleteAfterHours,_this.downloadType,_this.descending);
+}
 
 @override
 String toString() {
-  return 'SmartDownloadPolicy(targetCount: $targetCount, maxAgeDays: $maxAgeDays, maxStorageBytes: $maxStorageBytes, deleteAfterHours: $deleteAfterHours, downloadType: $downloadType, descending: $descending)';
+  final _this = this as SmartDownloadPolicy;
+  return 'SmartDownloadPolicy(targetCount: ${_this.targetCount}, maxAgeDays: ${_this.maxAgeDays}, maxStorageBytes: ${_this.maxStorageBytes}, deleteAfterHours: ${_this.deleteAfterHours}, downloadType: ${_this.downloadType}, descending: ${_this.descending})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SmartDownloadPolicy&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.maxAgeDays, maxAgeDays) || other.maxAgeDays == maxAgeDays)&&(identical(other.maxStorageBytes, maxStorageBytes) || other.maxStorageBytes == maxStorageBytes)&&(identical(other.deleteAfterHours, deleteAfterHours) || other.deleteAfterHours == deleteAfterHours)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.descending, descending) || other.descending == descending));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SmartDownloadPolicy&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.maxAgeDays, maxAgeDays) || other.maxAgeDays == maxAgeDays)&&(identical(other.maxStorageBytes, maxStorageBytes) || other.maxStorageBytes == maxStorageBytes)&&(identical(other.deleteAfterHours, deleteAfterHours) || other.deleteAfterHours == deleteAfterHours)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.descending, descending) || other.descending == descending));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,targetCount,maxAgeDays,maxStorageBytes,deleteAfterHours,downloadType,descending);
+int get hashCode {
+    return Object.hash(runtimeType,targetCount,maxAgeDays,maxStorageBytes,deleteAfterHours,downloadType,descending);
+}
 
 @override
 String toString() {
-  return 'SmartDownloadPolicy(targetCount: $targetCount, maxAgeDays: $maxAgeDays, maxStorageBytes: $maxStorageBytes, deleteAfterHours: $deleteAfterHours, downloadType: $downloadType, descending: $descending)';
+    return 'SmartDownloadPolicy(targetCount: $targetCount, maxAgeDays: $maxAgeDays, maxStorageBytes: $maxStorageBytes, deleteAfterHours: $deleteAfterHours, downloadType: $downloadType, descending: $descending)';
 }
 
 
@@ -309,7 +316,8 @@ $SmartDownloadProfileCopyWith<SmartDownloadProfile> get copyWith => _$SmartDownl
 
 @override
 String toString() {
-  return 'SmartDownloadProfile(id: $id, userId: $userId, name: $name, enabled: $enabled, policy: $policy, sources: $sources)';
+  final _this = this as SmartDownloadProfile;
+  return 'SmartDownloadProfile(id: ${_this.id}, userId: ${_this.userId}, name: ${_this.name}, enabled: ${_this.enabled}, policy: ${_this.policy}, sources: ${_this.sources})';
 }
 
 
@@ -520,7 +528,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'SmartDownloadProfile(id: $id, userId: $userId, name: $name, enabled: $enabled, policy: $policy, sources: $sources)';
+    return 'SmartDownloadProfile(id: $id, userId: $userId, name: $name, enabled: $enabled, policy: $policy, sources: $sources)';
 }
 
 
@@ -589,16 +597,21 @@ $SmartDownloadClaimCopyWith<SmartDownloadClaim> get copyWith => _$SmartDownloadC
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SmartDownloadClaim&&(identical(other.profileId, profileId) || other.profileId == profileId)&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.source, source) || other.source == source)&&(identical(other.state, state) || other.state == state)&&(identical(other.estimatedBytes, estimatedBytes) || other.estimatedBytes == estimatedBytes)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  final _this = this as SmartDownloadClaim;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SmartDownloadClaim&&(identical(other.profileId, _this.profileId) || other.profileId == _this.profileId)&&(identical(other.ref, _this.ref) || other.ref == _this.ref)&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.state, _this.state) || other.state == _this.state)&&(identical(other.estimatedBytes, _this.estimatedBytes) || other.estimatedBytes == _this.estimatedBytes)&&(identical(other.completedAt, _this.completedAt) || other.completedAt == _this.completedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,profileId,ref,source,state,estimatedBytes,completedAt);
+int get hashCode {
+  final _this = this as SmartDownloadClaim;
+  return Object.hash(runtimeType,_this.profileId,_this.ref,_this.source,_this.state,_this.estimatedBytes,_this.completedAt);
+}
 
 @override
 String toString() {
-  return 'SmartDownloadClaim(profileId: $profileId, ref: $ref, source: $source, state: $state, estimatedBytes: $estimatedBytes, completedAt: $completedAt)';
+  final _this = this as SmartDownloadClaim;
+  return 'SmartDownloadClaim(profileId: ${_this.profileId}, ref: ${_this.ref}, source: ${_this.source}, state: ${_this.state}, estimatedBytes: ${_this.estimatedBytes}, completedAt: ${_this.completedAt})';
 }
 
 
@@ -816,16 +829,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SmartDownloadClaim&&(identical(other.profileId, profileId) || other.profileId == profileId)&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.source, source) || other.source == source)&&(identical(other.state, state) || other.state == state)&&(identical(other.estimatedBytes, estimatedBytes) || other.estimatedBytes == estimatedBytes)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SmartDownloadClaim&&(identical(other.profileId, profileId) || other.profileId == profileId)&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.source, source) || other.source == source)&&(identical(other.state, state) || other.state == state)&&(identical(other.estimatedBytes, estimatedBytes) || other.estimatedBytes == estimatedBytes)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,profileId,ref,source,state,estimatedBytes,completedAt);
+int get hashCode {
+    return Object.hash(runtimeType,profileId,ref,source,state,estimatedBytes,completedAt);
+}
 
 @override
 String toString() {
-  return 'SmartDownloadClaim(profileId: $profileId, ref: $ref, source: $source, state: $state, estimatedBytes: $estimatedBytes, completedAt: $completedAt)';
+    return 'SmartDownloadClaim(profileId: $profileId, ref: $ref, source: $source, state: $state, estimatedBytes: $estimatedBytes, completedAt: $completedAt)';
 }
 
 

@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/feedback/empty_state_card.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
-enum ExpressiveTileActionTone { neutral, primary, danger }
+typedef ExpressiveTileActionTone = YaabsaActionTone;
 
 class ExpressiveTileAction<T> {
   const ExpressiveTileAction({
@@ -58,18 +61,6 @@ class ExpressiveTileList<T> extends StatelessWidget {
 
   bool get _isReorderable => onReorderItem != null;
 
-  Color _actionColor(BuildContext context, ExpressiveTileActionTone tone) {
-    final colorScheme = Theme.of(context).colorScheme;
-    switch (tone) {
-      case ExpressiveTileActionTone.primary:
-        return colorScheme.primary;
-      case ExpressiveTileActionTone.danger:
-        return colorScheme.error;
-      case ExpressiveTileActionTone.neutral:
-        return colorScheme.onSurfaceVariant;
-    }
-  }
-
   Future<void> _handleAction(ExpressiveTileAction<T> action, T item) async {
     await action.onPressed.call(item);
   }
@@ -100,11 +91,11 @@ class ExpressiveTileList<T> extends StatelessWidget {
           runSpacing: 2,
           children: [
             for (final action in actions)
-              IconButton(
+              YaabsaActionIconButton(
+                icon: action.icon,
                 tooltip: action.tooltip,
-                visualDensity: VisualDensity.compact,
+                tone: action.tone,
                 onPressed: () => _handleAction(action, item),
-                icon: Icon(action.icon, size: 19, color: _actionColor(context, action.tone)),
               ),
           ],
         ),
@@ -180,28 +171,7 @@ class ExpressiveTileList<T> extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(emptyTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          if (emptySubtitle != null && emptySubtitle!.trim().isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(emptySubtitle!, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-          ],
-        ],
-      ),
-    );
+    return YaabsaEmptyStateCard(title: emptyTitle, subtitle: emptySubtitle, borderRadius: 14);
   }
 
   Widget _buildLoadingList() {
@@ -212,7 +182,7 @@ class ExpressiveTileList<T> extends StatelessWidget {
       children: const [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 28),
-          child: Center(child: CircularProgressIndicator()),
+          child: Center(child: YaabsaCircularProgressIndicator()),
         ),
       ],
     );

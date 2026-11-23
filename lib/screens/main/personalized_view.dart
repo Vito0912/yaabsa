@@ -13,7 +13,6 @@ import 'package:yaabsa/api/library_items/author.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
-import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
@@ -21,6 +20,7 @@ import 'package:yaabsa/components/common/author_card.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/features/library/widgets/play_visible_shelf_action.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
@@ -37,6 +37,7 @@ import 'package:yaabsa/util/personalized_shelf_preferences.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/widget_bridge.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PersonalizedView extends HookConsumerWidget {
   const PersonalizedView({super.key});
@@ -56,7 +57,7 @@ class PersonalizedView extends HookConsumerWidget {
           (librariesAsync.isLoading && !librariesAsync.hasValue) ||
           (selectedLibraryIdAsync.isLoading && !selectedLibraryIdAsync.hasValue);
       if (isResolvingLibrary) {
-        return const Center(child: CircularProgressIndicator());
+        return const Center(child: YaabsaCircularProgressIndicator());
       }
 
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -347,6 +348,7 @@ class PersonalizedView extends HookConsumerWidget {
                                 );
                               }
                               return _SectionRow(
+                                key: ValueKey(section.id),
                                 section: section,
                                 api: api!,
                                 libraryTileWidth: libraryTileWidth,
@@ -688,8 +690,9 @@ List<LibraryItem> _collectVisibleShelfLibraryItems(List<_SectionData> sections) 
   return items;
 }
 
-class _SectionRow extends ConsumerWidget {
+class _SectionRow extends HookWidget {
   const _SectionRow({
+    super.key,
     required this.section,
     required this.api,
     required this.libraryTileWidth,
@@ -719,65 +722,7 @@ class _SectionRow extends ConsumerWidget {
     return section.id == _continueListeningShelfId || section.id == _newestEpisodesShelfId;
   }
 
-  List<_SectionPlayableEntry> _collectPlayableEntries(Map<String, MediaProgress> mediaProgressMap) {
-    final playableEntries = <_SectionPlayableEntry>[];
-
-    for (final entity in section.entities) {
-      if (entity is! LibraryItem) {
-        continue;
-      }
-
-      if (entity.mediaType == 'podcast') {
-        final playableEpisode = _playablePodcastEpisode(entity, mediaProgressMap);
-        if (playableEpisode != null) {
-          playableEntries.add(_SectionPlayableEntry.podcastEpisode(entity, playableEpisode));
-        }
-        continue;
-      }
-
-      if (!(entity.media?.hasAudio ?? false)) {
-        continue;
-      }
-
-      if (_isFinishedProgress(mediaProgressMap[entity.id])) {
-        continue;
-      }
-
-      playableEntries.add(_SectionPlayableEntry.libraryItem(entity));
-    }
-
-    return playableEntries;
-  }
-
-  Episode? _playablePodcastEpisode(LibraryItem item, Map<String, MediaProgress> mediaProgressMap) {
-    if (item.mediaType != 'podcast') {
-      return null;
-    }
-
-    final episodes = (item.media?.podcastMedia?.episodes ?? const <Episode>[])
-        .where((episode) => episode.audioFile != null)
-        .toList(growable: false);
-    if (episodes.isEmpty) {
-      return null;
-    }
-
-    for (final episode in episodes) {
-      final episodeProgress = mediaProgressMap[mediaProgressKey(item.id, episode.id)];
-      if (_isFinishedProgress(episodeProgress)) {
-        continue;
-      }
-
-      return episode;
-    }
-
-    return null;
-  }
-
-  bool _isFinishedProgress(MediaProgress? progress) {
-    return progress?.isFinished ?? false;
-  }
-
-  Future<void> _playVisibleShelfItems(BuildContext context, List<_SectionPlayableEntry> playableEntries) async {
+  Future<void> _playVisibleShelfItems(BuildContext context, List<PlayVisibleShelfEntry> playableEntries) async {
     if (playableEntries.isEmpty) {
       return;
     }
@@ -809,20 +754,8 @@ class _SectionRow extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scrollController = ScrollController();
-    final relevantProgress = <MediaProgress>[];
-    for (final entity in section.entities) {
-      if (entity is LibraryItem) {
-        relevantProgress.addAll(ref.watch(mediaProgressForLibraryItemProvider(entity.id)));
-      }
-    }
-    final progressMap = <String, MediaProgress>{
-      for (final progress in relevantProgress) mediaProgressKey(progress.libraryItemId, progress.episodeId): progress,
-    };
-    final playableEntries = _collectPlayableEntries(progressMap);
-    final canShowPlayVisibleButton =
-        !selectionMode && showPlayVisibleButton && _supportsPlayVisibleButton && playableEntries.isNotEmpty;
+  Widget build(BuildContext context) {
+    final scrollController = useScrollController();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -837,22 +770,11 @@ class _SectionRow extends ConsumerWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (canShowPlayVisibleButton) ...[
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: IconButton(
-                      onPressed: () {
-                        _playVisibleShelfItems(context, playableEntries);
-                      },
-                      icon: const Icon(Icons.playlist_play_rounded, size: 18),
-                      tooltip: 'Queue all items in this shelf',
-                      splashRadius: 1,
-                      padding: EdgeInsets.zero,
-                    ),
+                if (!selectionMode && showPlayVisibleButton && _supportsPlayVisibleButton)
+                  PlayVisibleShelfAction(
+                    items: section.entities.whereType<LibraryItem>().toList(growable: false),
+                    onPressed: (entries) => _playVisibleShelfItems(context, entries),
                   ),
-                  const SizedBox(width: 12),
-                ],
                 SizedBox(
                   width: 24,
                   height: 24,
@@ -906,14 +828,6 @@ class _SectionRow extends ConsumerWidget {
       ],
     );
   }
-}
-
-class _SectionPlayableEntry {
-  const _SectionPlayableEntry.libraryItem(this.item) : episode = null;
-  const _SectionPlayableEntry.podcastEpisode(this.item, this.episode);
-
-  final LibraryItem item;
-  final Episode? episode;
 }
 
 class _SectionList extends StatelessWidget {

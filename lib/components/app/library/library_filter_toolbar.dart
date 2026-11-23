@@ -6,6 +6,10 @@ import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/components/app/library/library_filter_sheet.dart';
 import 'package:yaabsa/components/app/library/library_sort_sheet.dart';
+import 'package:yaabsa/ui/components/buttons/sort_button.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
+import 'package:yaabsa/util/globals.dart';
 
 class LibraryFilterToolbar extends StatelessWidget {
   const LibraryFilterToolbar({
@@ -18,6 +22,8 @@ class LibraryFilterToolbar extends StatelessWidget {
     required this.onFilterSelected,
     required this.onSortSelected,
     required this.onClearFilter,
+    this.title,
+    this.onBack,
   });
 
   final String libraryMediaType;
@@ -28,8 +34,10 @@ class LibraryFilterToolbar extends StatelessWidget {
   final Future<void> Function(String filterQuery) onFilterSelected;
   final Future<void> Function(LibrarySortSelection sortSelection) onSortSelected;
   final Future<void> Function() onClearFilter;
+  final String? title;
+  final VoidCallback? onBack;
 
-  static const double _maxButtonWidth = 180.0;
+  static const double _maxButtonWidth = 200.0;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +51,35 @@ class LibraryFilterToolbar extends StatelessWidget {
 
     final filterButtonLabel = activeFilterLabel == null ? 'Filter' : _truncateLabel(activeFilterLabel);
     final sortButtonLabel = _truncateLabel(activeSortLabel);
+    final hasActiveFilter = activeFilter?.isNotEmpty ?? false;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (title != null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(8, 10, 12, 8),
+        child: Row(
+          children: [
+            IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                title!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            const SizedBox(width: 4),
+            YaabsaSortButton(
+              label: activeSortLabel,
+              tooltip: 'Sort: $activeSortLabel',
+              onPressed: () => _openSortSheet(context),
+              iconOnly: context.isMobile,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -56,20 +93,33 @@ class LibraryFilterToolbar extends StatelessWidget {
           children: [
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: _maxButtonWidth),
-              child: OutlinedButton.icon(
-                onPressed: () => _openFilterSheet(context),
-                icon: filterDataAsync.isLoading
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.filter_alt_rounded),
-                label: Text(filterButtonLabel, overflow: TextOverflow.ellipsis),
+              child: Tooltip(
+                message: activeFilterLabel ?? 'Filter library',
+                child: YaabsaButton.small(
+                  onPressed: () => _openFilterSheet(context),
+                  variant: YaabsaButtonVariant.outlined,
+                  style: hasActiveFilter
+                      ? ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+                          foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer),
+                          side: WidgetStatePropertyAll(BorderSide(color: colorScheme.primary)),
+                        )
+                      : null,
+                  icon: filterDataAsync.isLoading
+                      ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.filter_alt_rounded),
+                  label: Text(filterButtonLabel, overflow: TextOverflow.ellipsis),
+                ),
               ),
             ),
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: _maxButtonWidth),
-              child: OutlinedButton.icon(
+              child: YaabsaSortButton(
+                label: sortButtonLabel,
+                tooltip: activeSortLabel,
                 onPressed: () => _openSortSheet(context),
-                icon: const Icon(Icons.sort_rounded),
-                label: Text(sortButtonLabel, overflow: TextOverflow.ellipsis),
+                iconOnly: false,
+                maxLabelCharacters: 34,
               ),
             ),
           ],

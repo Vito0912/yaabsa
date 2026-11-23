@@ -1,3 +1,5 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -543,6 +545,7 @@ class SignIn extends HookConsumerWidget {
             serverUrl: normalizedServer,
             accessToken: accessToken,
             refreshToken: useApiKey.value ? null : loggedInUser.refreshToken,
+            headers: buildRequestHeaders(serverHeaders: customHeaders.value),
           );
 
           if (!context.mounted) return;
@@ -780,6 +783,11 @@ class SignIn extends HookConsumerWidget {
           )
         : null;
     final displayedErrorMessage = keyringErrorMessage ?? errorMessage.value ?? oidcError;
+    // Rebuild on every edit so the warning follows the typed address.
+    final serverAddressText = useValueListenable(serverAddressController).text;
+    final headersSentOverHttp =
+        customHeaders.value.isNotEmpty &&
+        (_normalizeServerAddress(serverAddressText)?.toLowerCase().startsWith('http://') ?? false);
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -860,16 +868,13 @@ class SignIn extends HookConsumerWidget {
                               style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                             ),
                             const SizedBox(height: 22),
-                            TextField(
+                            StyledTextField(
                               controller: serverAddressController,
                               enabled: !isLoading.value && !oidcLoading && !importedCodeNeedsPassword,
                               keyboardType: TextInputType.url,
-                              decoration: InputDecoration(
-                                labelText: 'Server Address',
-                                hintText: 'https://your-audiobookshelf.example',
-                                prefixIcon: const Icon(Icons.dns_outlined),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
+                              label: 'Server Address',
+                              hintText: 'https://your-audiobookshelf.example',
+                              prefixIcon: const Icon(Icons.dns_outlined),
                             ),
                             const SizedBox(height: 8),
                             SignInServerStatus(
@@ -877,6 +882,23 @@ class SignIn extends HookConsumerWidget {
                               status: activeStatus,
                               error: statusError.value,
                             ),
+                            if (headersSentOverHttp) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.warning_amber_rounded, size: 18, color: colorScheme.error),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Your custom headers will be sent unencrypted over HTTP, so anyone on the '
+                                      'network can read them. Use https:// if your server supports it.',
+                                      style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                             if (customMessage != null && customMessage.trim().isNotEmpty) ...[
                               const SizedBox(height: 12),
                               Html(

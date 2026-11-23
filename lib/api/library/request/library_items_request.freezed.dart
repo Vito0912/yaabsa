@@ -29,16 +29,21 @@ $LibraryItemsRequestCopyWith<LibraryItemsRequest> get copyWith => _$LibraryItems
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemsRequest&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.sort, sort) || other.sort == sort)&&(identical(other.desc, desc) || other.desc == desc)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.collapseseries, collapseseries) || other.collapseseries == collapseseries)&&(identical(other.include, include) || other.include == include));
+  final _this = this as LibraryItemsRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemsRequest&&(identical(other.limit, _this.limit) || other.limit == _this.limit)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.sort, _this.sort) || other.sort == _this.sort)&&(identical(other.desc, _this.desc) || other.desc == _this.desc)&&(identical(other.filter, _this.filter) || other.filter == _this.filter)&&(identical(other.collapseseries, _this.collapseseries) || other.collapseseries == _this.collapseseries)&&(identical(other.include, _this.include) || other.include == _this.include));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,limit,page,sort,desc,filter,collapseseries,include);
+int get hashCode {
+  final _this = this as LibraryItemsRequest;
+  return Object.hash(runtimeType,_this.limit,_this.page,_this.sort,_this.desc,_this.filter,_this.collapseseries,_this.include);
+}
 
 @override
 String toString() {
-  return 'LibraryItemsRequest(limit: $limit, page: $page, sort: $sort, desc: $desc, filter: $filter, collapseseries: $collapseseries, include: $include)';
+  final _this = this as LibraryItemsRequest;
+  return 'LibraryItemsRequest(limit: ${_this.limit}, page: ${_this.page}, sort: ${_this.sort}, desc: ${_this.desc}, filter: ${_this.filter}, collapseseries: ${_this.collapseseries}, include: ${_this.include})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemsRequest&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.sort, sort) || other.sort == sort)&&(identical(other.desc, desc) || other.desc == desc)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.collapseseries, collapseseries) || other.collapseseries == collapseseries)&&(identical(other.include, include) || other.include == include));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemsRequest&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.sort, sort) || other.sort == sort)&&(identical(other.desc, desc) || other.desc == desc)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.collapseseries, collapseseries) || other.collapseseries == collapseseries)&&(identical(other.include, include) || other.include == include));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,limit,page,sort,desc,filter,collapseseries,include);
+int get hashCode {
+    return Object.hash(runtimeType,limit,page,sort,desc,filter,collapseseries,include);
+}
 
 @override
 String toString() {
-  return 'LibraryItemsRequest(limit: $limit, page: $page, sort: $sort, desc: $desc, filter: $filter, collapseseries: $collapseseries, include: $include)';
+    return 'LibraryItemsRequest(limit: $limit, page: $page, sort: $sort, desc: $desc, filter: $filter, collapseseries: $collapseseries, include: $include)';
 }
 
 

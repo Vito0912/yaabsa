@@ -11,6 +11,9 @@ Future<LibraryFilterData?> libraryFilterData(Ref ref, String libraryId) async {
     throw Exception('User not authenticated or API not available.');
   }
 
-  final response = await api.getLibraryApi().getLibraryFilterData(libraryId);
+  final response = await api.getLibraryApi().getLibraryFilterData(
+    libraryId,
+    extra: const <String, dynamic>{'doNotCache': true},
+  );
   return response.data?.filterData;
 }

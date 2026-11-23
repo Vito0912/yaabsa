@@ -12,6 +12,8 @@ class LocalCoverImage extends StatefulWidget {
     required this.placeholder,
     this.width,
     this.height,
+    this.cacheWidth,
+    this.cacheHeight,
     this.fit = BoxFit.cover,
   });
 
@@ -20,6 +22,8 @@ class LocalCoverImage extends StatefulWidget {
   final Widget placeholder;
   final double? width;
   final double? height;
+  final int? cacheWidth;
+  final int? cacheHeight;
   final BoxFit fit;
 
   @override
@@ -65,6 +69,8 @@ class _LocalCoverImageState extends State<LocalCoverImage> {
           File(coverPath),
           width: widget.width,
           height: widget.height,
+          cacheWidth: widget.cacheWidth,
+          cacheHeight: widget.cacheHeight,
           fit: widget.fit,
           errorBuilder: (context, error, stackTrace) => widget.placeholder,
         );

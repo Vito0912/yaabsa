@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/features/player/widgets/player_subtitle_presentation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/subtitles/subtitle_loader.dart';
-import 'package:yaabsa/util/subtitles/subtitle_parser.dart';
-import 'package:yaabsa/util/subtitles/subtitle_segment_spans.dart';
 
 class SubtitlePanel extends ConsumerWidget {
   const SubtitlePanel({super.key, this.compact = false, this.openContinuousModeOnTap = true});
@@ -80,10 +79,7 @@ class SubtitlePanel extends ConsumerWidget {
                 final state = stateSnapshot.data;
                 final isPlaying = state != null && state.playing && state.processingState == ProcessingState.ready;
                 if (!isPlaying) {
-                  final emptyPanel = _SubtitleContainer(
-                    compact: compact,
-                    child: _EmptySubtitleBody(compact: compact),
-                  );
+                  final emptyPanel = PlayerSubtitleEmptyPresentation(compact: compact);
                   return _wrapPanelForTap(context, emptyPanel);
                 }
 
@@ -94,10 +90,7 @@ class SubtitlePanel extends ConsumerWidget {
                     final position = positionSnapshot.data ?? Duration.zero;
                     final cueIndex = document.cueIndexAt(position);
                     if (cueIndex < 0) {
-                      final emptyPanel = _SubtitleContainer(
-                        compact: compact,
-                        child: _EmptySubtitleBody(compact: compact),
-                      );
+                      final emptyPanel = PlayerSubtitleEmptyPresentation(compact: compact);
                       return _wrapPanelForTap(context, emptyPanel);
                     }
 
@@ -106,16 +99,13 @@ class SubtitlePanel extends ConsumerWidget {
                         ? _speakerColorFor(cue.speaker!, Theme.of(context).colorScheme)
                         : null;
 
-                    final panelChild = _SubtitleContainer(
+                    final panelChild = PlayerSubtitleCuePresentation(
+                      document: document,
+                      cueIndex: cueIndex,
+                      currentPosition: position,
+                      readAlongEnabled: canReadAlong,
                       compact: compact,
-                      child: _SubtitleCueView(
-                        document: document,
-                        cueIndex: cueIndex,
-                        currentPosition: position,
-                        readAlongEnabled: canReadAlong,
-                        compact: compact,
-                        accentColor: accentColor,
-                      ),
+                      accentColor: accentColor,
                     );
 
                     if (!openContinuousModeOnTap) {
@@ -162,104 +152,5 @@ class SubtitlePanel extends ConsumerWidget {
     final hash = normalized.codeUnits.fold<int>(0, (value, unit) => (value * 31 + unit) & 0x7fffffff);
     final colors = <Color>[colorScheme.primary, colorScheme.secondary, colorScheme.tertiary];
     return colors[hash % colors.length];
-  }
-}
-
-class _SubtitleContainer extends StatelessWidget {
-  const _SubtitleContainer({required this.child, required this.compact});
-
-  final Widget child;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final padding = compact
-        ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
-        : const EdgeInsets.symmetric(horizontal: 4, vertical: 4);
-
-    return Padding(
-      padding: EdgeInsets.only(top: compact ? 4 : 6),
-      child: Container(
-        width: double.infinity,
-        padding: padding,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.65)),
-        ),
-        child: child,
-      ),
-    );
-  }
-}
-
-class _SubtitleCueView extends StatelessWidget {
-  const _SubtitleCueView({
-    required this.document,
-    required this.cueIndex,
-    required this.currentPosition,
-    required this.readAlongEnabled,
-    required this.compact,
-    this.accentColor,
-  });
-
-  final ParsedSubtitleDocument document;
-  final int cueIndex;
-  final Duration currentPosition;
-  final bool readAlongEnabled;
-  final bool compact;
-  final Color? accentColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final cue = document.cues[cueIndex];
-    final colorScheme = Theme.of(context).colorScheme;
-    final currentCueStyle = (compact ? Theme.of(context).textTheme.bodyMedium : Theme.of(context).textTheme.bodyLarge)
-        ?.copyWith(height: 1.35);
-    final baseStyle = currentCueStyle ?? const TextStyle(fontSize: 16, height: 1.35);
-    final activeStyle = baseStyle.copyWith(
-      color: colorScheme.primary,
-      backgroundColor: colorScheme.primary.withValues(alpha: 0.18),
-    );
-
-    Widget content;
-    if (readAlongEnabled && cue.segments.isNotEmpty) {
-      final spans = <TextSpan>[];
-      for (final segment in cue.segments) {
-        final isActive = currentPosition >= segment.start && currentPosition < segment.end;
-        spans.addAll(
-          buildSubtitleSegmentSpans(
-            text: segment.text,
-            isActive: isActive,
-            inactiveStyle: baseStyle,
-            activeStyle: activeStyle,
-          ).whereType<TextSpan>(),
-        );
-      }
-
-      content = RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(style: baseStyle, children: spans),
-      );
-    } else {
-      content = Text(cue.text, textAlign: TextAlign.center, style: baseStyle);
-    }
-
-    final cueWindow = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [content]);
-
-    return SingleChildScrollView(child: cueWindow);
-  }
-}
-
-class _EmptySubtitleBody extends StatelessWidget {
-  const _EmptySubtitleBody({required this.compact});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(height: compact ? 18 : 22, width: double.infinity),
-    );
   }
 }

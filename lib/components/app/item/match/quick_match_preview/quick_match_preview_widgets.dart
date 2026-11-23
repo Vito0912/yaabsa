@@ -3,6 +3,8 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 import 'package:yaabsa/components/app/item/match/quick_match_preview/quick_match_preview_models.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class QuickMatchPreviewHeader extends StatelessWidget {
   const QuickMatchPreviewHeader({super.key});
@@ -116,7 +118,7 @@ class QuickMatchPreviewActionRow extends StatelessWidget {
           FilledButton.icon(
             onPressed: applying ? null : onApply,
             icon: applying
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                 : const Icon(Icons.checklist_rounded),
             label: Text(applyLabel),
           ),
@@ -148,10 +150,10 @@ class QuickMatchPreviewLoading extends StatelessWidget {
             if (progressPercent != null) ...[
               SizedBox(
                 width: 200,
-                child: LinearProgressIndicator(value: progressPercent, borderRadius: BorderRadius.circular(4)),
+                child: YaabsaLinearProgressIndicator(value: progressPercent, borderRadius: BorderRadius.circular(4)),
               ),
             ] else ...[
-              const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.4)),
+              const SizedBox(width: 26, height: 26, child: YaabsaCircularProgressIndicator(strokeWidth: 2.4)),
             ],
             const SizedBox(height: 14),
             Text(progressText),
@@ -334,17 +336,12 @@ class QuickMatchPreviewResultCard extends StatelessWidget {
   }
 
   Widget _networkCoverPreview(BuildContext context, String url) {
-    return ClipRRect(
+    return YaabsaCoverImage(
+      image: NetworkImage(url),
+      width: quickMatchCoverPreviewSize,
+      height: quickMatchCoverPreviewSize,
       borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        width: quickMatchCoverPreviewSize,
-        height: quickMatchCoverPreviewSize,
-        child: Image.network(
-          url,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => quickMatchFallbackCoverPlaceholder(context, icon: Icons.broken_image_rounded),
-        ),
-      ),
+      placeholder: quickMatchFallbackCoverPlaceholder(context, icon: Icons.broken_image_rounded),
     );
   }
 }

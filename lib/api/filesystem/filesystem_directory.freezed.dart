@@ -29,16 +29,21 @@ $FilesystemDirectoryCopyWith<FilesystemDirectory> get copyWith => _$FilesystemDi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilesystemDirectory&&(identical(other.path, path) || other.path == path)&&(identical(other.dirname, dirname) || other.dirname == dirname)&&(identical(other.level, level) || other.level == level));
+  final _this = this as FilesystemDirectory;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilesystemDirectory&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.dirname, _this.dirname) || other.dirname == _this.dirname)&&(identical(other.level, _this.level) || other.level == _this.level));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,path,dirname,level);
+int get hashCode {
+  final _this = this as FilesystemDirectory;
+  return Object.hash(runtimeType,_this.path,_this.dirname,_this.level);
+}
 
 @override
 String toString() {
-  return 'FilesystemDirectory(path: $path, dirname: $dirname, level: $level)';
+  final _this = this as FilesystemDirectory;
+  return 'FilesystemDirectory(path: ${_this.path}, dirname: ${_this.dirname}, level: ${_this.level})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FilesystemDirectory&&(identical(other.path, path) || other.path == path)&&(identical(other.dirname, dirname) || other.dirname == dirname)&&(identical(other.level, level) || other.level == level));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FilesystemDirectory&&(identical(other.path, path) || other.path == path)&&(identical(other.dirname, dirname) || other.dirname == dirname)&&(identical(other.level, level) || other.level == level));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,path,dirname,level);
+int get hashCode {
+    return Object.hash(runtimeType,path,dirname,level);
+}
 
 @override
 String toString() {
-  return 'FilesystemDirectory(path: $path, dirname: $dirname, level: $level)';
+    return 'FilesystemDirectory(path: $path, dirname: $dirname, level: $level)';
 }
 
 
