@@ -10,6 +10,7 @@ import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/handler/close_desktop_window.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -455,7 +456,7 @@ class DesktopWindowState {
         instance._preventClose = false;
       }
 
-      final closedNatively = window != null && Window.isCloseSupported() && window.close();
+      final closedNatively = window != null && Window.isCloseSupported() && await closeDesktopWindow(window);
       if (window != null && !identical(window, instance?._window)) {
         window.dispose();
       }
