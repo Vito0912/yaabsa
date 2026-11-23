@@ -5,7 +5,7 @@ function(yaabsa_patch_inappwebview_shutdown)
   endif()
 
   get_target_property(plugin_dir ${target} SOURCE_DIR)
-  file(STRINGS "${plugin_dir}/../pubspec.yaml" version REGEX "^version: 0\u005c\u005c.6\u005c\u005c.0$")
+  file(STRINGS "${plugin_dir}/../pubspec.yaml" version REGEX "^version: 0[.]6[.]0$")
   if(NOT version)
     return()
   endif()
@@ -19,8 +19,8 @@ function(yaabsa_patch_inappwebview_shutdown)
   set(destructor "    windowWebViews.clear();")
   if(NOT source MATCHES "InAppWebViewManager::~InAppWebViewManager"
       OR NOT source MATCHES "InAppWebViewManager::InAppWebViewManager"
-      OR NOT source MATCHES "if \u005c\u005c(!rohelper_\u005c\u005c)"
-      OR NOT source MATCHES "windowWebViews\u005c\u005c.clear\u005c\u005c(\u005c\u005c)")
+      OR NOT source MATCHES "if [(]!rohelper_[)]"
+      OR NOT source MATCHES "windowWebViews[.]clear[(][)]")
     message(FATAL_ERROR "The WebView 0.6.0 shutdown patch no longer matches its source.")
   endif()
 
