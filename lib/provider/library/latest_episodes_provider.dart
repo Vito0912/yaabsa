@@ -35,9 +35,14 @@ class LatestEpisodes extends _$LatestEpisodes {
   @override
   Future<LatestEpisodesState> build(String libraryId) async {
     ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
-      if (next != null && (next.libraryId == null || next.libraryId == libraryId)) {
-        ref.invalidateSelf();
+      if (next == null || (next.libraryId != null && next.libraryId != libraryId)) {
+        return;
       }
+      final mediaType = next.item?.mediaType ?? next.previousItem?.mediaType;
+      if (mediaType == 'book') {
+        return;
+      }
+      ref.invalidateSelf();
     });
 
     return _fetchPage(page: 0);

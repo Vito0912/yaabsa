@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:yaabsa/util/lru_cache.dart';
+
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +13,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 
-final Map<String, String> _lastItemUpdateSignatureById = <String, String>{};
+final Map<String, String> _lastItemUpdateSignatureById = LruCache<String, String>();
 
 Future<void> processLibraryItemAdded({
   required ProviderContainer container,
@@ -101,19 +103,61 @@ Future<void> processLibraryItemsAdded({
   required ProviderContainer container,
   required List<LibraryItem> items,
   String source = 'unknown',
-}) async {
-  for (final item in items) {
-    await processLibraryItemAdded(container: container, item: item, source: source);
-  }
+}) {
+  return _processLibraryItemBatch(container: container, items: items, source: source, added: true);
 }
 
 Future<void> processLibraryItemsUpdated({
   required ProviderContainer container,
   required List<LibraryItem> items,
   String source = 'unknown',
+}) {
+  return _processLibraryItemBatch(container: container, items: items, source: source, added: false);
+}
+
+Future<void> _processLibraryItemBatch({
+  required ProviderContainer container,
+  required List<LibraryItem> items,
+  required String source,
+  required bool added,
 }) async {
+  final changedItems = <LibraryItem>[];
   for (final item in items) {
-    await processLibraryItemUpdate(container: container, item: item, source: source);
+    if (!added && !_registerUpdateSignature(item)) {
+      continue;
+    }
+
+    final mutations = container.read(libraryItemMutationProvider.notifier);
+    if (added) {
+      mutations.emitAdded(item, source: source);
+    } else {
+      final previousItem = getLiveLibraryItemSnapshot(item.id);
+      mutations.emitUpdated(item, previousItem: previousItem, source: source);
+    }
+    changedItems.add(item);
+
+    try {
+      await _updateStoredDownloadSnapshot(container: container, item: item);
+    } catch (error) {
+      logger(
+        'Failed to update downloaded snapshot for ${item.id}: $error',
+        tag: 'LibraryItemSync',
+        level: InfoLevel.warning,
+      );
+    }
+  }
+
+  if (changedItems.isEmpty) {
+    return;
+  }
+  try {
+    await invalidateCachedLibraryItemsEntries(
+      container: container,
+      items: changedItems.map((item) => (itemId: item.id, libraryId: item.libraryId)),
+    );
+    container.invalidate(libraryFilterDataProvider);
+  } catch (error) {
+    logger('Failed to invalidate cache for item batch: $error', tag: 'LibraryItemSync', level: InfoLevel.warning);
   }
 }
 

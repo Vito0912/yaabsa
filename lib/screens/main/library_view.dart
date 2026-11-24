@@ -44,19 +44,16 @@ class LibraryView extends HookConsumerWidget {
 
     final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider).value;
-    ref.watch(userSettingsWatcherProvider);
-    final subtitlePreferences = currentUser == null
-        ? LibraryViewSubtitlePreferencesCodec.defaultsFor(LibraryViewSubtitleView.library)
-        : LibraryViewSubtitlePreferencesCodec.decode(
-            ref
-                .read(settingsManagerProvider.notifier)
-                .getUserSetting<String>(
-                  currentUser.id,
-                  LibraryViewSubtitleView.library.settingKey,
-                  defaultValue: LibraryViewSubtitlePreferencesCodec.defaultEncodedFor(LibraryViewSubtitleView.library),
-                ),
-            LibraryViewSubtitleView.library,
-          );
+    final rawSubtitlePreferences = watchUserSetting<String>(
+      ref,
+      currentUser?.id,
+      LibraryViewSubtitleView.library.settingKey,
+      defaultValue: LibraryViewSubtitlePreferencesCodec.defaultEncodedFor(LibraryViewSubtitleView.library),
+    );
+    final subtitlePreferences = LibraryViewSubtitlePreferencesCodec.decode(
+      rawSubtitlePreferences,
+      LibraryViewSubtitleView.library,
+    );
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final collapseSeriesFallback = currentUser == null
         ? false
@@ -72,8 +69,13 @@ class LibraryView extends HookConsumerWidget {
       return ConnectionIssueView.offline();
     }
 
+    final collapseSeriesStream = useMemoized(
+      () => currentUser == null ? null : appDatabase.watchUserSetting(currentUser.id, SettingKeys.collapseSeries),
+      [appDatabase, currentUser?.id],
+    );
+
     return StreamBuilder<UserSettingEntry?>(
-      stream: currentUser == null ? null : appDatabase.watchUserSetting(currentUser.id, SettingKeys.collapseSeries),
+      stream: collapseSeriesStream,
       builder: (context, snapshot) {
         final collapseSeriesEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, collapseSeriesFallback);
         final initialCollapseSeries =

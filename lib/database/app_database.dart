@@ -1,4 +1,7 @@
 import 'dart:convert';
+
+import 'package:yaabsa/util/lru_cache.dart';
+
 import 'dart:io';
 
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -267,8 +270,8 @@ class AppDatabase extends _$AppDatabase {
 
   final AuthSecretStore _authSecretStore;
   final Map<String, Future<bool>> _storedPathExistenceCache = {};
-  final Map<String, _StoredDownloadCacheEntry> _storedDownloadCache = <String, _StoredDownloadCacheEntry>{};
-  final Map<String, Future<InternalDownload?>> _storedDownloadBaseCache = <String, Future<InternalDownload?>>{};
+  final Map<String, _StoredDownloadCacheEntry> _storedDownloadCache = LruCache<String, _StoredDownloadCacheEntry>();
+  final Map<String, Future<InternalDownload?>> _storedDownloadBaseCache = LruCache<String, Future<InternalDownload?>>();
   bool? _storedDownloadFilesAvailable;
 
   @override
@@ -831,13 +834,13 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<InternalDownload>> _decodeStoredDownloads(Iterable<StoredDownloadsEntry> entries) async {
     final downloads = <InternalDownload>[];
-    var processed = 0;
-    for (final entry in entries) {
-      final parsed = await _decodeStoredDownloadOrNull(entry);
-      if (parsed != null) {
-        downloads.add(parsed);
-      }
-      if (++processed % 32 == 0) await Future<void>.delayed(Duration.zero);
+    final pendingEntries = entries.toList(growable: false);
+    const batchSize = 4;
+    for (var offset = 0; offset < pendingEntries.length; offset += batchSize) {
+      final batch = pendingEntries.skip(offset).take(batchSize);
+      final decoded = await Future.wait(batch.map(_decodeStoredDownloadOrNull));
+      downloads.addAll(decoded.whereType<InternalDownload>());
+      await Future<void>.delayed(Duration.zero);
     }
     return downloads;
   }
@@ -971,6 +974,20 @@ class AppDatabase extends _$AppDatabase {
         );
       }
       return availability;
+    });
+  }
+
+  Stream<List<InternalDownload>> watchStoredDownloadsForLibrary(String userId, String libraryId) {
+    final query = select(storedDownloads)..where((table) => table.userId.equals(userId));
+    return query.watch().distinct(_sameStoredDownloadEntries).asyncMap((entries) async {
+      final matchingEntries = <StoredDownloadsEntry>[];
+      for (final entry in entries) {
+        final base = await _decodeNormalizedStoredDownloadBase(entry);
+        if (base?.item?.libraryId == libraryId) {
+          matchingEntries.add(entry);
+        }
+      }
+      return _decodeStoredDownloads(matchingEntries);
     });
   }
 
@@ -1967,8 +1984,18 @@ class AppDatabase extends _$AppDatabase {
     return query.go();
   }
 
-  Future<List<StoredMediaProgressEntry>> getStoredMediaProgressByUser(String userId) async {
-    return await (select(storedMediaProgress)..where((tbl) => tbl.userId.equals(userId))).get();
+  Future<List<StoredMediaProgressEntry>> getStoredMediaProgressByUser(String userId) {
+    return (select(storedMediaProgress)..where((table) => table.userId.equals(userId))).get();
+  }
+
+  Future<List<StoredMediaProgressEntry>> getStoredMediaProgressForItem({
+    required String userId,
+    required String itemId,
+    String? episodeId,
+  }) {
+    return (select(storedMediaProgress)
+          ..where((table) => _storedMediaProgressWhereExpression(userId: userId, itemId: itemId, episodeId: episodeId)))
+        .get();
   }
 
   Expression<bool> _storedBookmarkSyncWhereExpression({
@@ -2080,8 +2107,18 @@ class AppDatabase extends _$AppDatabase {
     return await select(storedSyncs).get();
   }
 
-  Future<List<StoredSyncEntry>> getAllSyncsByUser(String userId) async {
-    return await (select(storedSyncs)..where((tbl) => tbl.userId.equals(userId))).get();
+  Future<List<StoredSyncEntry>> getAllSyncsByUser(String userId) {
+    return (select(storedSyncs)..where((table) => table.userId.equals(userId))).get();
+  }
+
+  Future<List<StoredSyncEntry>> getSyncsForItem({required String userId, required String itemId, String? episodeId}) {
+    final query = select(storedSyncs)..where((table) => table.userId.equals(userId) & table.itemId.equals(itemId));
+    if (episodeId == null) {
+      query.where((table) => table.episodeId.isNull());
+    } else {
+      query.where((table) => table.episodeId.equals(episodeId));
+    }
+    return query.get();
   }
 
   // Basic setting operations

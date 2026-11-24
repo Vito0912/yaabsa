@@ -24,9 +24,16 @@ extension _BGAudioHandlerSource on BGAudioHandler {
     final requestHeaders = _currentRequestHeadersInternal;
     final source = _currentMediaItem!.toAudioSources(headers: requestHeaders, enableIndexSeeking: _enableIndexSeeking);
     if (!ignoreSavedProgress) {
+      final useLocalProgress = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.startPlaybackFromLocalProgress);
       final currentProgress = await _ref
           .read(mediaProgressProvider.notifier)
-          .fetchOrRefreshIndividualProgress(loadingMedia.itemId, episodeId: loadingMedia.episodeId);
+          .fetchOrRefreshIndividualProgress(
+            loadingMedia.itemId,
+            episodeId: loadingMedia.episodeId,
+            refreshRemote: !useLocalProgress,
+          );
       if (!identical(_currentMediaItem, loadingMedia) || _isDisposing) {
         throw PlayerInterruptedException('Playback preparation interrupted');
       }

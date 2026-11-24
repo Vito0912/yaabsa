@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -9,6 +10,8 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast.dart';
+
+part 'cache_storage.dart';
 
 const List<CacheRouteDefinition> cacheRouteDefinitions = [
   CacheRouteDefinition(
@@ -76,65 +79,6 @@ const List<CacheRouteDefinition> cacheRouteDefinitions = [
   ),
 ];
 
-final StoreRef<String, dynamic> _cacheStore = StoreRef.main();
-
-Future<void> invalidateCachedLibraryItemEntries({
-  required ProviderContainer container,
-  required String itemId,
-  String? libraryId,
-}) async {
-  final userId = container.read(currentUserProvider).value?.id ?? container.read(absApiProvider)?.user?.id;
-  if (userId == null || userId.isEmpty) {
-    return;
-  }
-
-  final routeFragments = <String>{
-    '/api/items/$itemId',
-    '/api/playlists',
-    '/api/collections',
-    '/api/series/',
-    '/api/authors/',
-  };
-  if (libraryId != null && libraryId.isNotEmpty) {
-    routeFragments.addAll(<String>{
-      '/api/libraries/$libraryId',
-      '/api/libraries/$libraryId/items',
-      '/api/libraries/$libraryId/personalized',
-      '/api/libraries/$libraryId/search',
-      '/api/libraries/$libraryId/series',
-      '/api/libraries/$libraryId/authors',
-    });
-  }
-
-  final records = await _cacheStore.find(cacheDb);
-  final keysToDelete = <String>[];
-  for (final record in records) {
-    final key = record.key;
-    if (!key.startsWith(userId)) {
-      continue;
-    }
-
-    final matchesUpdatedItem = routeFragments.any(key.contains);
-    if (!matchesUpdatedItem) {
-      continue;
-    }
-
-    keysToDelete.add(key);
-  }
-
-  for (final key in keysToDelete) {
-    await _cacheStore.record(key).delete(cacheDb);
-  }
-
-  if (keysToDelete.isNotEmpty) {
-    logger(
-      'Invalidated ${keysToDelete.length} cache entries for item $itemId',
-      tag: 'CacheInterceptor',
-      level: InfoLevel.debug,
-    );
-  }
-}
-
 // TODO: Replace by Drift cache
 class CacheInterceptor extends Interceptor {
   final ProviderContainer container;
@@ -151,6 +95,9 @@ class CacheInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    final operations = _cacheOperations(container);
+    options.extra.putIfAbsent('_yaabsaCacheKey', () => _getCacheKey(options.uri));
+    options.extra.putIfAbsent('_yaabsaCacheEpoch', () => operations.epoch);
     if (options.extra['noCache'] == true ||
         options.extra['doNotCache'] == true ||
         options.responseType == ResponseType.stream) {
@@ -160,7 +107,8 @@ class CacheInterceptor extends Interceptor {
     final matchingRoute = _getMatchingRoute(options);
 
     if (matchingRoute != null) {
-      final String cacheKey = _getCacheKey(options.uri);
+      final cacheKey = options.extra['_yaabsaCacheKey'] as String;
+      await operations.pending;
       final cachedData = await _cacheStore.record(cacheKey).get(cacheDb);
 
       if (cachedData != null) {
@@ -195,14 +143,7 @@ class CacheInterceptor extends Interceptor {
           );
 
           if (boostLoading && serverReachable) {
-            final refreshedExtra = Map<String, dynamic>.from(options.extra)..['noCache'] = true;
-            final refreshedOptions = options.copyWith(extra: refreshedExtra);
-
-            final Dio dio = createNativeDio();
-            dio.interceptors.add(this);
-
-            // Serve stale data now, then refresh in the background for the next call.
-            dio.fetch(refreshedOptions);
+            unawaited(_refreshCachedResponse(options, cacheKey));
           }
           return;
         } else {
@@ -212,6 +153,30 @@ class CacheInterceptor extends Interceptor {
     }
 
     return handler.next(options);
+  }
+
+  Future<void> _refreshCachedResponse(RequestOptions options, String cacheKey) async {
+    final operations = _cacheOperations(container);
+    if (!operations.refreshing.add(cacheKey)) {
+      return;
+    }
+
+    final dio = createNativeDio();
+    dio.interceptors.add(this);
+    final refreshedExtra = Map<String, dynamic>.from(options.extra)
+      ..['noCache'] = true
+      ..['skipCacheOnError'] = true;
+    final refreshedOptions = options.copyWith(extra: refreshedExtra, cancelToken: CancelToken());
+
+    try {
+      await dio.fetch<Object?>(refreshedOptions);
+      await operations.pending;
+    } catch (error) {
+      logger('Background cache refresh failed: $error', tag: 'CacheInterceptor', level: InfoLevel.debug);
+    } finally {
+      dio.close(force: true);
+      operations.refreshing.remove(cacheKey);
+    }
   }
 
   @override
@@ -226,15 +191,28 @@ class CacheInterceptor extends Interceptor {
         response.statusCode != null &&
         response.statusCode! >= 200 &&
         response.statusCode! < 300) {
-      final String cacheKey = _getCacheKey(response.requestOptions.uri);
-      logger('Caching: ${response.requestOptions.uri.toString()}', tag: 'CacheInterceptor', level: InfoLevel.debug);
-      await _cacheStore.record(cacheKey).put(cacheDb, {
+      final operations = _cacheOperations(container);
+      final options = response.requestOptions;
+      final cacheKey = options.extra['_yaabsaCacheKey'] as String? ?? _getCacheKey(options.uri);
+      final epoch = options.extra['_yaabsaCacheEpoch'] as int? ?? operations.epoch;
+      final record = <String, dynamic>{
         'data': response.data,
         'statusCode': response.statusCode,
         'statusMessage': response.statusMessage,
         'headers': jsonEncode(response.headers.map),
         'timestamp': DateTime.now().toIso8601String(),
-      });
+      };
+      unawaited(
+        operations
+            .enqueue(() async {
+              if (epoch == operations.epoch) {
+                await _cacheStore.record(cacheKey).put(cacheDb, record);
+              }
+            })
+            .catchError((Object error, StackTrace stack) {
+              logger('Failed to persist response cache: $error', tag: 'CacheInterceptor', level: InfoLevel.warning);
+            }),
+      );
     }
 
     return handler.next(response);

@@ -81,7 +81,7 @@ class LibraryItemsGrid extends StatelessWidget {
           itemBuilder: (context, index) {
             if (index >= loadedCount - _libraryPrefetchThreshold) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                onEnsureLoadedForIndex(index);
+                onEnsureLoadedForIndex(index + _libraryPrefetchThreshold);
               });
             }
 

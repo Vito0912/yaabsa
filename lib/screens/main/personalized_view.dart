@@ -3,6 +3,8 @@ import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 
 import 'dart:async';
 
+import 'package:yaabsa/models/internal_download.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -64,22 +66,27 @@ class PersonalizedView extends HookConsumerWidget {
     }
 
     final currentUser = currentUserAsync.value;
-    ref.watch(userSettingsWatcherProvider);
     final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
     final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
     final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
-    final shelfSettingValue = currentUser == null
-        ? shelfDefaultValue
-        : ref
-              .read(settingsManagerProvider.notifier)
-              .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
+    final shelfSettingValue = watchUserSetting<String>(
+      ref,
+      currentUser?.id,
+      shelfSettingKey,
+      defaultValue: shelfDefaultValue,
+    );
     final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
     final pinnedSectionEnabled =
         shelfPreferences.orderedSectionIds.contains('pinned') && !shelfPreferences.hiddenSectionIds.contains('pinned');
 
     final serverReachable = ref.watch(serverStatusProvider).value ?? true;
     final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
-    final downloadsAsyncValue = ref.watch(libraryDownloadsProvider(selectedLibrary.id));
+    final downloadsSectionEnabled =
+        shelfPreferences.orderedSectionIds.contains('downloads') &&
+        !shelfPreferences.hiddenSectionIds.contains('downloads');
+    final downloadsAsyncValue = downloadsSectionEnabled
+        ? ref.watch(libraryDownloadsProvider(selectedLibrary.id))
+        : const AsyncData<List<InternalDownload>>(<InternalDownload>[]);
     final pinnedItemsAsyncValue = pinnedSectionEnabled
         ? ref.watch(pinnedShelfItemsProvider(selectedLibrary.id))
         : const AsyncData<List<LibraryItem>>(<LibraryItem>[]);
@@ -174,9 +181,6 @@ class PersonalizedView extends HookConsumerWidget {
         ? personalizedLibraryAsyncValue.error
         : null;
 
-    final downloadsSectionEnabled =
-        shelfPreferences.orderedSectionIds.contains('downloads') &&
-        !shelfPreferences.hiddenSectionIds.contains('downloads');
     final showOfflineDownloadsOnly =
         !serverReachable &&
         personalizedLibrary == null &&

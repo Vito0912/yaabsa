@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -122,11 +123,9 @@ class SettingsManager extends _$SettingsManager {
     int counter = 0;
     yield counter;
 
-    await for (final _ in db.select(db.globalSettings).watch()) {
-      final globalSettings = await db.getAllGlobalSettings();
-      final userSettings = await db.getAllUserSettings();
+    await for (final rows in db.select(db.globalSettings).watch()) {
+      final globalSettings = {for (final row in rows) row.key: row.value};
       cache.setAllGlobal(globalSettings);
-      cache.setAllUsers(userSettings);
       counter++;
       yield counter;
     }
@@ -264,9 +263,12 @@ class UserSettingsWatcher extends _$UserSettingsWatcher {
     int counter = 0;
     yield counter;
 
-    await for (final _ in db.select(db.userSettings).watch()) {
+    await for (final rows in db.select(db.userSettings).watch()) {
       if (cache.isInitialized) {
-        final userSettings = await db.getAllUserSettings();
+        final userSettings = <String, Map<String, String>>{};
+        for (final row in rows) {
+          userSettings.putIfAbsent(row.userId, () => <String, String>{})[row.key] = row.value;
+        }
         cache.setAllUsers(userSettings);
         counter++;
         yield counter;
@@ -290,4 +292,19 @@ Future<void> settingsInitializer(Ref ref) async {
 
   ref.watch(settingsManagerProvider);
   ref.watch(userSettingsWatcherProvider);
+}
+
+@riverpod
+String? userSettingValue(Ref ref, String? userId, String key) {
+  if (userId == null) {
+    return null;
+  }
+  final cache = ref.watch(settingsCacheProvider);
+  return ref.watch(userSettingsWatcherProvider.select((_) => cache.get<String>(userId, key)));
+}
+
+T watchUserSetting<T>(WidgetRef ref, String? userId, String key, {T? defaultValue}) {
+  final rawValue = ref.watch(userSettingValueProvider(userId, key));
+  final fallback = (defaultValue ?? defaultSettings[key]) as T;
+  return SettingsParser.decodeValue<T>(rawValue, fallback);
 }

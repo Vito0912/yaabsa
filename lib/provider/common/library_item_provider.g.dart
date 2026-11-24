@@ -27,7 +27,7 @@ final class LibraryItemsNotifierProvider extends $AsyncNotifierProvider<LibraryI
   }) : super(
          retry: null,
          name: r'libraryItemsProvider',
-         isAutoDispose: false,
+         isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -57,7 +57,7 @@ final class LibraryItemsNotifierProvider extends $AsyncNotifierProvider<LibraryI
   }
 }
 
-String _$libraryItemsNotifierHash() => r'0bb5042326c4c6027acbf76cac8955bbd6d97eaf';
+String _$libraryItemsNotifierHash() => r'7a14da3197137ba6226c52750bdc643201d92803';
 
 final class LibraryItemsNotifierFamily extends $Family
     with
@@ -81,7 +81,7 @@ final class LibraryItemsNotifierFamily extends $Family
         name: r'libraryItemsProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: false,
+        isAutoDispose: true,
       );
 
   LibraryItemsNotifierProvider call(

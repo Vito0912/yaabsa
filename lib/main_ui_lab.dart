@@ -13,5 +13,11 @@ void main() {
 
   MarionetteBinding.ensureInitialized(uiLabMarionetteConfiguration);
   logger('UI Lab started', tag: 'UiLab', level: InfoLevel.info);
-  runApp(const ProviderScope(child: MarionetteDeviceConfig(child: UiLab())));
+  runApp(
+    const ProviderScope(
+      child: MarionetteDeviceConfig(
+        child: UiLab(initialScenario: String.fromEnvironment('UI_LAB_SCENARIO', defaultValue: 'Inputs')),
+      ),
+    ),
+  );
 }

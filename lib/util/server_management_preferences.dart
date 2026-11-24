@@ -21,16 +21,13 @@ class ServerManagementPreferences {
 }
 
 ServerManagementPreferences readServerManagementPreferences(WidgetRef ref, String? userId) {
-  ref.watch(userSettingsWatcherProvider);
-  final settingsManager = ref.read(settingsManagerProvider.notifier);
-
   bool readBool(String key, bool fallbackDefault) {
     final defaultValue = defaultSettings[key] as bool? ?? fallbackDefault;
     if (userId == null) {
       return defaultValue;
     }
 
-    return settingsManager.getUserSetting<bool>(userId, key, defaultValue: defaultValue);
+    return watchUserSetting<bool>(ref, userId, key, defaultValue: defaultValue);
   }
 
   return ServerManagementPreferences(

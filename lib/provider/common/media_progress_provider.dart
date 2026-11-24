@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/me/media_item_type.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -38,6 +39,8 @@ List<MediaProgress> mediaProgressForLibraryItem(Ref ref, String libraryItemId) {
 }
 
 class MediaProgressStore {
+  User? progressProfile;
+  Map<String, MediaProgress> profileProgressByKey = <String, MediaProgress>{};
   String? userId;
   Map<String, MediaProgress> progressByKey = <String, MediaProgress>{};
   Map<String, Map<String, MediaProgress>> progressByLibraryItemId = <String, Map<String, MediaProgress>>{};
@@ -330,17 +333,35 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
-  Future<Map<String, MediaProgress>> _loadLocalProgressMap({String? userId}) async {
+  Future<Map<String, MediaProgress>> _loadLocalProgressMap({String? userId, String? itemId, String? episodeId}) async {
     if (userId == null || userId.isEmpty) {
       return <String, MediaProgress>{};
     }
 
     final db = ref.read(appDatabaseProvider);
     final user = ref.read(currentUserProvider).value;
-    var localMap = _listToMap(user?.id == userId ? user?.mediaProgress : null);
+    if (!identical(_store.progressProfile, user)) {
+      _store.progressProfile = user;
+      _store.profileProgressByKey = _listToMap(user?.mediaProgress);
+    }
+    final profileProgress = user?.id == userId ? _store.profileProgressByKey : const <String, MediaProgress>{};
+    final Map<String, MediaProgress> initialProgress;
+    if (itemId == null) {
+      initialProgress = profileProgress;
+    } else {
+      final key = mediaProgressKey(itemId, episodeId);
+      final progress = profileProgress[key];
+      initialProgress = progress == null ? <String, MediaProgress>{} : {key: progress};
+    }
+    var localMap = Map<String, MediaProgress>.of(initialProgress);
 
     try {
-      final syncEntries = await db.getAllSyncsByUser(userId);
+      final List<StoredSyncEntry> syncEntries;
+      if (itemId == null) {
+        syncEntries = await db.getAllSyncsByUser(userId);
+      } else {
+        syncEntries = await db.getSyncsForItem(userId: userId, itemId: itemId, episodeId: episodeId);
+      }
 
       final Map<String, MediaProgress> syncProgressMap = <String, MediaProgress>{};
       for (final entry in syncEntries) {
@@ -359,7 +380,12 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
 
       localMap = _mergeProgressMaps(localMap, syncProgressMap);
-      final cachedEntries = await db.getStoredMediaProgressByUser(userId);
+      final List<StoredMediaProgressEntry> cachedEntries;
+      if (itemId == null) {
+        cachedEntries = await db.getStoredMediaProgressByUser(userId);
+      } else {
+        cachedEntries = await db.getStoredMediaProgressForItem(userId: userId, itemId: itemId, episodeId: episodeId);
+      }
       final Map<String, MediaProgress> cachedProgressMap = <String, MediaProgress>{};
       for (final entry in cachedEntries) {
         final progress = _decodeProgressJsonOrNull(
@@ -634,6 +660,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     String libraryItemId, {
     String? episodeId,
     String? userId,
+    bool refreshRemote = true,
   }) async {
     final operationRef = ref;
     final key = _progressKey(libraryItemId, episodeId);
@@ -641,17 +668,28 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final effectiveUserId = userId ?? _activeUserId();
     MediaProgress? localProgress = existingMap[key]?.userId == effectiveUserId ? existingMap[key] : null;
 
-    final localMap = await _loadLocalProgressMap(userId: effectiveUserId);
+    final localMap = await _loadLocalProgressMap(userId: effectiveUserId, itemId: libraryItemId, episodeId: episodeId);
     if (!operationRef.mounted || _activeUserId() != effectiveUserId) {
       return localMap[key] ?? localProgress;
     }
-    final currentMap = <String, MediaProgress>{
-      for (final entry in _progressByKey.entries)
-        if (entry.value.userId == effectiveUserId) entry.key: entry.value,
-    };
-    final mergedMap = _mergeProgressMaps(localMap, currentMap);
-    _replaceProgressMap(mergedMap);
-    localProgress = mergedMap[key];
+    final currentProgress = _progressByKey[key];
+    final cachedProgress = localMap[key];
+    if (currentProgress != null && currentProgress.userId == effectiveUserId) {
+      localProgress = cachedProgress == null
+          ? currentProgress
+          : _preferMostRecentProgress(cachedProgress, currentProgress);
+    } else {
+      localProgress = cachedProgress;
+    }
+    if (localProgress != null && !_store.deletedProgressKeys.contains(key)) {
+      _setProgress(key, localProgress);
+    } else if (_store.deletedProgressKeys.contains(key)) {
+      localProgress = null;
+    }
+
+    if (!refreshRemote) {
+      return localProgress;
+    }
 
     final absApi = ref.read(absApiProvider);
     if (absApi == null || absApi.user?.id != effectiveUserId || !ref.read(serverReachabilityProvider)) {

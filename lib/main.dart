@@ -125,13 +125,23 @@ Future<void> _initializePlayback() async {
     logger('AaosService initialization failed: $error\n$stack', tag: 'Main', level: InfoLevel.error);
   }
 
-  await TrayManager.update();
   await Init.late();
 
   if (!AaosService.instance.currentState.isAutomotiveDevice) {
     initPhoneWearHandler();
   }
 
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(
+      _finishPlaybackStartup().catchError((Object error, StackTrace stack) {
+        logger('Post-frame startup failed: $error\n$stack', tag: 'Main', level: InfoLevel.error);
+      }),
+    );
+  });
+}
+
+Future<void> _finishPlaybackStartup() async {
+  await TrayManager.update();
   await _configureAndroidEdgeToEdge();
   containerRef.read(smartDownloadManagerProvider.notifier).markAppReady();
   unawaited(_resumeLastPlayedOnStartup());

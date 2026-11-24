@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show mapEquals;
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:material_ui/material_ui.dart';
@@ -321,13 +324,30 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       builder: (context, taskSnapshot) {
         final activeTasks = taskSnapshot.data ?? const <TaskRecord>[];
         final activePodcastTasks = activeTasks;
-        final downloadingEpisodeIds = <String>{
-          for (final episode in visibleEpisodes)
-            if (activeTasks.any(
+        final downloadingEpisodeIds = <String>{};
+        final unknownTasks = <TaskRecord>[];
+        for (final task in activeTasks) {
+          try {
+            final metadata = jsonDecode(task.task.metaData) as Map<String, dynamic>;
+            final episodeId = metadata['episodeId'];
+            if (metadata['itemId'] == widget.item.id && episodeId is String) {
+              downloadingEpisodeIds.add(episodeId);
+            } else {
+              unknownTasks.add(task);
+            }
+          } catch (_) {
+            unknownTasks.add(task);
+          }
+        }
+        if (unknownTasks.isNotEmpty) {
+          for (final episode in visibleEpisodes) {
+            if (unknownTasks.any(
               (task) => downloadHandler.taskBelongsToItem(task, widget.item.id, episodeId: episode.id),
-            ))
-              episode.id,
-        };
+            )) {
+              downloadingEpisodeIds.add(episode.id);
+            }
+          }
+        }
 
         return StreamBuilder<List<InternalDownload>>(
           stream: storedDownloadsStream,
@@ -1034,9 +1054,27 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     }
   }
 
+  List<Episode>? _cachedEpisodeSource;
+  Map<String, bool>? _cachedEpisodeMatches;
+  PodcastEpisodeSortMode? _cachedEpisodeSort;
+  String? _cachedEpisodeQuery;
+  PodcastEpisodeProgressFilter? _cachedProgressFilter;
+  List<Episode>? _cachedVisibleEpisodes;
+
   List<Episode> _buildVisibleEpisodes(List<Episode> episodes, Map<String, MediaProgress> progressMap) {
     final normalizedQuery = _searchQuery.trim().toLowerCase();
 
+    final matches = <String, bool>{
+      for (final episode in episodes)
+        episode.id: _matchesFilter(progressMap[mediaProgressKey(widget.item.id, episode.id)]),
+    };
+    if (identical(_cachedEpisodeSource, episodes) &&
+        _cachedEpisodeQuery == normalizedQuery &&
+        _cachedProgressFilter == _progressFilter &&
+        _cachedEpisodeSort == _sortMode &&
+        mapEquals(_cachedEpisodeMatches, matches)) {
+      return _cachedVisibleEpisodes!;
+    }
     final filtered = episodes
         .where((episode) {
           if (episode.audioFile == null) {
@@ -1058,6 +1096,12 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         .toList(growable: true);
 
     filtered.sort((left, right) => _compareEpisodes(left, right));
+    _cachedEpisodeSource = episodes;
+    _cachedEpisodeMatches = matches;
+    _cachedEpisodeQuery = normalizedQuery;
+    _cachedProgressFilter = _progressFilter;
+    _cachedEpisodeSort = _sortMode;
+    _cachedVisibleEpisodes = filtered;
     return filtered;
   }
 

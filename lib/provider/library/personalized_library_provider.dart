@@ -1,3 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'dart:async';
+
+import 'package:yaabsa/util/lru_cache.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -11,7 +16,8 @@ import 'package:yaabsa/models/internal_download.dart';
 
 part 'personalized_library_provider.g.dart';
 
-final Map<String, PersonalizedLibrary> _personalizedLibraryCacheByUserLibraryKey = {};
+final Map<String, PersonalizedLibrary> _personalizedLibraryCacheByUserLibraryKey =
+    LruCache<String, PersonalizedLibrary>();
 
 String _personalizedCacheKey({required String libraryId, required String? userId}) {
   return '${userId ?? ''}:$libraryId';
@@ -20,6 +26,7 @@ String _personalizedCacheKey({required String libraryId, required String? userId
 @Riverpod(keepAlive: true)
 class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
   CancelToken? _activeRequestToken;
+  int _refreshGeneration = 0;
 
   Future<PersonalizedLibrary?> _fetchPersonalizedLibrary(
     String libraryId, {
@@ -57,7 +64,10 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
         extra: bypassCache ? const <String, dynamic>{'noCache': true} : null,
       );
       final data = response.data;
-      if (data != null) {
+      if (data != null &&
+          !cancelToken.isCancelled &&
+          ref.mounted &&
+          ref.read(currentUserProvider).value?.id == userId) {
         _personalizedLibraryCacheByUserLibraryKey[cacheKey] = data;
       }
       return data;
@@ -112,13 +122,26 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
       _applyLibraryItemMutation(next, libraryId: libraryId);
     });
 
-    final activeUserId = ref.read(currentUserProvider).value?.id;
+    final activeUserId = ref.watch(currentUserProvider.select((user) => user.value?.id));
+    final cacheKey = _personalizedCacheKey(libraryId: libraryId, userId: activeUserId);
+    final cachedLibrary = _personalizedLibraryCacheByUserLibraryKey[cacheKey];
 
     ref.onDispose(() {
+      _refreshGeneration++;
       _activeRequestToken?.cancel('Personalized provider disposed');
       _activeRequestToken = null;
     });
 
+    if (cachedLibrary != null) {
+      unawaited(
+        Future<void>(() async {
+          if (ref.mounted) {
+            await refresh(libraryId);
+          }
+        }),
+      );
+      return cachedLibrary;
+    }
     return _fetchPersonalizedLibrary(libraryId, userId: activeUserId);
   }
 
@@ -126,6 +149,7 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
     final activeUserId = ref.read(currentUserProvider).value?.id;
     final cacheKey = _personalizedCacheKey(libraryId: libraryId, userId: activeUserId);
 
+    final generation = ++_refreshGeneration;
     if (withLoading) {
       state = const AsyncValue.loading();
     }
@@ -135,7 +159,7 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
       () => _fetchPersonalizedLibrary(libraryId, userId: activeUserId, bypassCache: bypassCache),
     );
 
-    if (!ref.mounted) {
+    if (!ref.mounted || generation != _refreshGeneration || ref.read(currentUserProvider).value?.id != activeUserId) {
       return;
     }
 
@@ -311,12 +335,10 @@ ShelfEntry<LibraryItem>? _removeLibraryItemFromShelf(ShelfEntry<LibraryItem>? sh
 
 @riverpod
 Stream<List<InternalDownload>> libraryDownloads(Ref ref, String libraryId) {
-  final user = ref.watch(currentUserProvider).value;
-  if (user == null) {
+  final userId = ref.watch(currentUserProvider.select((user) => user.value?.id));
+  if (userId == null) {
     return Stream.value(const <InternalDownload>[]);
   }
   final db = ref.watch(appDatabaseProvider);
-  return db.watchStoredDownloadsByUser(user.id).map((downloads) {
-    return downloads.where((d) => d.item?.libraryId == libraryId).toList();
-  });
+  return db.watchStoredDownloadsForLibrary(userId, libraryId);
 }

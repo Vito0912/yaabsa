@@ -11,6 +11,8 @@ import 'list_controls_preview.dart';
 import 'library_previews.dart';
 import 'material_3_controls_preview.dart';
 import 'library_grid_preview.dart';
+import 'media_previews.dart';
+import 'search_preview.dart';
 import 'player_previews.dart';
 import 'mini_player_previews.dart';
 import 'settings_previews.dart';
@@ -168,8 +170,12 @@ class _UiLabState extends State<UiLab> {
         return const DialogActionsPreview();
       case 'Library':
         return const LibraryCardsPreview();
+      case 'Search results':
+        return const SearchResultsPreview();
       case 'Library grid':
         return const LibraryGridLabPreview();
+      case 'Loading covers':
+        return const LoadingCoverCardsPreview();
       case 'Shared play buttons':
         return const SharedMediaPlayButtonsPreview();
       case 'Book information actions':
@@ -242,6 +248,8 @@ class _UiLabState extends State<UiLab> {
                       'Inputs',
                       'Library',
                       'Library grid',
+                      'Loading covers',
+                      'Search results',
                       'Shared play buttons',
                       'Book information actions',
                       'Podcast header',

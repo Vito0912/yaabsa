@@ -1,3 +1,5 @@
+import 'package:yaabsa/api/library_items/book_media.dart';
+import 'package:yaabsa/api/library_items/media_metadata.dart';
 import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/library/stats/items_listened_to.dart';
@@ -382,4 +384,24 @@ ItemUploadDestination previewItemUploadDestination() {
   );
 
   return ItemUploadDestination.resolve(item: item, library: previewUploadLibrary(), serverWatcherDisabled: false)!;
+}
+
+List<LibraryItem> previewSearchLibraryItems() {
+  return List<LibraryItem>.generate(1000, (index) {
+    return LibraryItem(
+      id: 'preview-search-$index',
+      ino: 'preview-search-$index',
+      libraryId: 'preview-library',
+      mediaType: 'book',
+      media: Media(
+        bookMedia: BookMedia(
+          id: 'preview-search-media-$index',
+          metadata: MediaMetadata(
+            title: 'The Cartographer’s Promise and the Lighthouse Beyond the Northern Shore $index',
+          ),
+        ),
+      ),
+      libraryFiles: null,
+    );
+  }, growable: false);
 }

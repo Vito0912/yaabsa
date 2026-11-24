@@ -47,7 +47,7 @@ final class LatestEpisodesProvider extends $AsyncNotifierProvider<LatestEpisodes
   }
 }
 
-String _$latestEpisodesHash() => r'69632f8c6d338cd3b4731773d434df6e15514df5';
+String _$latestEpisodesHash() => r'7772fd79434a1c894eb71b0d7ae9be5089d36fc8';
 
 final class LatestEpisodesFamily extends $Family
     with

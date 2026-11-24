@@ -55,98 +55,121 @@ class SearchView extends HookConsumerWidget {
         return Stack(
           children: [
             Positioned.fill(
-              child: ListView(
+              child: CustomScrollView(
                 controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                children: [
-                  Text('Search results for "$query"', style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 12),
-                  if (resultItems.isNotEmpty) _SearchResultItems(items: resultItems),
-                  if (searchResult.series?.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 20),
-                    _TokenSection(
-                      title: 'Series',
-                      tokens: searchResult.series!
-                          .map(
-                            (series) => _SearchToken(
-                              label: '${series.series.name} (${series.books.length})',
-                              onTap: () => context.push(
-                                '/series/${series.series.id}',
-                                extra: MultiBookEntryData.fromSeries(series.series),
-                              ),
-                            ),
-                          )
-                          .toList(),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                    sliver: SliverToBoxAdapter(
+                      child: Text('Search results for "$query"', style: Theme.of(context).textTheme.headlineSmall),
                     ),
-                  ],
-                  if (searchResult.authors?.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 20),
-                    _TokenSection(
-                      title: 'Authors',
-                      tokens: searchResult.authors!
-                          .map(
-                            (author) => _SearchToken(
-                              label: '${author.name} (${author.numBooks})',
-                              onTap: () => context.push('/author/${author.id}'),
-                            ),
-                          )
-                          .toList(),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList.builder(
+                      itemCount: resultItems.length,
+                      itemBuilder: (context, index) =>
+                          _SearchResultItem(key: ValueKey(resultItems[index].id), item: resultItems[index]),
                     ),
-                  ],
-                  if (searchResult.narrators?.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 20),
-                    _TokenSection(
-                      title: 'Narrators',
-                      tokens: searchResult.narrators!
-                          .map(
-                            (narrator) => _SearchToken(
-                              label: '${narrator.name} (${narrator.numBooks})',
-                              onTap: () => context.push('/narrator/${Uri.encodeComponent(narrator.name)}'),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (searchResult.series?.isNotEmpty ?? false) ...[
+                            const SizedBox(height: 20),
+                            _TokenSection(
+                              title: 'Series',
+                              tokens: searchResult.series!
+                                  .map(
+                                    (series) => _SearchToken(
+                                      label: '${series.series.name} (${series.books.length})',
+                                      onTap: () => context.push(
+                                        '/series/${series.series.id}',
+                                        extra: MultiBookEntryData.fromSeries(series.series),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                             ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                  if (searchResult.tags?.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 20),
-                    _TokenSection(
-                      title: 'Tags',
-                      tokens: searchResult.tags!
-                          .map(
-                            (tag) => _SearchToken(
-                              label: '${tag.name} (${tag.numItems ?? 0})',
-                              onTap: () {
-                                openLibraryWithFilter(
-                                  context,
-                                  ref,
-                                  filter: LibraryFilter.grouped(LibraryFilterGroup.tags, tag.name).queryValue,
-                                );
-                              },
+                          ],
+                          if (searchResult.authors?.isNotEmpty ?? false) ...[
+                            const SizedBox(height: 20),
+                            _TokenSection(
+                              title: 'Authors',
+                              tokens: searchResult.authors!
+                                  .map(
+                                    (author) => _SearchToken(
+                                      label: '${author.name} (${author.numBooks})',
+                                      onTap: () => context.push('/author/${author.id}'),
+                                    ),
+                                  )
+                                  .toList(),
                             ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                  if (searchResult.genres?.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 20),
-                    _TokenSection(
-                      title: 'Genres',
-                      tokens: searchResult.genres!
-                          .map(
-                            (genre) => _SearchToken(
-                              label: '${genre.name} (${genre.numItems ?? 0})',
-                              onTap: () {
-                                openLibraryWithFilter(
-                                  context,
-                                  ref,
-                                  filter: LibraryFilter.grouped(LibraryFilterGroup.genres, genre.name).queryValue,
-                                );
-                              },
+                          ],
+                          if (searchResult.narrators?.isNotEmpty ?? false) ...[
+                            const SizedBox(height: 20),
+                            _TokenSection(
+                              title: 'Narrators',
+                              tokens: searchResult.narrators!
+                                  .map(
+                                    (narrator) => _SearchToken(
+                                      label: '${narrator.name} (${narrator.numBooks})',
+                                      onTap: () => context.push('/narrator/${Uri.encodeComponent(narrator.name)}'),
+                                    ),
+                                  )
+                                  .toList(),
                             ),
-                          )
-                          .toList(),
+                          ],
+                          if (searchResult.tags?.isNotEmpty ?? false) ...[
+                            const SizedBox(height: 20),
+                            _TokenSection(
+                              title: 'Tags',
+                              tokens: searchResult.tags!
+                                  .map(
+                                    (tag) => _SearchToken(
+                                      label: '${tag.name} (${tag.numItems ?? 0})',
+                                      onTap: () {
+                                        openLibraryWithFilter(
+                                          context,
+                                          ref,
+                                          filter: LibraryFilter.grouped(LibraryFilterGroup.tags, tag.name).queryValue,
+                                        );
+                                      },
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ],
+                          if (searchResult.genres?.isNotEmpty ?? false) ...[
+                            const SizedBox(height: 20),
+                            _TokenSection(
+                              title: 'Genres',
+                              tokens: searchResult.genres!
+                                  .map(
+                                    (genre) => _SearchToken(
+                                      label: '${genre.name} (${genre.numItems ?? 0})',
+                                      onTap: () {
+                                        openLibraryWithFilter(
+                                          context,
+                                          ref,
+                                          filter: LibraryFilter.grouped(
+                                            LibraryFilterGroup.genres,
+                                            genre.name,
+                                          ).queryValue,
+                                        );
+                                      },
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -193,10 +216,10 @@ class SearchView extends HookConsumerWidget {
   }
 }
 
-class _SearchResultItems extends ConsumerWidget {
-  const _SearchResultItems({required this.items});
+class _SearchResultItem extends ConsumerWidget {
+  const _SearchResultItem({super.key, required this.item});
 
-  final List<LibraryItem> items;
+  final LibraryItem item;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -205,55 +228,55 @@ class _SearchResultItems extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      children: items
-          .map(
-            (item) => Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => context.push('/item/${item.id}'),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: api.getLibraryItemApi().getLibraryItemCover(item.id, item: item),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.mediaType ?? 'Unknown media',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right_rounded),
-                    ],
+    final coverSize = (56 * MediaQuery.devicePixelRatioOf(context)).ceilToDouble();
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/item/${item.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: api.getLibraryItemApi().getLibraryItemCover(
+                    item.id,
+                    item: item,
+                    cacheWidth: coverSize,
+                    cacheHeight: coverSize,
                   ),
                 ),
               ),
-            ),
-          )
-          .toList(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.mediaType ?? 'Unknown media',
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right_rounded),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

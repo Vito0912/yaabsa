@@ -50,7 +50,7 @@ final class PersonalizedLibraryNotifierProvider
   }
 }
 
-String _$personalizedLibraryNotifierHash() => r'8f275f1b31880694824c2ed146e152d8a5ee2162';
+String _$personalizedLibraryNotifierHash() => r'b23814807089ae38ea694de75622160eb96b2bc7';
 
 final class PersonalizedLibraryNotifierFamily extends $Family
     with
@@ -146,7 +146,7 @@ final class LibraryDownloadsProvider
   }
 }
 
-String _$libraryDownloadsHash() => r'7bb9d49ba377027c582d9803b85d659647a0f9bb';
+String _$libraryDownloadsHash() => r'99fa50c204b5830b23c4247e26422903836bd874';
 
 final class LibraryDownloadsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<InternalDownload>>, String> {

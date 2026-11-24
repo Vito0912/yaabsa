@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
+import 'package:yaabsa/util/lru_cache.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
@@ -14,6 +18,8 @@ import 'package:yaabsa/provider/common/library_item_events.dart';
 
 part 'library_item_provider.freezed.dart';
 part 'library_item_provider.g.dart';
+part 'library_item_details.dart';
+part 'library_item_mutations.dart';
 
 const int _itemsPerPage = 20;
 
@@ -37,16 +43,58 @@ abstract class LibraryItemState with _$LibraryItemState {
 }
 
 const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, page: 0);
-final Map<String, LibraryItem> _liveLibraryItemSnapshotById = <String, LibraryItem>{};
+final Map<String, LibraryItem> _liveLibraryItemSnapshotById = LruCache<String, LibraryItem>();
 final Set<String> _removedLibraryItemIds = <String>{};
 
 LibraryItem? getLiveLibraryItemSnapshot(String itemId) {
   return _liveLibraryItemSnapshotById[itemId];
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   bool _isEnsuringIndex = false;
+  bool _replacingItems = false;
+  bool _recordingMutations = false;
+  int _requestGeneration = 0;
+  CancelToken? _requestToken;
+  LibraryItemState? _requestedState;
+  final Map<String, LibraryItemMutation> _pendingMutations = {};
+
+  int _beginRequest() {
+    _requestToken?.cancel('Library request superseded');
+    _requestToken = CancelToken();
+    _pendingMutations.clear();
+    _recordingMutations = true;
+    return ++_requestGeneration;
+  }
+
+  bool _isCurrentRequest(int generation) {
+    return ref.mounted && generation == _requestGeneration;
+  }
+
+  LibraryItemState _resolvePendingMutations(LibraryItemState next) {
+    _recordingMutations = false;
+    final mutations = _pendingMutations.values.toList(growable: false);
+    _pendingMutations.clear();
+    var resolved = next;
+    for (final mutation in mutations) {
+      final result = _mutateLibraryItems(resolved, mutation, libraryId: libraryId);
+      if (result.reload) {
+        final operationRef = ref;
+        Future.microtask(() {
+          if (operationRef.mounted) {
+            operationRef.invalidateSelf();
+          }
+        });
+      }
+      resolved = result.state ?? resolved;
+    }
+    return resolved;
+  }
+
+  void _publishItems(LibraryItemState next) {
+    state = AsyncData(_resolvePendingMutations(next));
+  }
 
   Future<LibraryItemState> _fetchItems(
     String libraryId,
@@ -64,6 +112,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       throw Exception('User not authenticated or API not available.');
     }
 
+    final requestToken = _requestToken;
     final currentVal = state.asData?.value;
     final resolvedSort = sort ?? currentVal?.sort ?? defaultLibrarySortWireValue;
     final resolvedDesc = desc ?? currentVal?.desc ?? defaultLibrarySortDesc;
@@ -81,17 +130,23 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       final response = await absApi.getLibraryApi().getLibraryItems(
         libraryId,
         request,
+        cancelToken: requestToken,
         extra: forceServer || request.filter == 'issues' ? const <String, dynamic>{'doNotCache': true} : null,
       );
+      final cancellation = requestToken?.cancelError;
+      if (cancellation != null) {
+        throw cancellation;
+      }
       final data = response.data;
       if (data == null) {
         throw Exception('No data received from API');
       }
 
       final totalResults = data.total ?? 0;
+      final latestItems = state.asData?.value.items ?? currentVal?.items ?? <LibraryItem>[];
       final List<LibraryItem> newItems = page == 0
           ? List<LibraryItem>.from(data.results)
-          : <LibraryItem>[...(currentVal?.items ?? <LibraryItem>[]), ...data.results];
+          : <LibraryItem>[...latestItems, ...data.results];
 
       return LibraryItemState(
         items: newItems,
@@ -120,6 +175,23 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     int? initialCollapseSeries,
     String? initialInclude,
   }) async {
+    _beginRequest();
+    _replacingItems = false;
+    _requestedState = null;
+
+    final retention = ref.keepAlive();
+    Timer? retentionTimer;
+    ref.onCancel(() {
+      retentionTimer = Timer(const Duration(minutes: 10), retention.close);
+    });
+    ref.onResume(() => retentionTimer?.cancel());
+    ref.onDispose(() {
+      retentionTimer?.cancel();
+    });
+    ref.onDispose(() {
+      _requestGeneration++;
+      _requestToken?.cancel('Library provider disposed');
+    });
     ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
       if (next == null) {
         return;
@@ -128,27 +200,41 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       _applyLibraryItemMutation(next);
     });
 
-    return _fetchItems(
-      libraryId,
-      0,
-      sort: initialSort ?? defaultLibrarySortWireValue,
-      desc: initialDesc ?? defaultLibrarySortDesc,
-      filter: initialFilter,
-      collapseseries: initialCollapseSeries,
-      include: initialInclude,
-    );
+    final generation = _requestGeneration;
+    try {
+      final initial = await _fetchItems(
+        libraryId,
+        0,
+        sort: initialSort ?? defaultLibrarySortWireValue,
+        desc: initialDesc ?? defaultLibrarySortDesc,
+        filter: initialFilter,
+        collapseseries: initialCollapseSeries,
+        include: initialInclude,
+      );
+      if (!_isCurrentRequest(generation)) {
+        return initial;
+      }
+      return _resolvePendingMutations(initial);
+    } finally {
+      if (_isCurrentRequest(generation)) {
+        _recordingMutations = false;
+        _pendingMutations.clear();
+      }
+    }
   }
 
   Future<void> fetchNextPage() async {
     final currentState = state.value;
-    if (currentState == null ||
+    if (_replacingItems ||
+        currentState == null ||
         !currentState.hasNextPage ||
         currentState.isLoadingNextPage ||
         currentState.libraryId == null) {
       return;
     }
 
-    state = AsyncData(currentState.copyWith(isLoadingNextPage: true));
+    final generation = _beginRequest();
+    state = AsyncData(currentState.copyWith(isLoadingNextPage: true, error: null, stackTrace: null));
 
     try {
       final nextPageData = await _fetchItems(
@@ -160,9 +246,16 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
         collapseseries: currentState.collapseseries,
         include: currentState.include,
       );
-      state = AsyncData(nextPageData);
+      if (_isCurrentRequest(generation)) {
+        _publishItems(nextPageData);
+      }
     } catch (e, s) {
-      state = AsyncData(currentState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
+      if (_isCurrentRequest(generation)) {
+        _recordingMutations = false;
+        _pendingMutations.clear();
+        final latest = state.value ?? currentState;
+        state = AsyncData(latest.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
+      }
     }
   }
 
@@ -173,9 +266,10 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
 
     _isEnsuringIndex = true;
     try {
-      while (true) {
+      while (ref.mounted) {
         final currentState = state.value;
         if (currentState == null ||
+            currentState.error != null ||
             currentState.libraryId == null ||
             !currentState.hasNextPage ||
             currentState.isLoadingNextPage ||
@@ -183,7 +277,19 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
           break;
         }
 
+        final previousPage = currentState.currentPage;
+        final generation = _requestGeneration;
         await fetchNextPage();
+        if (!ref.mounted) {
+          break;
+        }
+        final next = state.value;
+        if (next == null || next.error != null || next.currentPage <= previousPage) {
+          break;
+        }
+        if (_replacingItems || _requestGeneration != generation + 1) {
+          break;
+        }
       }
     } finally {
       _isEnsuringIndex = false;
@@ -191,103 +297,23 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   }
 
   void _applyLibraryItemMutation(LibraryItemMutation mutation) {
-    final currentLoadedState = state.asData?.value;
-    if (currentLoadedState == null) {
+    if (_recordingMutations) {
+      _pendingMutations[mutation.itemId] = mutation;
+    }
+    final current = state.asData?.value;
+    if (current == null) {
       return;
     }
 
-    final stateLibraryId = currentLoadedState.libraryId ?? libraryId;
-    final mutationLibraryId = mutation.libraryId?.trim();
-    final hasLibraryMismatch =
-        mutationLibraryId != null &&
-        mutationLibraryId.isNotEmpty &&
-        stateLibraryId.isNotEmpty &&
-        mutationLibraryId != stateLibraryId;
-
-    final existingIndex = currentLoadedState.items.indexWhere((item) => item.id == mutation.itemId);
-    if (hasLibraryMismatch && existingIndex == -1) {
+    final result = _mutateLibraryItems(current, mutation, libraryId: libraryId);
+    if (result.reload) {
+      ref.invalidateSelf();
       return;
     }
-
-    if (currentLoadedState.filter == 'issues') {
-      final item = mutation.item;
-      final wasIssue = mutation.previousItem?.hasIssue ?? (existingIndex >= 0);
-      final isIssue = item?.hasIssue ?? false;
-      if (mutation.type != LibraryItemMutationType.updated || wasIssue != isIssue) {
-        ref.invalidateSelf();
-        return;
-      }
+    final next = result.state;
+    if (next != null) {
+      state = AsyncData(next);
     }
-
-    final nextItems = List<LibraryItem>.from(currentLoadedState.items);
-    var nextTotal = currentLoadedState.totalItems;
-    var didChange = false;
-
-    switch (mutation.type) {
-      case LibraryItemMutationType.added:
-        final item = mutation.item;
-        if (item == null || hasLibraryMismatch) {
-          return;
-        }
-
-        if (existingIndex >= 0) {
-          nextItems[existingIndex] = item;
-          didChange = true;
-          break;
-        }
-
-        if (!_shouldInsertAddedItem(currentLoadedState)) {
-          return;
-        }
-
-        nextItems.insert(0, item);
-        nextTotal += 1;
-        didChange = true;
-        break;
-      case LibraryItemMutationType.updated:
-        final item = mutation.item;
-        if (item == null || existingIndex == -1) {
-          return;
-        }
-
-        nextItems[existingIndex] = item;
-        didChange = true;
-        break;
-      case LibraryItemMutationType.removed:
-        if (existingIndex == -1) {
-          return;
-        }
-
-        nextItems.removeAt(existingIndex);
-        nextTotal = nextTotal > 0 ? nextTotal - 1 : 0;
-        didChange = true;
-        break;
-    }
-
-    if (!didChange) {
-      return;
-    }
-
-    state = AsyncData(
-      currentLoadedState.copyWith(
-        items: nextItems,
-        totalItems: nextTotal,
-        hasNextPage: nextTotal > nextItems.length,
-        error: null,
-        stackTrace: null,
-      ),
-    );
-  }
-
-  bool _shouldInsertAddedItem(LibraryItemState currentLoadedState) {
-    final activeFilter = currentLoadedState.filter?.trim();
-    if (activeFilter != null && activeFilter.isNotEmpty) {
-      return false;
-    }
-
-    final activeSort = currentLoadedState.sort ?? defaultLibrarySortWireValue;
-    final activeDesc = currentLoadedState.desc ?? defaultLibrarySortDesc;
-    return activeSort == defaultLibrarySortWireValue && activeDesc == 1;
   }
 
   Future<void> _updateAndRefetch({
@@ -298,7 +324,8 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     String? include,
     bool clearFilter = false,
   }) async {
-    final currentLoadedState = state.asData?.value;
+    final visibleState = state.asData?.value;
+    final currentLoadedState = _requestedState ?? visibleState;
     final targetLibraryId = currentLoadedState?.libraryId ?? libraryId;
 
     final newFilter = clearFilter
@@ -322,6 +349,17 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       state = const AsyncValue.loading();
     }
 
+    final generation = _beginRequest();
+    _replacingItems = true;
+    _requestedState = (currentLoadedState ?? LibraryItemState(currentPage: 0, hasNextPage: false)).copyWith(
+      libraryId: targetLibraryId,
+      sort: newSort,
+      desc: newDesc,
+      filter: newFilter,
+      collapseseries: newCollapseSeries,
+      include: newInclude,
+    );
+
     try {
       final newState = await _fetchItems(
         targetLibraryId,
@@ -333,12 +371,25 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
         collapseseries: newCollapseSeries,
         include: newInclude,
       );
-      state = AsyncData(newState);
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+      _publishItems(newState);
     } catch (e, s) {
-      if (currentLoadedState != null) {
-        state = AsyncData(currentLoadedState.copyWith(error: e, stackTrace: s));
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+      if (visibleState != null) {
+        state = AsyncData(visibleState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
       } else {
         state = AsyncError<LibraryItemState>(e, s);
+      }
+    } finally {
+      if (_isCurrentRequest(generation)) {
+        _recordingMutations = false;
+        _pendingMutations.clear();
+        _replacingItems = false;
+        _requestedState = null;
       }
     }
   }
@@ -364,7 +415,8 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   }
 
   Future<void> refresh() async {
-    final currentLoadedState = state.asData?.value;
+    final visibleState = state.asData?.value;
+    final currentLoadedState = _requestedState ?? visibleState;
     final targetLibraryId = currentLoadedState?.libraryId ?? libraryId;
     final refreshSort =
         (currentLoadedState != null ? currentLoadedState.sort : initialSort) ?? defaultLibrarySortWireValue;
@@ -379,6 +431,8 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       state = const AsyncValue.loading();
     }
 
+    final generation = _beginRequest();
+    _replacingItems = true;
     try {
       final newState = await _fetchItems(
         targetLibraryId,
@@ -391,12 +445,25 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
         include: refreshInclude,
         forceServer: true,
       );
-      state = AsyncData(newState);
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+      _publishItems(newState);
     } catch (e, s) {
-      if (currentLoadedState != null) {
-        state = AsyncData(currentLoadedState.copyWith(error: e, stackTrace: s));
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+      if (visibleState != null) {
+        state = AsyncData(visibleState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
       } else {
         state = AsyncError(e, s);
+      }
+    } finally {
+      if (_isCurrentRequest(generation)) {
+        _recordingMutations = false;
+        _pendingMutations.clear();
+        _replacingItems = false;
+        _requestedState = null;
       }
     }
   }
@@ -405,136 +472,4 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
 bool _isSeriesFilterQuery(String? filter) {
   final parsed = parseGroupedLibraryFilterQuery(filter);
   return parsed?.group == LibraryFilterGroup.series;
-}
-
-@riverpod
-Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) async {
-  final absApi = ref.watch(absApiProvider);
-  final db = ref.read(appDatabaseProvider);
-
-  ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
-    if (next == null) {
-      return;
-    }
-
-    switch (next.type) {
-      case LibraryItemMutationType.added:
-      case LibraryItemMutationType.updated:
-        final nextItem = next.item;
-        if (nextItem == null) {
-          return;
-        }
-
-        _liveLibraryItemSnapshotById[nextItem.id] = nextItem;
-        _removedLibraryItemIds.remove(nextItem.id);
-        break;
-      case LibraryItemMutationType.removed:
-        _liveLibraryItemSnapshotById.remove(next.itemId);
-        _removedLibraryItemIds.add(next.itemId);
-        break;
-    }
-
-    if (next.itemId == itemId) {
-      ref.invalidateSelf();
-    }
-  });
-
-  if (_removedLibraryItemIds.contains(itemId)) {
-    throw StateError('Library item $itemId was removed.');
-  }
-
-  final liveSnapshot = _liveLibraryItemSnapshotById[itemId];
-  final liveSnapshotHasRequestedEpisode =
-      episodeId == null ||
-      (liveSnapshot?.media?.podcastMedia?.episodes ?? const <Episode>[]).any((episode) => episode.id == episodeId);
-  if (liveSnapshot != null && liveSnapshotHasRequestedEpisode) {
-    return liveSnapshot;
-  }
-
-  if (absApi == null || absApi.user == null) {
-    throw Exception('User not authenticated or API not available.');
-  }
-
-  final download = await db.getStoredDownload(itemId, absApi.user!.id, episodeId: episodeId, allowIncomplete: true);
-  if (download != null && download.item != null) {
-    final resolvedCoverPath = await resolveDisplayCoverPath(
-      download.coverPath,
-      cacheKey: '${absApi.user!.id}:$itemId:${episodeId ?? 'item'}',
-    );
-
-    logger('Returning local download for item $itemId', tag: 'libraryItemProvider', level: InfoLevel.debug);
-    final localItem = _withLocalCoverPath(download.item!, resolvedCoverPath ?? download.coverPath);
-    _liveLibraryItemSnapshotById[itemId] = localItem;
-    _removedLibraryItemIds.remove(itemId);
-    return localItem;
-  }
-
-  try {
-    final response = await absApi.getLibraryItemApi().getLibraryItem(itemId: itemId);
-    final data = response.data;
-    if (data == null) {
-      throw Exception('No data received from API for item $itemId');
-    }
-
-    _liveLibraryItemSnapshotById[itemId] = data;
-    _removedLibraryItemIds.remove(itemId);
-    return data;
-  } catch (e) {
-    throw Exception('Failed to fetch library item $itemId: $e');
-  }
-}
-
-LibraryItem _withLocalCoverPath(LibraryItem item, String? coverPathOverride) {
-  final normalizedCoverPath = coverPathOverride?.trim();
-  if (normalizedCoverPath == null || normalizedCoverPath.isEmpty) {
-    return item;
-  }
-
-  final media = item.media;
-  if (media == null) {
-    return item;
-  }
-
-  final bookMedia = media.bookMedia;
-  if (bookMedia != null) {
-    if (bookMedia.coverPath == normalizedCoverPath) {
-      return item;
-    }
-
-    return item.copyWith(
-      media: media.copyWith(bookMedia: bookMedia.copyWith(coverPath: normalizedCoverPath)),
-    );
-  }
-
-  final podcastMedia = media.podcastMedia;
-  if (podcastMedia != null) {
-    if (podcastMedia.coverPath == normalizedCoverPath) {
-      return item;
-    }
-
-    return item.copyWith(
-      media: media.copyWith(podcastMedia: podcastMedia.copyWith(coverPath: normalizedCoverPath)),
-    );
-  }
-
-  return item;
-}
-
-@Riverpod(keepAlive: true)
-Stream<Set<String>> completedDownloadItemIds(Ref ref) {
-  final user = ref.watch(currentUserProvider).value;
-  if (user == null) {
-    return Stream<Set<String>>.value(<String>{});
-  }
-
-  final db = ref.watch(appDatabaseProvider);
-  return db.watchCompletedDownloadItemIdsByUser(user.id);
-}
-
-@riverpod
-bool completedDownloadForItem(Ref ref, String itemId, {String? episodeId}) {
-  final completedId = episodeId ?? itemId;
-  return ref.watch(
-    completedDownloadItemIdsProvider.select((asyncIds) => asyncIds.asData?.value.contains(completedId) ?? false),
-  );
 }

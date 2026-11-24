@@ -61,6 +61,7 @@ class SettingKeys {
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
+  static const String startPlaybackFromLocalProgress = 'start_playback_from_local_progress';
   static const String syncOnlyOnWifi = 'sync_only_on_wifi';
   static const String sortSeriesAscending = 'sort_series_ascending';
   static const String collapseSeries = 'collapse_series';
@@ -250,6 +251,7 @@ final defaultSettings = {
   SettingKeys.autoResumeBluetoothDeviceAddresses: '[]',
 
   SettingKeys.syncInterval: 10,
+  SettingKeys.startPlaybackFromLocalProgress: false,
   SettingKeys.restartListeningSessionAtMidnight: true,
   SettingKeys.syncOnlyOnWifi: false,
   SettingKeys.sortSeriesAscending: false,

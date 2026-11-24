@@ -26,6 +26,8 @@ Stream<bool> serverStatus(Ref ref) async* {
   Timer? timer;
   final connectivity = Connectivity();
   late final Future<void> Function() checkStatus;
+  Future<void>? activeCheck;
+  var checkGeneration = 0;
 
   void scheduleNextCheck(bool connected) {
     timer?.cancel();
@@ -52,8 +54,15 @@ Stream<bool> serverStatus(Ref ref) async* {
     scheduleNextCheck(true);
   }
 
-  checkStatus = () async {
+  Future<void> runCheck(int generation) async {
+    bool isCurrent() {
+      return ref.mounted && generation == checkGeneration;
+    }
+
     final connectivityResult = await connectivity.checkConnectivity();
+    if (!isCurrent()) {
+      return;
+    }
     if (connectivityResult.contains(ConnectivityResult.none)) {
       markUnreachable('connectivity.none');
       return;
@@ -78,6 +87,9 @@ Stream<bool> serverStatus(Ref ref) async* {
         headers: server.headers,
         bearerToken: currentUser.preferredAuthToken,
       );
+      if (!isCurrent()) {
+        return;
+      }
       if (localReachable) {
         await _setActiveConnection(
           ref: ref,
@@ -85,7 +97,9 @@ Stream<bool> serverStatus(Ref ref) async* {
           nextConnection: ServerConnection.local,
           reason: 'ping.local.success',
         );
-        markReachable('ping.local.success');
+        if (isCurrent()) {
+          markReachable('ping.local.success');
+        }
         return;
       }
     }
@@ -96,6 +110,9 @@ Stream<bool> serverStatus(Ref ref) async* {
       bearerToken: currentUser.preferredAuthToken,
     );
 
+    if (!isCurrent()) {
+      return;
+    }
     if (externalReachable) {
       await _setActiveConnection(
         ref: ref,
@@ -103,23 +120,52 @@ Stream<bool> serverStatus(Ref ref) async* {
         nextConnection: ServerConnection.external,
         reason: localUrl == null ? 'ping.external.success' : 'ping.external.fallback_success',
       );
-      markReachable(localUrl == null ? 'ping.external.success' : 'ping.external.fallback_success');
+      if (isCurrent()) {
+        markReachable(localUrl == null ? 'ping.external.success' : 'ping.external.fallback_success');
+      }
       return;
     }
 
     markUnreachable(localUrl == null ? 'ping.external.failed' : 'ping.local_and_external.failed');
+  }
+
+  checkStatus = () {
+    final existing = activeCheck;
+    if (existing != null) {
+      return existing;
+    }
+
+    late final Future<void> check;
+    check = runCheck(checkGeneration).whenComplete(() {
+      if (identical(activeCheck, check)) {
+        activeCheck = null;
+      }
+    });
+    activeCheck = check;
+    return check;
   };
 
-  unawaited(checkStatus());
+  Future<void> requestCheck() async {
+    final generation = ++checkGeneration;
+    final previous = activeCheck;
+    if (previous != null) {
+      await previous;
+    }
+    if (ref.mounted && generation == checkGeneration) {
+      await checkStatus();
+    }
+  }
+
+  unawaited(requestCheck());
 
   final connectivitySubscription = connectivity.onConnectivityChanged.listen((_) {
     timer?.cancel();
-    unawaited(checkStatus());
+    unawaited(requestCheck());
   });
 
   ref.listen(currentUserProvider, (previous, next) {
     timer?.cancel();
-    unawaited(checkStatus());
+    unawaited(requestCheck());
   });
 
   ref.listen<bool>(serverReachabilityProvider, (previous, next) {
@@ -136,6 +182,7 @@ Stream<bool> serverStatus(Ref ref) async* {
   });
 
   ref.onDispose(() {
+    checkGeneration++;
     timer?.cancel();
     unawaited(controller.close());
     unawaited(connectivitySubscription.cancel());

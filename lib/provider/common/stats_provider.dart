@@ -1,4 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'dart:collection';
+
+import 'package:flutter/foundation.dart' show compute;
 
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,6 +19,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 
 part 'stats_provider.g.dart';
+part 'stats_calculation.dart';
+part 'stats_session_summary.dart';
 
 const int _advancedSessionsPageSize = 100;
 
@@ -103,11 +109,32 @@ Future<ListeningActivityStats> listeningActivityStats(Ref ref) async {
 
 @Riverpod(keepAlive: true)
 class AdvancedListeningAnalytics extends _$AdvancedListeningAnalytics {
+  CancelToken? _loadToken;
+  int _loadGeneration = 0;
+
   @override
-  AdvancedListeningAnalyticsState build() => const AdvancedListeningAnalyticsState();
+  AdvancedListeningAnalyticsState build() {
+    ref.watch(currentUserProvider.select((user) => user.value?.id));
+    ref.onDispose(_cancelLoad);
+    ref.onCancel(() {
+      _cancelLoad();
+      if (ref.mounted && state.isLoading) {
+        state = AdvancedListeningAnalyticsState(stats: state.stats);
+      }
+    });
+    return const AdvancedListeningAnalyticsState();
+  }
+
+  void _cancelLoad() {
+    _loadGeneration++;
+    _loadToken?.cancel('Analytics load canceled');
+    _loadToken = null;
+  }
 
   Future<void> load() async {
-    if (state.isLoading) return;
+    if (state.isLoading) {
+      return;
+    }
 
     final api = ref.read(absApiProvider);
     final currentUser = ref.read(currentUserProvider).value;
@@ -127,7 +154,15 @@ class AdvancedListeningAnalytics extends _$AdvancedListeningAnalytics {
       progress: const AdvancedLoadingProgressInfo(loadedPages: 0, loadedSessions: 0),
     );
 
-    final sessions = <PlaybackSession>[];
+    final generation = ++_loadGeneration;
+    final cancelToken = CancelToken();
+    _loadToken = cancelToken;
+    final pages = _ListeningSessionPages(api: api, userId: currentUser.id, cancelToken: cancelToken);
+    bool isCurrent() {
+      return ref.mounted && generation == _loadGeneration && ref.read(currentUserProvider).value?.id == currentUser.id;
+    }
+
+    final sessions = <_AnalyticsSession>[];
     var loadedPages = 0;
     var totalAvailableSessions = 0;
     var page = 0;
@@ -135,15 +170,13 @@ class AdvancedListeningAnalytics extends _$AdvancedListeningAnalytics {
 
     try {
       while (page < numPages && page < 10000) {
-        final pageResponse = await _getListeningSessionsPage(
-          api: api,
-          userId: currentUser.id,
-          page: page,
-          itemsPerPage: _advancedSessionsPageSize,
-        );
+        final pageResponse = await pages.fetch(page: page, itemsPerPage: _advancedSessionsPageSize);
+        if (!isCurrent()) {
+          return;
+        }
 
         final pageData = pageResponse.data ?? const ListeningSessionsPage();
-        sessions.addAll(pageData.sessions);
+        sessions.addAll(pageData.sessions.map(_AnalyticsSession.fromSession));
         loadedPages++;
 
         if (pageData.total != null) {
@@ -174,455 +207,61 @@ class AdvancedListeningAnalytics extends _$AdvancedListeningAnalytics {
       }
 
       final resolvedTotalSessions = totalAvailableSessions > 0 ? totalAvailableSessions : sessions.length;
-      final computed = _calculateAdvancedListeningStats(
+      final computed = await compute(_computeAdvancedStats, (
         sessions: sessions,
         loadedPages: loadedPages,
         totalAvailableSessions: resolvedTotalSessions,
-      );
+      ));
+      if (!isCurrent()) {
+        return;
+      }
 
       state = AdvancedListeningAnalyticsState(stats: computed);
     } catch (error) {
+      if (!isCurrent() || (error is DioException && CancelToken.isCancel(error))) {
+        return;
+      }
       logger('Failed to compute advanced analytics: $error', tag: 'StatsProvider', level: InfoLevel.error);
       state = AdvancedListeningAnalyticsState(stats: previousStats, errorMessage: error.toString());
     }
   }
 
   void clear() {
+    _cancelLoad();
     state = const AdvancedListeningAnalyticsState();
   }
 }
 
-Future<Response<ListeningSessionsPage>> _getListeningSessionsPage({
-  required ABSApi api,
-  required String userId,
-  required int page,
-  required int itemsPerPage,
-}) async {
-  try {
-    return await api.getMeApi().getMeListeningSessions(page: page, itemsPerPage: itemsPerPage);
-  } on DioException catch (error) {
-    final statusCode = error.response?.statusCode;
-    if (statusCode == 404 || statusCode == 405) {
-      logger(
-        'Fallback to /api/users/:id/listening-sessions for advanced stats pagination.',
-        tag: 'StatsProvider',
-        level: InfoLevel.warning,
-      );
-      return api.getMeApi().getUserListeningSessions(userId, page: page, itemsPerPage: itemsPerPage);
-    }
-    rethrow;
-  }
-}
+class _ListeningSessionPages {
+  _ListeningSessionPages({required this.api, required this.userId, required this.cancelToken});
 
-AdvancedListeningStats _calculateAdvancedListeningStats({
-  required List<PlaybackSession> sessions,
-  required int loadedPages,
-  required int totalAvailableSessions,
-}) {
-  if (sessions.isEmpty) {
-    return _emptyAdvancedStats(loadedPages: loadedPages, totalAvailableSessions: totalAvailableSessions);
-  }
+  final ABSApi api;
+  final String userId;
+  final CancelToken cancelToken;
+  bool _useUserEndpoint = false;
 
-  final listeningTimes = <double>[];
-
-  final itemAggregates = <String, _ItemAggregate>{};
-  final authorAggregates = <String, _EntityAggregate>{};
-
-  final weekdayTotals = <String, double>{for (final label in _weekdayLabels) label: 0};
-  final hourlyTotals = <int, double>{for (var hour = 0; hour < 24; hour++) hour: 0};
-  final monthlyTotals = SplayTreeMap<String, double>();
-
-  final sessionDays = <int>{};
-
-  var totalListeningTime = 0.0;
-  var totalBookListeningTime = 0.0;
-  var totalPodcastListeningTime = 0.0;
-  var longestSessionTime = 0.0;
-
-  int? firstSessionAt;
-  int? lastSessionAt;
-
-  for (final session in sessions) {
-    final sessionListeningTime = _safeListeningTime(session.timeListening);
-    listeningTimes.add(sessionListeningTime);
-    totalListeningTime += sessionListeningTime;
-
-    if (sessionListeningTime > longestSessionTime) {
-      longestSessionTime = sessionListeningTime;
+  Future<Response<ListeningSessionsPage>> fetch({required int page, required int itemsPerPage}) async {
+    if (!_useUserEndpoint) {
+      try {
+        return await api.getMeApi().getMeListeningSessions(
+          page: page,
+          itemsPerPage: itemsPerPage,
+          cancelToken: cancelToken,
+        );
+      } on DioException catch (error) {
+        final statusCode = error.response?.statusCode;
+        if (statusCode != 404 && statusCode != 405) {
+          rethrow;
+        }
+        _useUserEndpoint = true;
+      }
     }
 
-    final mediaType = _resolveMediaType(session);
-    if (mediaType == 'book') {
-      totalBookListeningTime += sessionListeningTime;
-    } else if (mediaType == 'podcast') {
-      totalPodcastListeningTime += sessionListeningTime;
-    }
-
-    final itemId = (session.libraryItemId).trim().isNotEmpty ? session.libraryItemId : session.id;
-    final itemTitle = _resolveItemTitle(session);
-    final itemAuthor = _resolveItemAuthor(session);
-
-    final itemAggregate = itemAggregates.putIfAbsent(
-      itemId,
-      () => _ItemAggregate(id: itemId, title: itemTitle, author: itemAuthor, mediaType: mediaType),
+    return api.getMeApi().getUserListeningSessions(
+      userId,
+      page: page,
+      itemsPerPage: itemsPerPage,
+      cancelToken: cancelToken,
     );
-    itemAggregate.totalListeningTime += sessionListeningTime;
-    itemAggregate.sessions += 1;
-    if (itemAggregate.title == _ItemAggregate.unknownTitle && itemTitle != _ItemAggregate.unknownTitle) {
-      itemAggregate.title = itemTitle;
-    }
-    if (itemAggregate.author == _ItemAggregate.unknownAuthor && itemAuthor != _ItemAggregate.unknownAuthor) {
-      itemAggregate.author = itemAuthor;
-    }
-
-    final authors = _resolveAuthors(session);
-    for (final author in authors) {
-      final normalized = author.name.trim();
-      if (normalized.isEmpty) {
-        continue;
-      }
-
-      final authorId = author.id?.trim();
-      final key = authorId == null || authorId.isEmpty ? normalized.toLowerCase() : authorId;
-      final authorAggregate = authorAggregates.putIfAbsent(key, () => _EntityAggregate(id: authorId, name: normalized));
-      authorAggregate.totalListeningTime += sessionListeningTime;
-      authorAggregate.sessions += 1;
-    }
-
-    final timestamp = _resolveSessionTimestamp(session);
-    if (timestamp == null) {
-      continue;
-    }
-
-    final millis = timestamp.millisecondsSinceEpoch;
-    firstSessionAt = firstSessionAt == null || millis < firstSessionAt ? millis : firstSessionAt;
-    lastSessionAt = lastSessionAt == null || millis > lastSessionAt ? millis : lastSessionAt;
-
-    final dayEpoch =
-        DateTime.utc(timestamp.year, timestamp.month, timestamp.day).millisecondsSinceEpoch ~/
-        Duration.millisecondsPerDay;
-    sessionDays.add(dayEpoch);
-
-    final weekdayLabel = _weekdayLabels[timestamp.weekday - 1];
-    weekdayTotals[weekdayLabel] = (weekdayTotals[weekdayLabel] ?? 0) + sessionListeningTime;
-
-    final hour = timestamp.hour;
-    hourlyTotals[hour] = (hourlyTotals[hour] ?? 0) + sessionListeningTime;
-
-    final monthLabel = '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}';
-    monthlyTotals[monthLabel] = (monthlyTotals[monthLabel] ?? 0) + sessionListeningTime;
   }
-
-  final sortedListeningTimes = List<double>.from(listeningTimes)..sort();
-  final medianSessionTime = _median(sortedListeningTimes);
-  final averageSessionTime = sessions.isEmpty ? 0.0 : totalListeningTime / sessions.length;
-
-  final topItems =
-      itemAggregates.values
-          .map(
-            (aggregate) => AdvancedTopItem(
-              id: aggregate.id,
-              title: aggregate.title,
-              author: aggregate.author,
-              mediaType: aggregate.mediaType,
-              totalListeningTime: aggregate.totalListeningTime,
-              sessions: aggregate.sessions,
-            ),
-          )
-          .toList(growable: false)
-        ..sort((a, b) {
-          final byTime = b.totalListeningTime.compareTo(a.totalListeningTime);
-          if (byTime != 0) {
-            return byTime;
-          }
-          return b.sessions.compareTo(a.sessions);
-        });
-
-  final topAuthors =
-      authorAggregates.values
-          .map(
-            (aggregate) => AdvancedTopEntity(
-              id: aggregate.id,
-              name: aggregate.name,
-              totalListeningTime: aggregate.totalListeningTime,
-              sessions: aggregate.sessions,
-            ),
-          )
-          .toList(growable: false)
-        ..sort((a, b) {
-          final byTime = b.totalListeningTime.compareTo(a.totalListeningTime);
-          if (byTime != 0) {
-            return byTime;
-          }
-          return b.sessions.compareTo(a.sessions);
-        });
-
-  final weekdayBreakdown = _weekdayLabels
-      .map((label) => AdvancedTimeBucket(label: label, totalListeningTime: weekdayTotals[label] ?? 0))
-      .toList(growable: false);
-
-  final hourlyBreakdown = List<AdvancedTimeBucket>.generate(24, (hour) {
-    final label = '${hour.toString().padLeft(2, '0')}:00';
-    return AdvancedTimeBucket(label: label, totalListeningTime: hourlyTotals[hour] ?? 0);
-  });
-
-  final monthlyBreakdown = monthlyTotals.entries
-      .map((entry) => AdvancedTimeBucket(label: entry.key, totalListeningTime: entry.value))
-      .toList(growable: false);
-
-  final favoriteWeekday = _favoriteWeekday(weekdayTotals);
-  final favoriteHour = _favoriteHour(hourlyTotals);
-
-  return AdvancedListeningStats(
-    loadedPages: loadedPages,
-    totalSessions: sessions.length,
-    totalAvailableSessions: totalAvailableSessions,
-    totalListeningTime: totalListeningTime,
-    totalBookListeningTime: totalBookListeningTime,
-    totalPodcastListeningTime: totalPodcastListeningTime,
-    averageSessionTime: averageSessionTime,
-    medianSessionTime: medianSessionTime,
-    longestSessionTime: longestSessionTime,
-    uniqueItems: itemAggregates.length,
-    uniqueAuthors: authorAggregates.length,
-    longestStreakDays: _calculateLongestStreak(sessionDays),
-    firstSessionAt: firstSessionAt,
-    lastSessionAt: lastSessionAt,
-    favoriteWeekday: favoriteWeekday,
-    favoriteHour: favoriteHour,
-    topItems: topItems.take(10).toList(growable: false),
-    topAuthors: topAuthors.take(10).toList(growable: false),
-    weekdayBreakdown: weekdayBreakdown,
-    hourlyBreakdown: hourlyBreakdown,
-    monthlyBreakdown: monthlyBreakdown,
-  );
-}
-
-AdvancedListeningStats _emptyAdvancedStats({required int loadedPages, required int totalAvailableSessions}) {
-  return AdvancedListeningStats(
-    loadedPages: loadedPages,
-    totalSessions: 0,
-    totalAvailableSessions: totalAvailableSessions,
-    totalListeningTime: 0,
-    totalBookListeningTime: 0,
-    totalPodcastListeningTime: 0,
-    averageSessionTime: 0,
-    medianSessionTime: 0,
-    longestSessionTime: 0,
-    uniqueItems: 0,
-    uniqueAuthors: 0,
-    longestStreakDays: 0,
-    firstSessionAt: null,
-    lastSessionAt: null,
-    favoriteWeekday: null,
-    favoriteHour: null,
-  );
-}
-
-String? _favoriteWeekday(Map<String, double> weekdayTotals) {
-  String? favorite;
-  var best = 0.0;
-  for (final entry in weekdayTotals.entries) {
-    if (entry.value > best) {
-      favorite = entry.key;
-      best = entry.value;
-    }
-  }
-  return favorite;
-}
-
-int? _favoriteHour(Map<int, double> hourlyTotals) {
-  int? favorite;
-  var best = 0.0;
-  for (final entry in hourlyTotals.entries) {
-    if (entry.value > best) {
-      favorite = entry.key;
-      best = entry.value;
-    }
-  }
-  return favorite;
-}
-
-DateTime? _resolveSessionTimestamp(PlaybackSession session) {
-  if (session.startedAt != null && session.startedAt! > 0) {
-    return DateTime.fromMillisecondsSinceEpoch(session.startedAt!);
-  }
-
-  if (session.updatedAt != null && session.updatedAt! > 0) {
-    return DateTime.fromMillisecondsSinceEpoch(session.updatedAt!);
-  }
-
-  final dateString = session.date;
-  if (dateString != null && dateString.isNotEmpty) {
-    return DateTime.tryParse(dateString);
-  }
-
-  return null;
-}
-
-String _resolveMediaType(PlaybackSession session) {
-  final mediaType = session.mediaType?.trim().toLowerCase();
-  if (mediaType == 'book') {
-    return 'book';
-  }
-
-  if (mediaType == 'podcast') {
-    return 'podcast';
-  }
-
-  return session.episodeId == null ? 'book' : 'podcast';
-}
-
-String _resolveItemTitle(PlaybackSession session) {
-  final displayTitle = session.displayTitle?.trim();
-  if (displayTitle != null && displayTitle.isNotEmpty) {
-    return displayTitle;
-  }
-
-  final metadata = session.mediaMetadata;
-  final bookTitle = metadata?.bookMetadata?.title.trim();
-  if (bookTitle != null && bookTitle.isNotEmpty) {
-    return bookTitle;
-  }
-
-  final podcastTitle = metadata?.podcastMetadata?.title?.trim();
-  if (podcastTitle != null && podcastTitle.isNotEmpty) {
-    return podcastTitle;
-  }
-
-  return _ItemAggregate.unknownTitle;
-}
-
-String _resolveItemAuthor(PlaybackSession session) {
-  final displayAuthor = session.displayAuthor?.trim();
-  if (displayAuthor != null && displayAuthor.isNotEmpty) {
-    return displayAuthor;
-  }
-
-  final metadata = session.mediaMetadata;
-  final bookAuthors = metadata?.bookMetadata?.authors;
-  if (bookAuthors != null && bookAuthors.isNotEmpty) {
-    final joined = bookAuthors.map((author) => author.name.trim()).where((name) => name.isNotEmpty).join(', ');
-    if (joined.isNotEmpty) {
-      return joined;
-    }
-  }
-
-  final podcastAuthor = metadata?.podcastMetadata?.author?.trim();
-  if (podcastAuthor != null && podcastAuthor.isNotEmpty) {
-    return podcastAuthor;
-  }
-
-  return _ItemAggregate.unknownAuthor;
-}
-
-List<_ResolvedAuthor> _resolveAuthors(PlaybackSession session) {
-  final metadata = session.mediaMetadata;
-
-  final authors = <_ResolvedAuthor>[];
-
-  final bookAuthors = metadata?.bookMetadata?.authors;
-  if (bookAuthors != null) {
-    for (final author in bookAuthors) {
-      final name = author.name.trim();
-      if (name.isNotEmpty) {
-        authors.add(_ResolvedAuthor(id: author.id, name: name));
-      }
-    }
-  }
-
-  final podcastAuthor = metadata?.podcastMetadata?.author?.trim();
-  if (podcastAuthor != null && podcastAuthor.isNotEmpty) {
-    authors.add(_ResolvedAuthor(name: podcastAuthor));
-  }
-
-  if (authors.isNotEmpty) {
-    return authors;
-  }
-
-  final displayAuthor = session.displayAuthor?.trim();
-  if (displayAuthor != null && displayAuthor.isNotEmpty) {
-    return displayAuthor
-        .split(',')
-        .map((entry) => entry.trim())
-        .where((entry) => entry.isNotEmpty)
-        .map((name) => _ResolvedAuthor(name: name))
-        .toList(growable: false);
-  }
-
-  return const <_ResolvedAuthor>[];
-}
-
-int _calculateLongestStreak(Set<int> dayEpochs) {
-  if (dayEpochs.isEmpty) {
-    return 0;
-  }
-
-  final sortedDays = dayEpochs.toList()..sort();
-
-  var longest = 1;
-  var current = 1;
-
-  for (var i = 1; i < sortedDays.length; i++) {
-    if (sortedDays[i] == sortedDays[i - 1] + 1) {
-      current += 1;
-      if (current > longest) {
-        longest = current;
-      }
-    } else {
-      current = 1;
-    }
-  }
-
-  return longest;
-}
-
-double _safeListeningTime(double? value) {
-  if (value == null || value.isNaN || value.isInfinite || value < 0) {
-    return 0;
-  }
-  return value;
-}
-
-double _median(List<double> sortedValues) {
-  if (sortedValues.isEmpty) {
-    return 0;
-  }
-
-  final middle = sortedValues.length ~/ 2;
-  if (sortedValues.length.isOdd) {
-    return sortedValues[middle];
-  }
-
-  return (sortedValues[middle - 1] + sortedValues[middle]) / 2;
-}
-
-class _ItemAggregate {
-  static const String unknownTitle = 'Unknown Item';
-  static const String unknownAuthor = 'Unknown Author';
-
-  _ItemAggregate({required this.id, required this.title, required this.author, required this.mediaType});
-
-  final String id;
-  String title;
-  String author;
-  final String mediaType;
-  double totalListeningTime = 0;
-  int sessions = 0;
-}
-
-class _EntityAggregate {
-  _EntityAggregate({required this.name, this.id});
-
-  final String? id;
-  final String name;
-  double totalListeningTime = 0;
-  int sessions = 0;
-}
-
-class _ResolvedAuthor {
-  const _ResolvedAuthor({required this.name, this.id});
-
-  final String? id;
-  final String name;
 }

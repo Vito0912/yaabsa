@@ -1,3 +1,4 @@
+import 'package:yaabsa/util/subtitles/subtitle_presentation_updates.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,13 +19,11 @@ class SubtitlePanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settingsManager = ref.read(settingsManagerProvider.notifier);
-    ref.watch(userSettingsWatcherProvider);
-
     final currentUser = ref.watch(currentUserProvider).asData?.value;
     final userId = currentUser?.id;
 
-    final subtitlesEnabled = settingsManager.getUserSetting<bool>(
+    final subtitlesEnabled = watchUserSetting<bool>(
+      ref,
       userId,
       SettingKeys.subtitlesEnabled,
       defaultValue: defaultSettings[SettingKeys.subtitlesEnabled] as bool? ?? false,
@@ -33,12 +32,14 @@ class SubtitlePanel extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final speakerHighlightingEnabled = settingsManager.getUserSetting<bool>(
+    final speakerHighlightingEnabled = watchUserSetting<bool>(
+      ref,
       userId,
       SettingKeys.subtitleSpeakerHighlighting,
       defaultValue: defaultSettings[SettingKeys.subtitleSpeakerHighlighting] as bool? ?? true,
     );
-    final readAlongEnabled = settingsManager.getUserSetting<bool>(
+    final readAlongEnabled = watchUserSetting<bool>(
+      ref,
       userId,
       SettingKeys.subtitleReadAlong,
       defaultValue: defaultSettings[SettingKeys.subtitleReadAlong] as bool? ?? true,
@@ -84,7 +85,12 @@ class SubtitlePanel extends ConsumerWidget {
                 }
 
                 return StreamBuilder<Duration>(
-                  stream: audioHandler.subtitlePositionStream,
+                  stream: subtitlePresentationUpdates(
+                    positions: audioHandler.subtitlePositionStream,
+                    document: document,
+                    readAlongEnabled: readAlongEnabled,
+                    useNearestCue: false,
+                  ),
                   initialData: audioHandler.position,
                   builder: (context, positionSnapshot) {
                     final position = positionSnapshot.data ?? Duration.zero;

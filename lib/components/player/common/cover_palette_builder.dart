@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import 'package:yaabsa/util/lru_cache.dart';
+
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show mapEquals;
@@ -26,7 +29,7 @@ class CoverPaletteBuilder extends StatefulWidget {
 }
 
 class _CoverPaletteBuilderState extends State<CoverPaletteBuilder> {
-  static final Map<String, CoverPalette> _cache = <String, CoverPalette>{};
+  static final Map<String, CoverPalette> _cache = LruCache<String, CoverPalette>();
 
   ImageStream? _stream;
   ImageStreamListener? _listener;

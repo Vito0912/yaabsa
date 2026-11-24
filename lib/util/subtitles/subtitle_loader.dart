@@ -2,7 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, compute;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +21,14 @@ final LinkedHashMap<String, Future<LoadedSubtitleDocument?>> _mediaCache =
     LinkedHashMap<String, Future<LoadedSubtitleDocument?>>();
 final LinkedHashMap<String, ParsedSubtitleDocument?> _sourceDocumentCache =
     LinkedHashMap<String, ParsedSubtitleDocument?>();
+
+ParsedSubtitleDocument? _parseSubtitleSource(({String content, SubtitleDocumentFormat format}) source) {
+  final document = SubtitleParser.parse(rawContent: source.content, format: source.format);
+  if (document != null && document.cues.isNotEmpty) {
+    document.cueIndexAt(document.cues.first.start);
+  }
+  return document;
+}
 
 Future<LoadedSubtitleDocument?> loadSubtitleDocumentForItem({
   required WidgetRef ref,
@@ -83,7 +91,7 @@ Future<LoadedSubtitleDocument?> _loadFirstParsableFromSources({
       continue;
     }
 
-    final document = SubtitleParser.parse(rawContent: content, format: source.format);
+    final document = await compute(_parseSubtitleSource, (content: content, format: source.format));
     if (document == null || document.cues.isEmpty) {
       continue;
     }

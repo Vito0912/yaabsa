@@ -224,6 +224,11 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               settingKey: SettingKeys.playbackSpeedPerBook,
             ),
             const SettingSwitchTile(
+              label: 'Start from local progress',
+              subtitle: 'Start playback without waiting for server progress',
+              settingKey: SettingKeys.startPlaybackFromLocalProgress,
+            ),
+            const SettingSwitchTile(
               label: 'Restart listening session at midnight',
               settingKey: SettingKeys.restartListeningSessionAtMidnight,
             ),

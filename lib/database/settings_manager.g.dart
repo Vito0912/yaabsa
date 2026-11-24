@@ -68,7 +68,7 @@ final class SettingsManagerProvider extends $StreamNotifierProvider<SettingsMana
   SettingsManager create() => SettingsManager();
 }
 
-String _$settingsManagerHash() => r'ebed150abb88fc926a6a491d5fdd4408fcc918f4';
+String _$settingsManagerHash() => r'64565248c34f346f1aa8809332a8fe60189f415a';
 
 abstract class _$SettingsManager extends $StreamNotifier<int> {
   Stream<int> build();
@@ -105,7 +105,7 @@ final class UserSettingsWatcherProvider extends $StreamNotifierProvider<UserSett
   UserSettingsWatcher create() => UserSettingsWatcher();
 }
 
-String _$userSettingsWatcherHash() => r'339a71d0d3869d710735451378d186a5ef040948';
+String _$userSettingsWatcherHash() => r'2f071f518f8a052f7bd4989dcdbce52bb7eb7497';
 
 abstract class _$UserSettingsWatcher extends $StreamNotifier<int> {
   Stream<int> build();
@@ -212,3 +212,71 @@ final class SettingsInitializerProvider extends $FunctionalProvider<AsyncValue<v
 }
 
 String _$settingsInitializerHash() => r'54e713ec5361c903812a614e5b6c15cffc508e5d';
+
+@ProviderFor(userSettingValue)
+final userSettingValueProvider = UserSettingValueFamily._();
+
+final class UserSettingValueProvider extends $FunctionalProvider<String?, String?, String?> with $Provider<String?> {
+  UserSettingValueProvider._({required UserSettingValueFamily super.from, required (String?, String) super.argument})
+    : super(
+        retry: null,
+        name: r'userSettingValueProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userSettingValueHash();
+
+  @override
+  String toString() {
+    return r'userSettingValueProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<String?> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+
+  @override
+  String? create(Ref ref) {
+    final argument = this.argument as (String?, String);
+    return userSettingValue(ref, argument.$1, argument.$2);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String? value) {
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<String?>(value));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UserSettingValueProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$userSettingValueHash() => r'e41b6073240e9d6e3d662af98c5e0c56301cef0c';
+
+final class UserSettingValueFamily extends $Family with $FunctionalFamilyOverride<String?, (String?, String)> {
+  UserSettingValueFamily._()
+    : super(
+        retry: null,
+        name: r'userSettingValueProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  UserSettingValueProvider call(String? userId, String key) =>
+      UserSettingValueProvider._(argument: (userId, key), from: this);
+
+  @override
+  String toString() => r'userSettingValueProvider';
+}

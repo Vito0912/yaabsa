@@ -27,6 +27,7 @@ class PlaybackSyncService {
   ProviderSubscription<bool>? _reachabilitySubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   Future<void> _syncQueue = Future<void>.value();
+  int _pendingSyncCount = 0;
   int? _effectiveSyncIntervalSeconds;
 
   static const int _minimumSyncIntervalSeconds = 5;
@@ -106,6 +107,9 @@ class PlaybackSyncService {
     _effectiveSyncIntervalSeconds = intervalSeconds;
     _syncTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) {
       _scheduleMidnight();
+      if (_pendingSyncCount > 0) {
+        return;
+      }
       final binding = _activeSegmentBinding ?? _ref.read(sessionRepositoryProvider).currentSessionBinding;
       final positionSnapshot = _position();
       unawaited(_enqueueSync(positionOverride: positionSnapshot, binding: binding));
@@ -141,15 +145,20 @@ class PlaybackSyncService {
   }) async {
     var result = false;
 
+    _pendingSyncCount++;
     _syncQueue = _syncQueue.catchError((_) {}).then((_) async {
-      result = await _syncCapturedSegment(
-        binding: binding,
-        position: position,
-        listenedTime: listenedTime,
-        force: force,
-        segmentStart: segmentStart,
-        recordedAt: recordedAt ?? DateTime.now(),
-      );
+      try {
+        result = await _syncCapturedSegment(
+          binding: binding,
+          position: position,
+          listenedTime: listenedTime,
+          force: force,
+          segmentStart: segmentStart,
+          recordedAt: recordedAt ?? DateTime.now(),
+        );
+      } finally {
+        _pendingSyncCount--;
+      }
     });
 
     await _syncQueue;

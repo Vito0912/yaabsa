@@ -1,3 +1,5 @@
+import 'package:yaabsa/util/subtitles/subtitle_presentation_updates.dart';
+
 import 'dart:collection';
 import 'dart:math';
 
@@ -51,15 +53,14 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
     final currentUser = ref.watch(currentUserProvider).asData?.value;
     final userId = currentUser?.id;
 
-    final settingsManager = ref.read(settingsManagerProvider.notifier);
-    ref.watch(userSettingsWatcherProvider);
-
-    final subtitlesEnabled = settingsManager.getUserSetting<bool>(
+    final subtitlesEnabled = watchUserSetting<bool>(
+      ref,
       userId,
       SettingKeys.subtitlesEnabled,
       defaultValue: defaultSettings[SettingKeys.subtitlesEnabled] as bool? ?? false,
     );
-    final readAlongEnabled = settingsManager.getUserSetting<bool>(
+    final readAlongEnabled = watchUserSetting<bool>(
+      ref,
       userId,
       SettingKeys.subtitleReadAlong,
       defaultValue: defaultSettings[SettingKeys.subtitleReadAlong] as bool? ?? true,
@@ -100,7 +101,12 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
             final paragraphLayout = _SubtitleParagraphLayoutCache.layoutFor(loaded);
 
             return StreamBuilder<Duration>(
-              stream: audioHandler.subtitlePositionStream,
+              stream: subtitlePresentationUpdates(
+                positions: audioHandler.subtitlePositionStream,
+                document: document,
+                readAlongEnabled: readAlongEnabled,
+                useNearestCue: true,
+              ),
               initialData: audioHandler.position,
               builder: (context, positionSnapshot) {
                 final position = positionSnapshot.data ?? Duration.zero;
