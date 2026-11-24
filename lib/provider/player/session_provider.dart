@@ -129,16 +129,18 @@ class SessionRepository {
     return true;
   }
 
-  Future<void> closeSessionBinding(PlaybackSessionBinding binding) async {
+  Future<void> closeSessionBinding(PlaybackSessionBinding binding, {ABSApi? apiOverride}) async {
+    final api = apiOverride ?? ref.read(absApiProvider);
     if (isCurrentSessionBinding(binding)) {
       binding = currentSessionBinding!;
       detachSessionBinding(binding);
     }
     binding = _detachedSessionBindings.remove(binding.playbackSessionId) ?? binding;
     final streamId = _retainedStreamSessions.remove(binding.playbackSessionId);
-    if (streamId != null) {
+    final belongsToApiUser = api?.user == null || api?.user?.id == binding.session.userId;
+    if (streamId != null && belongsToApiUser) {
       try {
-        await ref.read(absApiProvider)?.getSessionApi().closeOpenSession(streamId);
+        await api?.getSessionApi().closeOpenSession(streamId);
       } catch (e) {
         logger('Failed to close retained stream session: $e', tag: 'SessionRepository', level: InfoLevel.warning);
       }
@@ -152,10 +154,9 @@ class SessionRepository {
       return;
     }
 
-    final ABSApi? api = ref.read(absApiProvider);
-    if (api == null) {
+    if (api == null || !belongsToApiUser) {
       logger(
-        'No API available, closing bound session ${binding.sessionId} locally only.',
+        'No matching API available, closing bound session ${binding.sessionId} locally only.',
         tag: 'SessionRepository',
         level: InfoLevel.warning,
       );
@@ -193,8 +194,12 @@ class SessionRepository {
     String? episodeId,
     bool forceDirectPlay = false,
     bool forceTranscode = false,
+    bool Function()? isCancelled,
   }) async {
     await ref.read(currentUserProvider.future);
+    if (isCancelled?.call() == true) {
+      return null;
+    }
 
     final ABSApi? api = ref.read(absApiProvider);
     final AppDatabase db = ref.read(appDatabaseProvider);
@@ -218,6 +223,10 @@ class SessionRepository {
       item = cachedItem;
     } else {
       item = await ref.read(libraryItemProvider(itemId, episodeId: episodeId).future);
+    }
+
+    if (isCancelled?.call() == true) {
+      return null;
     }
 
     final serverFilesUnavailable = item.hasIssue;
@@ -256,6 +265,13 @@ class SessionRepository {
         logger('Server playback unavailable, using downloaded files: $error', tag: 'SessionRepository');
       }
 
+      if (isCancelled?.call() == true) {
+        if (session != null) {
+          await api.getSessionApi().closeOpenSession(session.id);
+        }
+        return null;
+      }
+
       if (session != null) {
         _currentSession = session;
         openedServerSession = true;
@@ -279,7 +295,7 @@ class SessionRepository {
     if (!openedServerSession && downloaded != null) {
       logger('Using local download for item $itemId', tag: 'SessionRepository', level: InfoLevel.debug);
       final randomId = Uuid().v4();
-      _currentSession = await createLocalSession(
+      final localSession = await createLocalSession(
         randomId,
         itemId,
         userId,
@@ -287,6 +303,10 @@ class SessionRepository {
         episodeId: episodeId,
         localLibraryItem: downloaded.item,
       );
+      if (isCancelled?.call() == true) {
+        return null;
+      }
+      _currentSession = localSession;
       _isLocalSession = true;
       _localBoundSessionVersions[_currentSession!.id] = _currentSession!;
     }

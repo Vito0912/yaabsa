@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:wear_plus/wear_plus.dart';
+import 'package:yaabsa/ui/components/wear/wear_scroll_indicator.dart';
+import 'package:yaabsa/ui/components/wear/wear_scroll_physics.dart';
 
 class WearScrollView extends StatefulWidget {
   const WearScrollView({required this.children, super.key});
@@ -35,6 +37,7 @@ class _WearScrollViewState extends State<WearScrollView> {
 
               final scrollView = SingleChildScrollView(
                 controller: _controller,
+                physics: const WearScrollPhysics(),
                 padding: padding,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight - padding.vertical),
@@ -49,17 +52,7 @@ class _WearScrollViewState extends State<WearScrollView> {
               if (shape == WearShape.round) {
                 return ScrollConfiguration(
                   behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-                  child: RawScrollbar(
-                    controller: _controller,
-                    interactive: false,
-                    thickness: 3,
-                    radius: const Radius.circular(3),
-                    minThumbLength: 16,
-                    mainAxisMargin: constraints.maxHeight * 0.25,
-                    crossAxisMargin: constraints.maxWidth * 0.07,
-                    thumbColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.70),
-                    child: scrollView,
-                  ),
+                  child: WearScrollIndicator(controller: _controller, child: scrollView),
                 );
               }
 

@@ -21,6 +21,7 @@ import 'package:just_audio/just_audio.dart';
 class PlaybackSyncService {
   final ProviderContainer _ref;
   final Duration Function() _position;
+  final bool recordSmartDownloads;
   Timer? _syncTimer;
   Timer? _midnightTimer;
   bool _disposed = false;
@@ -38,7 +39,12 @@ class PlaybackSyncService {
   bool _hasPlaybackSinceLastFlush = false;
   int _segmentGeneration = 0;
 
-  PlaybackSyncService(this._ref, {required Stream<PlayerState> playerStateStream, required this._position}) {
+  PlaybackSyncService(
+    this._ref, {
+    required Stream<PlayerState> playerStateStream,
+    required this._position,
+    this.recordSmartDownloads = true,
+  }) {
     _currentSegmentStartTime = null;
     _reachabilitySubscription = _ref.listen<bool>(serverReachabilityProvider, (previous, next) {
       if (previous == false && next && !_disposed) {
@@ -341,13 +347,15 @@ class PlaybackSyncService {
       level: InfoLevel.debug,
     );
 
-    await _ref
-        .read(smartDownloadManagerProvider.notifier)
-        .recordListeningForDownload(
-          session: binding.session,
-          position: currentPositionSeconds,
-          listenedSeconds: listenedTime,
-        );
+    if (recordSmartDownloads) {
+      await _ref
+          .read(smartDownloadManagerProvider.notifier)
+          .recordListeningForDownload(
+            session: binding.session,
+            position: currentPositionSeconds,
+            listenedSeconds: listenedTime,
+          );
+    }
 
     final bool canReachServer = _ref.read(serverReachabilityProvider);
     return _ref

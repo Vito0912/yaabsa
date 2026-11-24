@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:yaabsa/components/changelog/changelog_dialog.dart';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/magic/magic_config.dart';
-import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/components/settings/admin_users/magic_config_dialog.dart';
 import 'package:yaabsa/components/settings/management_settings_section.dart';
@@ -34,8 +32,8 @@ import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
+import 'package:yaabsa/util/auth/account_removal.dart';
 import 'package:yaabsa/util/logger.dart';
-import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SettingsSearchItem {
@@ -546,33 +544,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
     final db = ref.read(appDatabaseProvider);
 
     try {
-      final refreshToken = user.refreshToken;
-      if (user.server != null && refreshToken != null && refreshToken.isNotEmpty) {
-        try {
-          final api = ABSApi(
-            dio: createNativeDio(
-              options: BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers),
-            ),
-            basePathOverride: user.server!.url,
-          );
-          final authToken = user.preferredAuthToken;
-          if (authToken != null && authToken.isNotEmpty) {
-            api.setBearerAuth('BearerAuth', authToken);
-          }
-          await api.getMeApi().logout(refreshToken: refreshToken, extra: const {'skip_auth_refresh': true});
-        } catch (e, s) {
-          logger(
-            'Failed to notify server logout before deleting user ${user.username}: $e. Stack: $s',
-            tag: 'MainSettingsScreen',
-            level: InfoLevel.warning,
-          );
-        }
-      }
-
-      final activeUserId = (await db.getGlobalSetting('activeUserId'))?.value;
-      final wasActiveUser = activeUserId == user.id;
-
-      await db.deleteStoredUser(user.id);
+      final wasActiveUser = await removeStoredAccount(db: db, user: user);
 
       if (wasActiveUser) {
         final remainingUsers = await db.getAllStoredUsers();

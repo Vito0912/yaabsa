@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
-import 'package:yaabsa/api/me/server.dart';
+import 'package:yaabsa/util/auth/account_sign_in.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -20,7 +20,7 @@ enum WearPairingResult { paired, noPhone, noResponse }
 /// the regular stored-user stack ([currentUserProvider], [absApiProvider],
 /// `AuthRefreshInterceptor`).
 ///
-Future<WearPairingResult> pairWithPhone() async {
+Future<WearPairingResult> pairWithPhone({CancelToken? cancelToken}) async {
   const channel = MethodChannel(_wearDataChannelName);
   final Map<dynamic, dynamic>? result;
   try {
@@ -30,6 +30,10 @@ Future<WearPairingResult> pairWithPhone() async {
       return WearPairingResult.noPhone;
     }
 
+    return WearPairingResult.noResponse;
+  }
+
+  if (cancelToken?.isCancelled == true) {
     return WearPairingResult.noResponse;
   }
 
@@ -52,26 +56,30 @@ Future<WearPairingResult> pairWithPhone() async {
     basePathOverride: serverUrl,
   )..setBearerAuth('BearerAuth', accessToken);
 
-  final login = (await api.getMeApi().checkLogin()).data;
-  if (login == null) {
-    return WearPairingResult.noResponse;
+  try {
+    final response = await api.getMeApi().checkLogin(cancelToken: cancelToken);
+    final login = response.data;
+    if (login == null || cancelToken?.isCancelled == true) {
+      return WearPairingResult.noResponse;
+    }
+
+    final user = login.user.copyWith(
+      accessToken: accessToken,
+      refreshToken: result?['refreshToken'] as String?,
+      setting: login.serverSettings,
+    );
+    final db = containerRef.read(appDatabaseProvider);
+    await storeSignedInAccount(
+      db: db,
+      user: user,
+      serverUrl: serverUrl,
+      headers: headers,
+      serverDefaultLibraryId: login.userDefaultLibraryId,
+    );
+    return WearPairingResult.paired;
+  } finally {
+    api.dio.close();
   }
-
-  final user = login.user.copyWith(
-    accessToken: accessToken,
-    refreshToken: result?['refreshToken'] as String?,
-    setting: login.serverSettings,
-    server: Server.fromExternalAddress(
-      externalAddress: serverUrl,
-      headers: headers == null || headers.isEmpty ? null : headers,
-      activeConnection: ServerConnection.external,
-    ),
-  );
-
-  final db = containerRef.read(appDatabaseProvider);
-  await db.addOrUpdateStoredUser(user);
-  await db.setActiveUserId(user.id);
-  return WearPairingResult.paired;
 }
 
 /// Phone side: reacts to a watch pairing request by opening the sign-in
