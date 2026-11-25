@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/list/collection.dart';
@@ -10,6 +11,7 @@ import 'package:yaabsa/components/common/additional_information_text.dart';
 import 'package:yaabsa/features/library/widgets/library_item_card.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 const int defaultMultiBookPreviewLimit = 5;
 const int _maxRenderedSeriesCovers = 5;
@@ -35,7 +37,7 @@ class MultiBookEntryData {
     return MultiBookEntryData(
       id: series.id,
       title: series.name,
-      subtitle: series.numBooks == null ? null : LibraryViewSubtitle.plain('${series.numBooks} books'),
+      subtitle: null,
       bookItemIds: bookIds,
       totalBooks: series.numBooks ?? bookIds.length,
     );
@@ -108,7 +110,7 @@ class MultiBookEntryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final previewBookIds = entry.previewBookIds(maxBooksToShow: maxBooksToShow);
-    final subtitle = _resolveSubtitle();
+    final subtitle = _resolveSubtitle(context);
     final hiddenBookCount = (entry.totalBookCount - previewBookIds.length).clamp(0, entry.totalBookCount);
 
     return LibraryItemCard(
@@ -135,11 +137,13 @@ class MultiBookEntryWidget extends StatelessWidget {
     );
   }
 
-  LibraryViewSubtitle? _resolveSubtitle() {
+  LibraryViewSubtitle? _resolveSubtitle(BuildContext context) {
     if (entry.subtitle != null) {
       return entry.subtitle!.isEmpty ? null : entry.subtitle;
     }
-    if (entry.totalBookCount > 0) return LibraryViewSubtitle.plain('${entry.totalBookCount} books');
+    if (entry.totalBookCount > 0) {
+      return LibraryViewSubtitle.plain(context.l10n.bookCount(entry.totalBookCount));
+    }
     return null;
   }
 }
@@ -387,7 +391,10 @@ class _ExtraCountBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.72), borderRadius: BorderRadius.circular(99)),
-      child: Text('+$hiddenBookCount', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white)),
+      child: Text(
+        '+${NumberFormat.decimalPattern(context.l10n.localeName).format(hiddenBookCount)}',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white),
+      ),
     );
   }
 }

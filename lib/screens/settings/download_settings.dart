@@ -18,6 +18,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -49,6 +50,8 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
 
   Future<void> _pickLocation(String userId) async {
     if (!supportsCustomDownloadLocation || _isPicking) return;
+
+    final l10n = context.l10n;
     setState(() => _isPicking = true);
     try {
       String? nextValue;
@@ -59,7 +62,7 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
         );
         nextValue = pickedUri?.toString();
       } else if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
-        final directoryPath = await FilePicker.getDirectoryPath(dialogTitle: 'Choose download folder');
+        final directoryPath = await FilePicker.getDirectoryPath(dialogTitle: l10n.actionChooseFolder);
         if (directoryPath != null && directoryPath.trim().isNotEmpty) {
           nextValue = encodeDesktopDownloadLocation(directoryPath);
         }
@@ -68,9 +71,9 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
       await ref
           .read(settingsManagerProvider.notifier)
           .setUserSetting<String>(userId, SettingKeys.downloadPath, nextValue);
-      _showMessage('Download location updated');
+      _showMessage(l10n.statusDownloadLocationUpdated);
     } catch (e) {
-      _showMessage('Failed to update location: $e');
+      _showMessage(l10n.errorOperationFailed(l10n.operationSaveDownloadLocation, e.toString()));
     } finally {
       if (mounted) setState(() => _isPicking = false);
     }
@@ -78,10 +81,12 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
 
   Future<void> _resetToDefaultLocation(String userId) async {
     if (_isPicking) return;
+
+    final l10n = context.l10n;
     setState(() => _isPicking = true);
     try {
       await ref.read(settingsManagerProvider.notifier).setUserSetting<String>(userId, SettingKeys.downloadPath, '');
-      _showMessage('Using default download location');
+      _showMessage(l10n.statusUsingDefaultDownloadLocation);
     } finally {
       if (mounted) setState(() => _isPicking = false);
     }
@@ -101,12 +106,12 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
           children: [
             ListTile(
               leading: const Icon(Icons.folder_open),
-              title: const Text('Choose folder'),
+              title: Text(context.l10n.actionChooseFolder),
               onTap: () => Navigator.of(context).pop(_LocationAction.choose),
             ),
             ListTile(
               leading: const Icon(Icons.restart_alt_rounded),
-              title: const Text('Use default location'),
+              title: Text(context.l10n.actionUseDefaultLocation),
               onTap: () => Navigator.of(context).pop(_LocationAction.useDefault),
             ),
           ],
@@ -121,7 +126,7 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
   Widget build(BuildContext context) {
     final db = ref.watch(appDatabaseProvider);
     return SettingsPageScaffold(
-      title: 'Downloads',
+      title: context.l10n.navDownloads,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
@@ -130,18 +135,21 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
             .when(
               data: (user) {
                 if (user == null) {
-                  return const Padding(padding: EdgeInsets.all(20), child: Text('Sign in to configure downloads'));
+                  return Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(context.l10n.promptSignInToManageSettings),
+                  );
                 }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SettingsNavigationSection(
-                      title: 'Download behavior',
+                      title: context.l10n.headingDownloadBehavior,
                       topPadding: 8,
                       items: [
                         SettingsNavigationItem(
                           icon: Icons.download_for_offline_rounded,
-                          title: 'Smart Downloads',
+                          title: context.l10n.settingSmartDownloads,
                           onTap: () => context.push('/settings/library/smart-downloads'),
                         ),
                       ],
@@ -157,11 +165,11 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                             return FutureBuilder<String>(
                               future: _defaultLocationFuture,
                               builder: (context, locationSnapshot) => SettingButton(
-                                label: 'Download Location',
+                                label: context.l10n.settingDownloadLocation,
                                 description: custom
                                     ? formatDownloadLocationForDisplay(raw)
-                                    : (locationSnapshot.data ?? 'Loading default location...'),
-                                buttonText: custom ? 'Change' : 'Choose',
+                                    : (locationSnapshot.data ?? context.l10n.statusLoading),
+                                buttonText: custom ? context.l10n.actionChange : context.l10n.actionChoose,
                                 buttonIcon: Icons.folder_open,
                                 onPressed: supportsCustomDownloadLocation
                                     ? () => _handleLocationAction(user.id, hasCustomLocation: custom)
@@ -183,11 +191,16 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                                 );
                             final value = SettingsParser.decodeValue<String>(snapshot.data?.value, fallback);
                             return SettingDropdown<String>.remote(
-                              label: 'Download Preference',
-                              description: 'What files to download by default',
+                              label: context.l10n.settingDownloadPreference,
+                              description: context.l10n.settingDownloadPreferenceDescription,
                               value: value,
                               values: const ['askEveryTime', 'audiobook', 'ebook', 'both'],
-                              valueLabels: const ['Ask every time', 'Audiobook only', 'Ebook only', 'Both'],
+                              valueLabels: [
+                                context.l10n.optionAskEveryTime,
+                                context.l10n.optionAudiobookOnly,
+                                context.l10n.optionEbookOnly,
+                                context.l10n.optionBoth,
+                              ],
                               onValueChanged: (newValue) => ref
                                   .read(settingsManagerProvider.notifier)
                                   .setUserSetting<String>(user.id, SettingKeys.downloadTypePreference, newValue),
@@ -195,33 +208,25 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                           },
                         ),
                         SettingSwitchTile(
-                          label: 'Always download all audio files',
+                          label: context.l10n.settingDownloadAllAudioFiles,
                           settingKey: SettingKeys.downloadAllAudioFiles,
                           userId: user.id,
-                          subtitle: 'Skip the audio file selection when downloading books.',
+                          subtitle: context.l10n.settingDownloadAllAudioFilesDescription,
                         ),
                         SettingSwitchTile(
-                          label: 'Download only on Wi-Fi',
+                          label: context.l10n.settingDownloadOnlyOnWiFi,
                           settingKey: SettingKeys.downloadOnlyOnWifi,
                           userId: user.id,
-                          subtitle: 'Including Smart Downloads',
+                          subtitle: context.l10n.settingDownloadOnlyOnWiFiDescription,
                           onChanged: (_) => unawaited(downloadHandler.applyDownloadSettings()),
                         ),
                         SettingSlider<int>(
-                          label: 'Maximum parallel downloads',
+                          label: context.l10n.settingMaximumParallelDownloads,
                           values: const <int>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                          valueLabels: const <String>[
-                            '1 file',
-                            '2 files',
-                            '3 files',
-                            '4 files',
-                            '5 files',
-                            '6 files',
-                            '7 files',
-                            '8 files',
-                            '9 files',
-                            '10 files',
-                          ],
+                          valueLabels: List<String>.generate(10, (index) {
+                            final fileCount = index + 1;
+                            return context.l10n.fileCount(fileCount);
+                          }),
                           settingKey: SettingKeys.downloadMaxParallel,
                           userId: user.id,
                           onChanged: (_) => unawaited(downloadHandler.applyDownloadSettings()),
@@ -235,8 +240,10 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                 padding: EdgeInsets.all(16),
                 child: Center(child: YaabsaCircularProgressIndicator()),
               ),
-              error: (error, _) =>
-                  Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load download settings: $error')),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString())),
+              ),
             ),
       ],
     );

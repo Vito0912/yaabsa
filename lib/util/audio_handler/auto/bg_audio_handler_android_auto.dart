@@ -47,7 +47,7 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
 
       if (authenticationState == _AndroidAutoAuthenticationState.initializing) {
         _aaosScheduleRetry(this);
-        throw PlatformException(code: 'browse_not_ready', message: 'Loading content');
+        throw PlatformException(code: 'browse_not_ready', message: currentAppLocalizations().statusLoadingContent);
       }
     }
 
@@ -59,7 +59,9 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
         final isInitializing = authenticationState == _AndroidAutoAuthenticationState.initializing;
         throw PlatformException(
           code: isInitializing ? 'browse_not_ready' : 'authentication_expired',
-          message: isInitializing ? 'AAOS browse API is not ready' : _androidAutoAuthenticationRequiredMessage,
+          message: isInitializing
+              ? currentAppLocalizations().errorBrowseNotReady
+              : _androidAutoAuthenticationRequiredMessage,
         );
       }
 
@@ -230,7 +232,7 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
         item: item,
         episode: episode,
         mediaIdOverride: mediaId,
-        subtitlePrefix: download == null ? null : 'Downloaded',
+        subtitlePrefix: download == null ? null : currentAppLocalizations().statusDownloaded,
         artUriOverride: _androidAutoUriFromPathOrUri(download?.coverPath),
       );
     }
@@ -238,7 +240,7 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
     return _androidAutoPlayableFromLibraryItem(
       item,
       mediaId: mediaId,
-      subtitlePrefix: download == null ? null : 'Downloaded',
+      subtitlePrefix: download == null ? null : currentAppLocalizations().statusDownloaded,
       artUriOverride: _androidAutoUriFromPathOrUri(download?.coverPath),
     );
   }

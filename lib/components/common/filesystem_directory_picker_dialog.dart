@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/filesystem/filesystem_directory.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
-Future<String?> showFilesystemDirectoryPickerDialog(
-  BuildContext context, {
-  String title = 'Browse server folders',
-  String? initialPath,
-}) {
+Future<String?> showFilesystemDirectoryPickerDialog(BuildContext context, {String? title, String? initialPath}) {
   return showDialog<String>(
     context: context,
-    builder: (_) => _FilesystemDirectoryPickerDialog(title: title, initialPath: initialPath),
+    builder: (dialogContext) => _FilesystemDirectoryPickerDialog(
+      title: title ?? dialogContext.l10n.browseServerFolders,
+      initialPath: initialPath,
+    ),
   );
 }
 
@@ -143,20 +143,20 @@ class _FilesystemDirectoryPickerDialogState extends ConsumerState<_FilesystemDir
             Row(
               children: [
                 IconButton(
-                  tooltip: 'Up',
+                  tooltip: context.l10n.filesystemParentFolder,
                   onPressed: _isLoading ? null : _goUp,
                   icon: const Icon(Icons.arrow_upward_rounded),
                 ),
                 Expanded(
                   child: Text(
-                    _currentPath == null ? 'Root' : _currentPath!,
+                    _currentPath == null ? context.l10n.filesystemRoot : _currentPath!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Refresh',
+                  tooltip: context.l10n.actionRefresh,
                   onPressed: _isLoading ? null : () => _loadDirectories(path: _currentPath),
                   icon: const Icon(Icons.refresh_rounded),
                 ),
@@ -187,7 +187,7 @@ class _FilesystemDirectoryPickerDialogState extends ConsumerState<_FilesystemDir
                       alignment: Alignment.center,
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        'No directories available.',
+                        context.l10n.filesystemNoDirectories,
                         style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
                     )
@@ -203,7 +203,7 @@ class _FilesystemDirectoryPickerDialogState extends ConsumerState<_FilesystemDir
                           subtitle: Text(directory.path, maxLines: 1, overflow: TextOverflow.ellipsis),
                           onTap: () => _selectPath(directory.path),
                           trailing: IconButton(
-                            tooltip: 'Open',
+                            tooltip: context.l10n.actionOpen,
                             onPressed: () => _openDirectory(directory.path),
                             icon: const Icon(Icons.chevron_right_rounded),
                           ),
@@ -215,11 +215,11 @@ class _FilesystemDirectoryPickerDialogState extends ConsumerState<_FilesystemDir
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
         FilledButton.icon(
           onPressed: _currentPath == null ? null : () => Navigator.of(context).pop(_currentPath),
           icon: const Icon(Icons.check_rounded),
-          label: const Text('Use current folder'),
+          label: Text(context.l10n.filesystemUseCurrentFolder),
         ),
       ],
     );

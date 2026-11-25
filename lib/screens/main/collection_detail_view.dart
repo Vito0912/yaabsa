@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
@@ -41,7 +42,7 @@ class CollectionDetailView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     final libraryId = this.libraryId ?? selectedLibrary?.id;
     if (libraryId == null || libraryId.isEmpty) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     final api = ref.watch(absApiProvider);
@@ -67,16 +68,16 @@ class CollectionDetailView extends HookConsumerWidget {
         }
 
         return ConnectionIssueView.requestFailed(
-          error: details.error ?? Exception('Unknown collection loading error.'),
-          title: 'Collection details could not be loaded',
+          error: details.error ?? Exception(context.l10n.errorUnableToLoadContent),
+          title: context.l10n.errorCollectionUnavailable,
           onRetry: () => ref.refresh(collectionByIdProvider(libraryId, collectionId).future),
         );
       }
 
-      return const ListEntityMissingView(
+      return ListEntityMissingView(
         icon: Icons.collections_bookmark_outlined,
-        title: 'Collection is no longer available',
-        message: 'It may have been deleted from this library.',
+        title: context.l10n.errorCollectionMissing,
+        message: context.l10n.statusListMayBeRemoved,
       );
     }
 
@@ -99,8 +100,8 @@ class CollectionDetailView extends HookConsumerWidget {
       builder: (context, _, tileWidth, _) => ManagedListDetailFrame(
         title: resolvedEntry?.title ?? resolvedCollection.name,
         description: description,
-        emptyTitle: 'No books in this collection',
-        emptyMessage: 'Add books to this collection to see them here.',
+        emptyTitle: context.l10n.statusNoItemsInManagedList,
+        emptyMessage: context.l10n.promptAddItemsToManagedList,
         emptyIcon: Icons.collections_bookmark_outlined,
         scrollController: scrollController,
         tileWidth: tileWidth,
@@ -138,11 +139,11 @@ class CollectionDetailView extends HookConsumerWidget {
                   ),
                 ),
                 icon: const Icon(Icons.shuffle_rounded),
-                tooltip: 'Play random item',
+                tooltip: context.l10n.actionPlayRandomItem,
               ),
             if (canEditCollection || canDeleteCollection)
               YaabsaContextMenuButton<_CollectionDetailAction>(
-                tooltip: 'Collection actions',
+                tooltip: context.l10n.actionMore,
                 onSelected: (action) => _handleCollectionAction(
                   context: context,
                   ref: ref,
@@ -154,23 +155,23 @@ class CollectionDetailView extends HookConsumerWidget {
                   final items = <PopupMenuEntry<_CollectionDetailAction>>[];
                   if (canEditCollection) {
                     items.add(
-                      const PopupMenuItem<_CollectionDetailAction>(
+                      PopupMenuItem<_CollectionDetailAction>(
                         value: _CollectionDetailAction.editBooks,
-                        child: Text('Edit books'),
+                        child: Text(context.l10n.actionEditBooks),
                       ),
                     );
                     items.add(
-                      const PopupMenuItem<_CollectionDetailAction>(
+                      PopupMenuItem<_CollectionDetailAction>(
                         value: _CollectionDetailAction.edit,
-                        child: Text('Edit details'),
+                        child: Text(context.l10n.actionEditDetails),
                       ),
                     );
                   }
                   if (canDeleteCollection) {
                     items.add(
-                      const PopupMenuItem<_CollectionDetailAction>(
+                      PopupMenuItem<_CollectionDetailAction>(
                         value: _CollectionDetailAction.delete,
-                        child: Text('Delete collection'),
+                        child: Text(context.l10n.actionDelete),
                       ),
                     );
                   }
@@ -222,8 +223,8 @@ Future<void> _editCollectionBooks({
   final collectionItems = collection.items ?? const <LibraryItem>[];
   await editManagedListBooks(
     context: context,
-    title: 'Edit books',
-    confirmLabel: 'Save books',
+    title: context.l10n.actionEditBooks,
+    confirmLabel: context.l10n.actionSaveBooks,
     selectionRequired: true,
     initialBooks: collectionItems,
     onSave: (bookIds) => ref
@@ -233,8 +234,8 @@ Future<void> _editCollectionBooks({
           currentBookIds: collectionItems.map((item) => item.id).toList(growable: false),
           desiredBookIds: bookIds,
         ),
-    successMessage: 'Collection books updated.',
-    errorFallback: 'Could not update collection books.',
+    successMessage: context.l10n.statusNamedBooksUpdated(context.l10n.fieldCollection),
+    errorFallback: context.l10n.errorNamedBooksUpdateFailed(context.l10n.fieldCollection),
   );
 }
 
@@ -246,14 +247,14 @@ Future<void> _editCollection({
 }) async {
   await editManagedListDetails(
     context: context,
-    title: 'Edit collection',
+    title: context.l10n.editNamedEntity(context.l10n.fieldCollection),
     initialName: collection.name,
     initialDescription: collection.description,
     onSave: ({required name, description}) => ref
         .read(collectionsProvider(libraryId).notifier)
         .updateCollection(collection.id, name: name, description: description),
-    successMessage: 'Collection updated.',
-    errorFallback: 'Could not update collection.',
+    successMessage: context.l10n.statusNamedEntityUpdated(context.l10n.fieldCollection),
+    errorFallback: context.l10n.errorNamedEntityUpdateFailed(context.l10n.fieldCollection),
   );
 }
 
@@ -265,11 +266,11 @@ Future<void> _deleteCollection({
 }) async {
   await deleteManagedListEntity(
     context: context,
-    title: 'Delete collection?',
-    message: '"${collection.name}" will be permanently removed.',
+    title: context.l10n.headingDeleteManagedList,
+    message: context.l10n.deleteNamedEntityMessage(collection.name),
     onDelete: () => ref.read(collectionsProvider(libraryId).notifier).deleteCollection(collection.id),
-    successMessage: 'Collection deleted.',
-    errorFallback: 'Could not delete collection.',
+    successMessage: context.l10n.statusNamedEntityDeleted(context.l10n.fieldCollection),
+    errorFallback: context.l10n.errorNamedEntityDeleteFailed(context.l10n.fieldCollection),
     popOnSuccess: true,
   );
 }

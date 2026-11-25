@@ -5,6 +5,7 @@ import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/ui/components/cards/surface_card.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class StatsActivityHeatmap extends StatefulWidget {
   const StatsActivityHeatmap({super.key, required this.activity, this.days = 365, this.referenceDate});
@@ -154,7 +155,7 @@ class _MonthHeatmap extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_monthLabel(month), style: theme.textTheme.titleSmall),
+          Text(formatMonthName(month), style: theme.textTheme.titleSmall),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -297,10 +298,10 @@ class _DesktopHeatmap extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: Text(switch (weekday) {
-                          0 => 'Mon',
-                          2 => 'Wed',
-                          4 => 'Fri',
-                          6 => 'Sun',
+                          0 => formatWeekdayAbbreviation(0),
+                          2 => formatWeekdayAbbreviation(2),
+                          4 => formatWeekdayAbbreviation(4),
+                          6 => formatWeekdayAbbreviation(6),
                           _ => '',
                         }, style: Theme.of(context).textTheme.labelSmall),
                       ),
@@ -333,7 +334,7 @@ class _HeatmapCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: '${_fullDate(day)} • ${formatListeningSeconds(value)}',
+      message: context.l10n.statsDateAndListeningTime(day, formatListeningSeconds(value)),
       excludeFromSemantics: true,
       child: DecoratedBox(
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3)),
@@ -353,14 +354,14 @@ class _HeatmapLegend extends StatelessWidget {
       spacing: 5,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text('Less', style: Theme.of(context).textTheme.labelSmall),
+        Text(context.l10n.rangeLess, style: Theme.of(context).textTheme.labelSmall),
         for (final color in palette)
           Container(
             width: 12,
             height: 12,
             decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3)),
           ),
-        Text('More', style: Theme.of(context).textTheme.labelSmall),
+        Text(context.l10n.rangeMore, style: Theme.of(context).textTheme.labelSmall),
       ],
     );
   }
@@ -381,25 +382,4 @@ int _levelFor(double value, double maxValue) {
   if (ratio < 0.5) return 2;
   if (ratio < 0.75) return 3;
   return 4;
-}
-
-String _monthLabel(DateTime month) => const [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-][month.month - 1];
-
-String _fullDate(DateTime value) {
-  final month = value.month.toString().padLeft(2, '0');
-  final day = value.day.toString().padLeft(2, '0');
-  return '${value.year}-$month-$day';
 }

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearAccountIdentity extends StatelessWidget {
   const WearAccountIdentity({required this.username, required this.roleLabel, super.key});
@@ -6,12 +7,14 @@ class WearAccountIdentity extends StatelessWidget {
   final String username;
   final String roleLabel;
 
-  static String formatRole(String userType) {
-    return switch (userType.toLowerCase()) {
-      'root' || 'admin' => 'Administrator',
-      'guest' => 'Guest',
-      _ => 'Listener',
+  static String formatRole(AppLocalizations localizations, String userType) {
+    final role = switch (userType.toLowerCase()) {
+      'root' || 'admin' => 'admin',
+      'guest' => 'guest',
+      _ => 'listener',
     };
+
+    return localizations.accountRoleLabel(role);
   }
 
   @override
@@ -59,7 +62,7 @@ class WearAccountServerDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final uri = Uri.tryParse(serverUrl);
-    var displayUrl = 'Server address unavailable';
+    var displayUrl = context.l10n.statusServerAddressUnavailable;
     if (uri != null && uri.hasAuthority) {
       displayUrl = Uri(
         scheme: uri.scheme,
@@ -82,8 +85,11 @@ class WearAccountServerDetails extends StatelessWidget {
                 children: [
                   Icon(Icons.dns_outlined, size: 20, color: colors.onSurfaceVariant),
                   const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text('Server', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      context.l10n.fieldServer,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ],
               ),
@@ -100,7 +106,7 @@ class WearAccountServerDetails extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      reachable ? 'Server available' : 'Server unavailable',
+                      reachable ? context.l10n.statusServerAvailable : context.l10n.statusServerUnavailable,
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),

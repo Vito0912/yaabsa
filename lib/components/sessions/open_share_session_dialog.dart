@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/open_share_session.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<bool?> showOpenShareSessionDialog(
   BuildContext context, {
@@ -73,17 +74,17 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Shared Session'),
-          content: const Text('Delete this shared session permanently? This cannot be undone.'),
+          title: Text(context.l10n.sessionDeleteSharedTitle),
+          content: Text(context.l10n.sessionDeleteSharedPrompt),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(context.l10n.actionDelete),
             ),
           ],
         );
@@ -138,7 +139,7 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
     final deviceName = widget.session.deviceInfo?.clientName?.trim();
 
     return AlertDialog(
-      title: const Text('Shared Session'),
+      title: Text(context.l10n.sessionSharedTitle),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
@@ -147,15 +148,15 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                (title == null || title.isEmpty) ? 'Unknown Item' : title,
+                (title == null || title.isEmpty) ? context.l10n.unknownMediaItem : title,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              if (author != null && author.isNotEmpty) _buildSummaryTile('Author', author),
-              if (userName != null && userName.isNotEmpty) _buildSummaryTile('User', userName),
-              if (deviceName != null && deviceName.isNotEmpty) _buildSummaryTile('Device', deviceName),
-              _buildSummaryTile('Date', formatDateTimeLabel(_sessionDate())),
-              _buildSummaryTile('Session ID', widget.session.id),
+              if (author != null && author.isNotEmpty) _buildSummaryTile(context.l10n.fieldAuthor, author),
+              if (userName != null && userName.isNotEmpty) _buildSummaryTile(context.l10n.fieldUser, userName),
+              if (deviceName != null && deviceName.isNotEmpty) _buildSummaryTile(context.l10n.fieldDevice, deviceName),
+              _buildSummaryTile(context.l10n.fieldDate, formatDateTimeLabel(_sessionDate())),
+              _buildSummaryTile(context.l10n.fieldSessionId, widget.session.id),
               if (_actionError != null && _actionError!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 10),
@@ -166,14 +167,17 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: _isDeleting ? null : () => Navigator.of(context).pop(false), child: const Text('Close')),
+        TextButton(
+          onPressed: _isDeleting ? null : () => Navigator.of(context).pop(false),
+          child: Text(context.l10n.actionClose),
+        ),
         if (widget.canDelete)
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             onPressed: _isDeleting ? null : _delete,
             child: _isDeleting
                 ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
-                : const Text('Delete'),
+                : Text(context.l10n.actionDelete),
           ),
       ],
     );

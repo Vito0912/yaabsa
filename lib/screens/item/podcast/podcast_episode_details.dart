@@ -13,6 +13,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PodcastEpisodeDetailsPage extends StatelessWidget {
@@ -33,7 +34,7 @@ class PodcastEpisodeDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       primary: false,
-      appBar: AppBar(primary: false, title: const Text('Episode')),
+      appBar: AppBar(primary: false, title: Text(context.l10n.headingEpisode)),
       body: SafeArea(
         top: false,
         child: PodcastEpisodeDetailsContent(
@@ -94,13 +95,13 @@ class _PodcastEpisodeDetailsContentState extends ConsumerState<PodcastEpisodeDet
     final progress = ref.watch(mediaProgressByKeyProvider(mediaProgressKey(item.id, episode.id)));
 
     final progressStatus = podcastEpisodeCompleted(progress)
-        ? 'Complete'
+        ? context.l10n.statusComplete
         : podcastEpisodeInProgress(progress)
-        ? 'In Progress'
-        : 'Incomplete';
+        ? context.l10n.statusInProgress
+        : context.l10n.statusIncomplete;
 
     final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
-    final publishedLabel = podcastFormatEpisodeDate(episode);
+    final publishedLabel = podcastFormatEpisodeDate(episode, localeName: Localizations.localeOf(context).toString());
     final episodeDurationSeconds = episode.audioFile?.duration;
     final durationLabel = episodeDurationSeconds == null
         ? null
@@ -150,14 +151,17 @@ class _PodcastEpisodeDetailsContentState extends ConsumerState<PodcastEpisodeDet
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text(podcastEpisodeTitle(episode), style: Theme.of(context).textTheme.titleLarge),
+                            child: Text(
+                              podcastEpisodeTitle(episode) ?? context.l10n.untitledEpisode,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
                           ),
                           if (widget.showCloseButton) ...[
                             const SizedBox(width: 8),
                             IconButton(
                               onPressed: () => Navigator.of(context).pop(),
                               icon: const Icon(Icons.close_rounded),
-                              tooltip: 'Close',
+                              tooltip: context.l10n.actionClose,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints.tightFor(width: 40, height: 40),
                               visualDensity: VisualDensity.compact,
@@ -242,13 +246,13 @@ class _PodcastEpisodeDetailsContentState extends ConsumerState<PodcastEpisodeDet
                               return;
                             }
                             ScaffoldMessenger.of(context)
-                                .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
-                          } catch (e) {
+                                .showSnackBar(SnackBar(content: Text(context.l10n.statusDownloadQueued)));
+                          } catch (_) {
                             if (!context.mounted) {
                               return;
                             }
                             ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                .showSnackBar(SnackBar(content: Text(context.l10n.errorDownloadStartFailed)));
                           }
                         },
                         onDeleteDownload: () async {
@@ -258,33 +262,34 @@ class _PodcastEpisodeDetailsContentState extends ConsumerState<PodcastEpisodeDet
                           try {
                             final result = await runWithLoadingSnackBar(
                               context: context,
-                              message: 'Deleting downloaded files...',
+                              message: context.l10n.statusDeletingDownloadedFiles,
                               action: () =>
                                   downloadHandler.deleteDownloadedItem(episodeDownload, userId: currentUserId),
                             );
                             if (!context.mounted) {
                               return;
                             }
-                            final failedSuffix = result.failedFiles > 0
-                                ? ' ${result.failedFiles} file(s) could not be removed.'
-                                : '';
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')),
+                              SnackBar(
+                                content: Text(
+                                  context.l10n.downloadFilesDeleteSummary(result.deletedFiles, result.failedFiles),
+                                ),
+                              ),
                             );
-                          } catch (e) {
+                          } catch (_) {
                             if (!context.mounted) {
                               return;
                             }
                             ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                .showSnackBar(SnackBar(content: Text(context.l10n.errorDeleteDownload)));
                           }
                         },
                       ),
                       const SizedBox(height: 14),
-                      Text('Description', style: Theme.of(context).textTheme.titleMedium),
+                      Text(context.l10n.fieldDescription, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Text(
-                        fullDescription.isEmpty ? 'No description available.' : fullDescription,
+                        fullDescription.isEmpty ? context.l10n.statusNoDescriptionAvailable : fullDescription,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],

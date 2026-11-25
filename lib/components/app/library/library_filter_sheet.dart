@@ -8,6 +8,7 @@ import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/features/library/widgets/library_control_sheet.dart';
 import 'package:yaabsa/ui/components/feedback/feedback_panel.dart';
 import 'package:yaabsa/ui/components/inputs/search_field.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryFilterSheet extends StatelessWidget {
   const LibraryFilterSheet({
@@ -25,42 +26,49 @@ class LibraryFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isBookLibrary = libraryMediaType == 'book';
     final sections = <_FilterSectionData>[
-      if (includeSpecialFilters) _buildSpecialSection(),
+      if (includeSpecialFilters) _buildSpecialSection(l10n),
       _buildStringSection(
-        title: 'Genres',
+        title: l10n.fieldGenres,
         group: LibraryFilterGroup.genres,
         values: filterData?.genres ?? const <String>[],
       ),
-      _buildStringSection(title: 'Tags', group: LibraryFilterGroup.tags, values: filterData?.tags ?? const <String>[]),
       _buildStringSection(
-        title: 'Languages',
+        title: l10n.fieldTags,
+        group: LibraryFilterGroup.tags,
+        values: filterData?.tags ?? const <String>[],
+      ),
+      _buildStringSection(
+        title: l10n.headingLanguages,
         group: LibraryFilterGroup.languages,
         values: filterData?.languages ?? const <String>[],
       ),
       if (isBookLibrary)
         _buildNamedSection(
-          title: 'Authors',
+          l10n: l10n,
+          title: l10n.fieldAuthors,
           group: LibraryFilterGroup.authors,
           values: filterData?.authors ?? const <LibraryFilterNamedEntity>[],
         ),
       if (isBookLibrary)
         _buildNamedSection(
-          title: 'Series',
+          l10n: l10n,
+          title: l10n.fieldSeries,
           group: LibraryFilterGroup.series,
           values: filterData?.series ?? const <LibraryFilterNamedEntity>[],
           includeNoSeriesOption: true,
         ),
       if (isBookLibrary)
         _buildStringSection(
-          title: 'Narrators',
+          title: l10n.fieldNarrators,
           group: LibraryFilterGroup.narrators,
           values: filterData?.narrators ?? const <String>[],
         ),
-      if (isBookLibrary) _buildProgressSection(),
-      if (isBookLibrary) _buildTracksSection(),
-      if (isBookLibrary) _buildMissingSection(),
+      if (isBookLibrary) _buildProgressSection(l10n),
+      if (isBookLibrary) _buildTracksSection(l10n),
+      if (isBookLibrary) _buildMissingSection(l10n),
     ];
 
     final visibleSections = sections.where((section) => section.options.isNotEmpty).toList(growable: false);
@@ -68,19 +76,19 @@ class LibraryFilterSheet extends StatelessWidget {
     final hasActiveFilter = activeFilter != null && activeFilter!.isNotEmpty;
 
     return LibraryControlSheet(
-      title: 'Filter',
+      title: l10n.actionFilter,
       headerAction: hasActiveFilter
           ? TextButton.icon(
               onPressed: () => Navigator.of(context).pop(''),
               icon: const Icon(Icons.filter_alt_off_rounded),
-              label: const Text('Clear'),
+              label: Text(l10n.actionClear),
             )
           : null,
       child: visibleSections.isEmpty
-          ? const YaabsaFeedbackPanel(
+          ? YaabsaFeedbackPanel(
               icon: Icons.filter_list_off_rounded,
-              title: 'No filter options available',
-              message: 'This library does not have any filter values yet.',
+              title: l10n.statusNoFilterOptionsAvailable,
+              message: l10n.messageNoLibraryFilterValues,
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
@@ -97,51 +105,74 @@ class LibraryFilterSheet extends StatelessWidget {
     );
   }
 
-  _FilterSectionData _buildSpecialSection() {
+  _FilterSectionData _buildSpecialSection(AppLocalizations l10n) {
     return _FilterSectionData(
-      title: 'Special',
-      options: const [
-        _FilterOption(label: 'Issues', queryValue: 'issues'),
-        _FilterOption(label: 'Feed Open', queryValue: 'feed-open'),
+      title: l10n.headingSpecialFilters,
+      options: [
+        _FilterOption(label: l10n.navIssues, queryValue: 'issues'),
+        _FilterOption(label: l10n.filterOpenFeeds, queryValue: 'feed-open'),
       ],
     );
   }
 
-  _FilterSectionData _buildProgressSection() {
+  _FilterSectionData _buildProgressSection(AppLocalizations l10n) {
     final values = LibraryProgressFilterValue.values
         .map(
           (value) => _FilterOption(
-            label: _humanizeValue(value.wireValue),
+            label: switch (value) {
+              LibraryProgressFilterValue.finished => l10n.statusFinished,
+              LibraryProgressFilterValue.notStarted => l10n.statusNotStarted,
+              LibraryProgressFilterValue.notFinished => l10n.statusNotFinished,
+              LibraryProgressFilterValue.inProgress => l10n.statusInProgress,
+            },
             queryValue: LibraryFilter.progress(value).queryValue,
           ),
         )
         .toList(growable: false);
 
-    return _FilterSectionData(title: 'Progress', options: values);
+    return _FilterSectionData(title: l10n.fieldProgress, options: values);
   }
 
-  _FilterSectionData _buildMissingSection() {
+  _FilterSectionData _buildMissingSection(AppLocalizations l10n) {
     final values = LibraryMissingFilterValue.values
         .map(
           (value) => _FilterOption(
-            label: _humanizeValue(value.wireValue),
+            label: switch (value) {
+              LibraryMissingFilterValue.asin => l10n.fieldAsin,
+              LibraryMissingFilterValue.isbn => l10n.fieldIsbn,
+              LibraryMissingFilterValue.subtitle => l10n.fieldSubtitle,
+              LibraryMissingFilterValue.authors => l10n.fieldAuthors,
+              LibraryMissingFilterValue.publishedYear => l10n.fieldPublishedYear,
+              LibraryMissingFilterValue.series => l10n.fieldSeries,
+              LibraryMissingFilterValue.description => l10n.fieldDescription,
+              LibraryMissingFilterValue.genres => l10n.fieldGenres,
+              LibraryMissingFilterValue.tags => l10n.fieldTags,
+              LibraryMissingFilterValue.narrators => l10n.fieldNarrators,
+              LibraryMissingFilterValue.publisher => l10n.fieldPublisher,
+              LibraryMissingFilterValue.language => l10n.fieldLanguage,
+            },
             queryValue: LibraryFilter.missing(value).queryValue,
           ),
         )
         .toList(growable: false);
 
-    return _FilterSectionData(title: 'Missing Metadata', options: values);
+    return _FilterSectionData(title: l10n.headingMissingMetadata, options: values);
   }
 
-  _FilterSectionData _buildTracksSection() {
+  _FilterSectionData _buildTracksSection(AppLocalizations l10n) {
     final values = LibraryTracksFilterValue.values
         .map(
-          (value) =>
-              _FilterOption(label: _humanizeValue(value.wireValue), queryValue: LibraryFilter.tracks(value).queryValue),
+          (value) => _FilterOption(
+            label: switch (value) {
+              LibraryTracksFilterValue.single => l10n.filterSingleTrack,
+              LibraryTracksFilterValue.multi => l10n.filterMultipleTracks,
+            },
+            queryValue: LibraryFilter.tracks(value).queryValue,
+          ),
         )
         .toList(growable: false);
 
-    return _FilterSectionData(title: 'Tracks', options: values);
+    return _FilterSectionData(title: l10n.fieldTracks, options: values);
   }
 
   _FilterSectionData _buildStringSection({
@@ -161,6 +192,7 @@ class LibraryFilterSheet extends StatelessWidget {
   }
 
   _FilterSectionData _buildNamedSection({
+    required AppLocalizations l10n,
     required String title,
     required LibraryFilterGroup group,
     required List<LibraryFilterNamedEntity> values,
@@ -180,26 +212,13 @@ class LibraryFilterSheet extends StatelessWidget {
       options.insert(
         0,
         _FilterOption(
-          label: 'No series',
+          label: l10n.statusNoSeriesFilterOption,
           queryValue: LibraryFilter.grouped(LibraryFilterGroup.series, 'no-series').queryValue,
         ),
       );
     }
 
     return _FilterSectionData(title: title, options: options);
-  }
-
-  static String _humanizeValue(String value) {
-    if (value.isEmpty) return value;
-
-    final split = value
-        .replaceAll('-', ' ')
-        .replaceAll('_', ' ')
-        .split(' ')
-        .where((segment) => segment.isNotEmpty)
-        .toList(growable: false);
-
-    return split.map((segment) => '${segment[0].toUpperCase()}${segment.substring(1)}').join(' ');
   }
 }
 
@@ -250,13 +269,16 @@ class _FilterSectionState extends State<_FilterSection> {
     final showSearchField = options.length > 12;
     final denseListHeight = math.min(filteredOptions.length * 44.0, 240.0);
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final colorScheme = theme.colorScheme;
     final cardColor = _isExpanded ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLow;
     final borderColor = _isExpanded ? colorScheme.primary : colorScheme.outlineVariant.withValues(alpha: 0.48);
 
     return ExpressiveExpandableCard(
       title: widget.section.title,
-      subtitle: selectedLabel != null ? 'Selected: $selectedLabel' : '${widget.section.options.length} options',
+      subtitle: selectedLabel != null
+          ? l10n.statusSelectedFilterOption(selectedLabel)
+          : l10n.statusFilterOptionCount(widget.section.options.length),
       icon: selectedLabel != null ? Icons.check_circle_rounded : null,
       margin: const EdgeInsets.only(bottom: 10),
       childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -278,8 +300,8 @@ class _FilterSectionState extends State<_FilterSection> {
             padding: const EdgeInsets.only(bottom: 8),
             child: YaabsaSearchField(
               controller: _searchController,
-              label: 'Search options',
-              hintText: 'Search this section',
+              label: l10n.fieldSearchOptions,
+              hintText: l10n.hintSearchWithinOptions,
               onChanged: (value) {
                 setState(() {
                   _search = value.trim();
@@ -288,9 +310,9 @@ class _FilterSectionState extends State<_FilterSection> {
             ),
           ),
         if (filteredOptions.isEmpty)
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('No matching options')),
+            child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(l10n.statusNoMatchingOptions)),
           )
         else if (filteredOptions.length <= 8)
           LayoutBuilder(

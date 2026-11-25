@@ -11,6 +11,7 @@ import 'package:yaabsa/ui/components/wear/wear_account_details.dart';
 import 'package:yaabsa/screens/wear/components/wear_browse_scaffold.dart';
 import 'package:yaabsa/ui/components/wear/wear_confirmation_screen.dart';
 import 'package:yaabsa/util/auth/account_removal.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearAccountScreen extends ConsumerStatefulWidget {
   const WearAccountScreen({super.key});
@@ -31,10 +32,10 @@ class _WearAccountScreenState extends ConsumerState<WearAccountScreen> {
 
     final confirmed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => const WearConfirmationScreen(
-          title: 'Sign out?',
-          message: 'You will need to sign in again to stream on this watch.',
-          confirmLabel: 'Sign out',
+        builder: (context) => WearConfirmationScreen(
+          title: context.l10n.actionSignOut,
+          message: context.l10n.wearSignOutWarning,
+          confirmLabel: context.l10n.actionSignOut,
           icon: Icons.logout,
           destructive: true,
         ),
@@ -81,7 +82,10 @@ class _WearAccountScreenState extends ConsumerState<WearAccountScreen> {
     final colors = Theme.of(context).colorScheme;
     final children = <Widget>[
       if (user != null)
-        WearAccountIdentity(username: user.username, roleLabel: WearAccountIdentity.formatRole(user.type)),
+        WearAccountIdentity(
+          username: user.username,
+          roleLabel: WearAccountIdentity.formatRole(context.l10n, user.type),
+        ),
       WearAccountServerDetails(serverUrl: user?.server?.url ?? '', reachable: reachable),
       if (_error != null)
         Padding(
@@ -96,21 +100,25 @@ class _WearAccountScreenState extends ConsumerState<WearAccountScreen> {
           ),
         ),
       if (_busy)
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
           child: Center(
-            child: YaabsaCircularProgressIndicator(strokeWidth: 2, size: 24, semanticsLabel: 'Signing out'),
+            child: YaabsaCircularProgressIndicator(
+              strokeWidth: 2,
+              size: 24,
+              semanticsLabel: context.l10n.statusSigningOut,
+            ),
           ),
         ),
       WearBrowseButton(
-        title: _busy ? 'Signing out' : 'Sign out',
+        title: _busy ? context.l10n.statusSigningOut : context.l10n.actionSignOut,
         icon: Icons.logout,
         destructive: true,
         onPressed: _busy ? null : _signOut,
       ),
     ];
     return WearBrowseScaffold(
-      title: 'Account',
+      title: context.l10n.accountLabel,
       itemCount: children.length,
       itemBuilder: (context, index) => children[index],
     );

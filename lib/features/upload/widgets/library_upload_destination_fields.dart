@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryUploadDestinationFields extends StatelessWidget {
   const LibraryUploadDestinationFields({
@@ -29,13 +30,13 @@ class LibraryUploadDestinationFields extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final folderField = YaabsaDropdownField<String>(
-          label: 'Library folder',
+          label: context.l10n.fieldLibraryFolder,
           value: folderValue,
           onChanged: enabled ? onFolderChanged : null,
           items: folderItems,
         );
         final providerField = YaabsaDropdownField<String>(
-          label: 'Metadata provider',
+          label: context.l10n.fieldMetadataProvider,
           value: providerValue,
           onChanged: enabled ? onProviderChanged : null,
           items: providerItems,

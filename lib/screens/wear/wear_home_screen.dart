@@ -4,6 +4,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/wear/wear_dashboard_screen.dart';
 import 'package:yaabsa/screens/wear/wear_pairing_screen.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearHomeScreen extends ConsumerWidget {
   const WearHomeScreen({super.key});
@@ -21,7 +22,7 @@ class WearHomeScreen extends ConsumerWidget {
             onPressed: () {
               ref.invalidate(currentUserProvider);
             },
-            child: const Text('Could not load account. Retry'),
+            child: Text(context.l10n.statusUnableToLoadRetry),
           ),
         ),
       );

@@ -4,6 +4,7 @@ import 'package:yaabsa/features/upload/widgets/library_upload_bulk_field.dart';
 import 'package:yaabsa/ui/components/cards/surface_card.dart';
 import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryUploadAdvancedOptions extends StatelessWidget {
   const LibraryUploadAdvancedOptions({
@@ -64,7 +65,7 @@ class LibraryUploadAdvancedOptions extends StatelessWidget {
     );
 
     return ExpressiveExpandableCard(
-      title: 'Advanced options',
+      title: context.l10n.headingAdvancedOptions,
       icon: Icons.tune_rounded,
       margin: EdgeInsets.zero,
       initiallyExpanded: initiallyExpanded,
@@ -102,24 +103,27 @@ class LibraryUploadAdvancedOptions extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Settings', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          context.l10n.navSettings,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 4),
         SettingsSwitchPresentation(
-          label: 'Auto-fetch metadata',
+          label: context.l10n.uploadAutoFetchMetadata,
           value: autoFetchMetadata,
           contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           enabled: enabled,
           onChanged: onAutoFetchMetadataChanged,
         ),
         SettingsSwitchPresentation(
-          label: 'Auto-accept metadata',
+          label: context.l10n.uploadAutoAcceptMetadata,
           value: autoAcceptMetadata,
           contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           enabled: enabled,
           onChanged: onAutoAcceptMetadataChanged,
         ),
         SettingsSwitchPresentation(
-          label: 'Autocomplete series and authors',
+          label: context.l10n.uploadAutocompleteEntities,
           value: autocompleteSeriesAndAuthors,
           contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           enabled: canEditAutocomplete,
@@ -128,7 +132,7 @@ class LibraryUploadAdvancedOptions extends StatelessWidget {
         if (!isAdminUser) ...[
           const SizedBox(height: 6),
           Text(
-            'Requires admin role.',
+            context.l10n.uploadRequiresAdmin,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
         ],
@@ -145,21 +149,21 @@ class LibraryUploadAdvancedOptions extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Bulk update queue metadata',
+          context.l10n.uploadBulkMetadata,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         LibraryUploadBulkField(
-          label: 'Author for all items',
-          applyLabel: 'Apply author',
+          label: context.l10n.fieldAuthor,
+          applyLabel: context.l10n.uploadApplyAuthor,
           controller: bulkAuthorController,
           enabled: enabled,
           onApply: canApplyBulk ? onApplyAuthor : null,
         ),
         const SizedBox(height: 10),
         LibraryUploadBulkField(
-          label: 'Series for all items',
-          applyLabel: 'Apply series',
+          label: context.l10n.fieldSeries,
+          applyLabel: context.l10n.uploadApplySeries,
           controller: bulkSeriesController,
           enabled: enabled,
           onApply: canApplyBulk ? onApplySeries : null,

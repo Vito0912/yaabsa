@@ -2,10 +2,11 @@ part of 'reader.dart';
 
 extension _ReaderAnnotationSync on _ReaderState {
   Future<void> _syncAnnotations({required bool isEpubMode, bool showFeedback = true}) async {
+    final localizations = context.l10n;
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
       if (showFeedback) {
-        _showSnackBar('API not available');
+        _showSnackBar(localizations.errorConnectionUnavailable);
       }
       return;
     }
@@ -46,7 +47,7 @@ extension _ReaderAnnotationSync on _ReaderState {
 
       await _fetchLatestBookmarks();
       if (showFeedback) {
-        _showSnackBar('Annotations synced');
+        _showSnackBar(localizations.readerAnnotationsSynced);
       }
     } catch (e, s) {
       logger(
@@ -55,7 +56,7 @@ extension _ReaderAnnotationSync on _ReaderState {
         level: InfoLevel.error,
       );
       if (showFeedback) {
-        _showSnackBar('Failed to sync annotations: $e');
+        _showSnackBar(localizations.errorAnnotationsSyncFailed);
       }
     } finally {
       _annotationSyncInFlight = false;
@@ -63,10 +64,11 @@ extension _ReaderAnnotationSync on _ReaderState {
   }
 
   Future<bool> _loadAnnotationsFromApi({required bool isEpubMode, bool showFeedback = true}) async {
+    final localizations = context.l10n;
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
       if (showFeedback) {
-        _showSnackBar('API not available');
+        _showSnackBar(localizations.errorConnectionUnavailable);
       }
       return false;
     }
@@ -76,7 +78,7 @@ extension _ReaderAnnotationSync on _ReaderState {
       bookmarks = await _fetchLatestBookmarks();
     } catch (e) {
       if (showFeedback) {
-        _showSnackBar('Failed to load annotations from server: $e');
+        _showSnackBar(localizations.errorAnnotationsLoadFailed);
       }
       return false;
     }
@@ -86,7 +88,7 @@ extension _ReaderAnnotationSync on _ReaderState {
         .toList(growable: false);
     if (annotationBookmarks.isEmpty) {
       if (showFeedback) {
-        _showSnackBar('No annotations found for this item');
+        _showSnackBar(localizations.statusNoAnnotations);
       }
       return true;
     }
@@ -103,14 +105,14 @@ extension _ReaderAnnotationSync on _ReaderState {
       decodedPayload = jsonDecode(bookmark.title);
     } catch (e) {
       if (showFeedback) {
-        _showSnackBar('Stored annotations are invalid: $e');
+        _showSnackBar(localizations.errorStoredAnnotationsInvalid);
       }
       return true;
     }
 
     if (decodedPayload is! List) {
       if (showFeedback) {
-        _showSnackBar('Stored annotations are invalid');
+        _showSnackBar(localizations.errorStoredAnnotationsInvalid);
       }
       return true;
     }
@@ -128,7 +130,7 @@ extension _ReaderAnnotationSync on _ReaderState {
 
     if (annotations.isEmpty) {
       if (showFeedback) {
-        _showSnackBar('No valid annotations found for this item');
+        _showSnackBar(localizations.statusNoValidAnnotations);
       }
       return true;
     }
@@ -155,8 +157,8 @@ extension _ReaderAnnotationSync on _ReaderState {
       if (showFeedback) {
         _showSnackBar(
           parsedPdfAnnotations.isEmpty
-              ? 'No PDF annotations found for this item'
-              : 'Loaded ${parsedPdfAnnotations.length} PDF annotations',
+              ? localizations.statusNoPdfAnnotations
+              : localizations.statusPdfAnnotationsLoaded(parsedPdfAnnotations.length),
         );
       }
 
@@ -166,7 +168,7 @@ extension _ReaderAnnotationSync on _ReaderState {
     final epubAnnotations = annotations.where((annotation) => !_isPdfAnnotation(annotation)).toList(growable: false);
     if (epubAnnotations.isEmpty) {
       if (showFeedback) {
-        _showSnackBar('No EPUB annotations found for this item');
+        _showSnackBar(localizations.statusNoEpubAnnotations);
       }
       return true;
     }
@@ -203,7 +205,7 @@ extension _ReaderAnnotationSync on _ReaderState {
         level: InfoLevel.error,
       );
       if (showFeedback) {
-        _showSnackBar('Failed to apply EPUB annotations: $e');
+        _showSnackBar(localizations.errorAnnotationsLoadFailed);
       }
       return false;
     } finally {
@@ -211,7 +213,7 @@ extension _ReaderAnnotationSync on _ReaderState {
     }
 
     if (showFeedback) {
-      _showSnackBar('Loaded EPUB annotations');
+      _showSnackBar(localizations.statusEpubAnnotationsLoaded);
     }
 
     return true;

@@ -4,6 +4,7 @@ import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
 import 'package:yaabsa/screens/player/components/bookmark_title_dialog.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class BookmarkAddButton extends ConsumerStatefulWidget {
@@ -25,8 +26,7 @@ class _BookmarkAddButtonState extends ConsumerState<BookmarkAddButton> {
 
     final bookmarkTime = audioHandler.position.inSeconds;
     if (bookmarkTime <= 0) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Play a little further before creating a bookmark.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorBookmarkPlaybackRequired)));
       return;
     }
 
@@ -52,14 +52,14 @@ class _BookmarkAddButtonState extends ConsumerState<BookmarkAddButton> {
         SnackBar(
           content: Text(
             bookmark == null
-                ? 'Failed to create bookmark.'
-                : 'Bookmark added at ${Duration(seconds: bookmarkTime).toHhMmString()}',
+                ? context.l10n.errorBookmarkCreateFailed
+                : context.l10n.statusBookmarkAddedAt(Duration(seconds: bookmarkTime).toHhMmString()),
           ),
         ),
       );
     } catch (_) {
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(content: Text('Could not create bookmark right now.')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.errorBookmarkCreateFailed)));
       }
     } finally {
       if (mounted) {
@@ -86,7 +86,7 @@ class _BookmarkAddButtonState extends ConsumerState<BookmarkAddButton> {
           icon: _isCreating
               ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.add_rounded),
-          label: Text(_isCreating ? 'Adding' : 'Add bookmark'),
+          label: Text(_isCreating ? context.l10n.statusAddingBookmark : context.l10n.actionAddBookmark),
         );
       },
     );

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class ReaderAppearancePreview extends ConsumerWidget {
@@ -35,6 +36,8 @@ class ReaderAppearancePreview extends ConsumerWidget {
       _ => const Color(0xFF5B4636),
     };
 
+    final localizations = context.l10n;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       padding: const EdgeInsets.all(20),
@@ -44,9 +47,9 @@ class ReaderAppearancePreview extends ConsumerWidget {
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Semantics(
-        label: 'Reading appearance preview',
+        label: localizations.readerAppearancePreviewLabel,
         child: Text(
-          'A quiet moment, a new chapter. Make the page comfortable for you.',
+          localizations.readerAppearancePreviewText,
           style: TextStyle(
             color: foreground,
             fontSize: 16 * settings.getGlobalSetting<double>(SettingKeys.readerFontSizeMultiplier),
@@ -67,11 +70,12 @@ class ReaderPageColorPicker extends ConsumerWidget {
     ref.watch(globalSettingByKeyProvider(SettingKeys.readerTheme));
     final settings = ref.read(settingsManagerProvider.notifier);
     final selected = settings.getGlobalSetting<String>(SettingKeys.readerTheme);
-    const themes = [
-      ('light', 'Paper', Color(0xFFFFFEFA), Color(0xFF26231D)),
-      ('sepia', 'Sepia', Color(0xFFF4ECD8), Color(0xFF5B4636)),
-      ('grey', 'Grey', Color(0xFF2E2E2E), Color(0xFFE0E0E0)),
-      ('dark', 'Night', Color(0xFF121212), Color(0xFFE0E0E0)),
+    final localizations = context.l10n;
+    final themes = [
+      ('light', localizations.readerThemePaper, const Color(0xFFFFFEFA), const Color(0xFF26231D)),
+      ('sepia', localizations.readerThemeSepia, const Color(0xFFF4ECD8), const Color(0xFF5B4636)),
+      ('grey', localizations.readerThemeGrey, const Color(0xFF2E2E2E), const Color(0xFFE0E0E0)),
+      ('dark', localizations.readerThemeNight, const Color(0xFF121212), const Color(0xFFE0E0E0)),
     ];
 
     return Padding(
@@ -83,7 +87,7 @@ class ReaderPageColorPicker extends ConsumerWidget {
           for (final (value, label, background, foreground) in themes)
             Semantics(
               selected: selected == value,
-              label: '$label page color',
+              label: localizations.readerPageColorOption(label),
               child: Material(
                 color: background,
                 shape: RoundedRectangleBorder(
@@ -177,18 +181,32 @@ class ReaderPageGeometrySettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = context.l10n;
+
     return Column(
       children: [
         SettingSlider<double>(
-          label: 'Page margins',
+          label: localizations.readerFieldPageMargins,
           values: const [16.0, 24.0, 32.0, 48.0, 64.0],
-          valueLabels: const ['Narrow', 'Small', 'Medium', 'Large', 'Wide'],
+          valueLabels: [
+            localizations.sizeNarrow,
+            localizations.sizeSmall,
+            localizations.sizeMedium,
+            localizations.sizeLarge,
+            localizations.sizeWide,
+          ],
           settingKey: SettingKeys.readerPageMargin,
         ),
         SettingSlider<double>(
-          label: 'Reading width',
+          label: localizations.readerFieldReadingWidth,
           values: const [480.0, 600.0, 720.0, 840.0, 960.0],
-          valueLabels: const ['Narrow', 'Compact', 'Comfortable', 'Wide', 'Full'],
+          valueLabels: [
+            localizations.sizeNarrow,
+            localizations.sizeCompact,
+            localizations.sizeComfortable,
+            localizations.sizeWide,
+            localizations.sizeFull,
+          ],
           settingKey: SettingKeys.readerPageWidth,
         ),
       ],

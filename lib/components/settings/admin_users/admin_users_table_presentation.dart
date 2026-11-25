@@ -3,6 +3,8 @@ import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_badge.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminUsersTablePresentation extends StatelessWidget {
   const AdminUsersTablePresentation({
@@ -32,6 +34,7 @@ class AdminUsersTablePresentation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final hasSearchQuery = searchQuery.trim().isNotEmpty;
 
     return ExpressiveActionTable<AdminUser>(
@@ -42,7 +45,7 @@ class AdminUsersTablePresentation extends StatelessWidget {
       columns: [
         ExpressiveTableColumn<AdminUser>(
           id: 'user',
-          label: 'User',
+          label: l10n.fieldUser,
           width: 240,
           cellBuilder: (context, user) => _AdminUserIdentity(user: user),
           mobileCellBuilder: (context, user) => _AdminUserIdentity(user: user, showEmail: true),
@@ -50,69 +53,71 @@ class AdminUsersTablePresentation extends StatelessWidget {
         ),
         ExpressiveTableColumn<AdminUser>(
           id: 'type',
-          label: 'Type',
+          label: l10n.fieldType,
           width: 100,
           alignment: ExpressiveTableCellAlignment.center,
-          cellBuilder: (context, user) =>
-              Text(user.type.toLowerCase(), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+          cellBuilder: (context, user) => Text(
+            l10n.userRoleName(user.type.toLowerCase()),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         ExpressiveTableColumn<AdminUser>(
           id: 'email',
-          label: 'Email',
+          label: l10n.fieldEmail,
           width: 220,
           showOnMobile: false,
-          cellBuilder: (context, user) => Text(_emailFor(user), maxLines: 1, overflow: TextOverflow.ellipsis),
+          cellBuilder: (context, user) => Text(_emailFor(user, l10n), maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<AdminUser>(
           id: 'created',
-          label: 'Created',
+          label: l10n.fieldCreated,
           width: 148,
           showOnMobile: false,
           cellBuilder: (context, user) =>
-              Text(_formatAdminUserDate(user.createdAt), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(_formatAdminUserDate(user.createdAt, l10n), maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<AdminUser>(
           id: 'last-seen',
-          label: 'Last seen',
+          label: l10n.fieldLastSeen,
           width: 148,
-          headerTooltip: 'Last seen updates when the user connects via websocket. It may not reflect offline-listening syncs or third-party clients that do not use websockets.',
+          headerTooltip: l10n.messageLastSeenDetails,
           cellBuilder: (context, user) =>
-              Text(_formatAdminUserDate(user.lastSeen), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(_formatAdminUserDate(user.lastSeen, l10n), maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       ],
       actions: [
         ExpressiveTableAction<AdminUser>(
           icon: Icons.qr_code_2_rounded,
-          tooltip: 'Create Authentication Code',
+          tooltip: l10n.actionCreateAuthenticationCode,
           onPressed: onCreateAuthenticationCode,
         ),
-        ExpressiveTableAction<AdminUser>(icon: Icons.edit_outlined, tooltip: 'Edit user', onPressed: onEditUser),
+        ExpressiveTableAction<AdminUser>(icon: Icons.edit_outlined, tooltip: l10n.actionEdit, onPressed: onEditUser),
         ExpressiveTableAction<AdminUser>(
           icon: Icons.power_settings_new_rounded,
-          tooltip: 'Enable or disable user',
+          tooltip: l10n.actionEnableOrDisableUser,
           isVisible: (user) => !user.isRoot,
           iconBuilder: (user) => user.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded,
-          tooltipBuilder: (user) => user.isActive ? 'Disable user' : 'Enable user',
+          tooltipBuilder: (user) => user.isActive ? l10n.actionDisableUser : l10n.actionEnableUser,
           onPressed: onToggleUserActive,
         ),
         ExpressiveTableAction<AdminUser>(
           icon: Icons.link_off_rounded,
-          tooltip: 'Unlink OpenID',
+          tooltip: l10n.actionUnlinkOpenId,
           isVisible: (user) => user.hasLinkedOpenId,
           onPressed: onUnlinkOpenId,
         ),
         ExpressiveTableAction<AdminUser>(
           icon: Icons.delete_outline_rounded,
-          tooltip: 'Delete user',
+          tooltip: l10n.actionDelete,
           tone: ExpressiveTableActionTone.danger,
           isEnabled: (user) => activeUserId != user.id,
           onPressed: onDeleteUser,
         ),
       ],
-      emptyTitle: hasSearchQuery ? 'No users match your current search.' : 'No users found on this server.',
-      emptySubtitle: hasSearchQuery
-          ? 'Try a different username, role, or email filter.'
-          : 'Create users to manage access and permissions.',
+      emptyTitle: hasSearchQuery ? l10n.statusNoUsersMatchSearch : l10n.statusNoUsersFound,
+      emptySubtitle: hasSearchQuery ? l10n.messageTryDifferentUserFilter : l10n.messageCreateUsersForAccess,
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       padding: EdgeInsets.zero,
@@ -130,6 +135,7 @@ class _AdminUserIdentity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final statusColor = user.isActive ? colorScheme.primary : colorScheme.outline;
     final identity = Wrap(
@@ -144,7 +150,7 @@ class _AdminUserIdentity extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         AdminUserBadge(
-          label: user.isActive ? 'ACTIVE' : 'DISABLED',
+          label: (user.isActive ? l10n.statusActive : l10n.statusDisabled).toUpperCase(),
           color: statusColor,
           icon: user.isActive ? Icons.check_circle_rounded : Icons.do_not_disturb_on_rounded,
         ),
@@ -163,7 +169,7 @@ class _AdminUserIdentity extends StatelessWidget {
         identity,
         const SizedBox(height: 4),
         Text(
-          _emailFor(user),
+          _emailFor(user, l10n),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodySmall,
@@ -173,25 +179,19 @@ class _AdminUserIdentity extends StatelessWidget {
   }
 }
 
-String _emailFor(AdminUser user) {
+String _emailFor(AdminUser user, AppLocalizations l10n) {
   final email = user.email?.trim();
   if (email == null || email.isEmpty) {
-    return 'No email';
+    return l10n.statusNoEmail;
   }
 
   return email;
 }
 
-String _formatAdminUserDate(int? value) {
+String _formatAdminUserDate(int? value, AppLocalizations l10n) {
   if (value == null || value <= 0) {
-    return 'Unknown';
+    return l10n.statusUnknown;
   }
 
-  final date = DateTime.fromMillisecondsSinceEpoch(value);
-  final year = date.year.toString().padLeft(4, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-  final hour = date.hour.toString().padLeft(2, '0');
-  final minute = date.minute.toString().padLeft(2, '0');
-  return '$year-$month-$day $hour:$minute';
+  return formatDateTimeLabel(DateTime.fromMillisecondsSinceEpoch(value));
 }

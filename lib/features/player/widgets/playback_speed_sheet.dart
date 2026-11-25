@@ -1,6 +1,7 @@
-import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlaybackSpeedSheet extends StatefulWidget {
   const PlaybackSpeedSheet({super.key, required this.initialSpeed, required this.onApplySpeed});
@@ -43,15 +44,15 @@ class _PlaybackSpeedSheetState extends State<PlaybackSpeedSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Playback speed', style: Theme.of(context).textTheme.titleLarge),
+          Text(context.l10n.playbackSpeed, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
-          Text('${_formatSheetSpeed(_value)}x', style: Theme.of(context).textTheme.titleMedium),
+          Text(_formatSpeedMultiplier(context, _value), style: Theme.of(context).textTheme.titleMedium),
           Slider(
             value: _value,
             min: PlaybackSpeedSheet.minSpeed,
             max: PlaybackSpeedSheet.maxSpeed,
             divisions: 25,
-            label: '${_value.toStringAsFixed(1)}x',
+            label: _formatSpeedMultiplier(context, _value),
             onChanged: (newValue) {
               setState(() {
                 _value = _roundToStep(newValue);
@@ -74,17 +75,19 @@ class _PlaybackSpeedSheetState extends State<PlaybackSpeedSheet> {
           StyledTextField(
             controller: _customController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
             onSubmitted: (_) => _applyCustomValue(),
-            label: 'Custom value',
-            hintText: '0.5 - 3.0',
+            label: context.l10n.speedCustomValue,
+            hintText: context.l10n.speedRangeHint(PlaybackSpeedSheet.minSpeed, PlaybackSpeedSheet.maxSpeed),
             suffixText: 'x',
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(context.l10n.actionCancel),
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -98,7 +101,7 @@ class _PlaybackSpeedSheetState extends State<PlaybackSpeedSheet> {
 
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Apply'),
+                  child: Text(context.l10n.actionApply),
                 ),
               ),
             ],
@@ -122,7 +125,8 @@ class _PlaybackSpeedSheetState extends State<PlaybackSpeedSheet> {
       return false;
     }
 
-    final parsed = double.tryParse(raw);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final parsed = NumberFormat.decimalPattern(locale).tryParse(raw)?.toDouble();
 
     if (parsed == null) {
       return false;
@@ -147,16 +151,6 @@ class _PlaybackSpeedSheetState extends State<PlaybackSpeedSheet> {
 
     return _clampSpeed(normalized);
   }
-
-  String _formatSheetSpeed(double value) {
-    final roundedToTenth = (value * 10).round() / 10;
-
-    if ((value - roundedToTenth).abs() < 0.000000001) {
-      return roundedToTenth.toStringAsFixed(1);
-    }
-
-    return value.toString();
-  }
 }
 
 class _PresetButton extends StatelessWidget {
@@ -167,6 +161,10 @@ class _PresetButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionChip(label: Text('${value.toStringAsFixed(1)}x'), onPressed: () => onTap(value));
+    return ActionChip(label: Text(_formatSpeedMultiplier(context, value)), onPressed: () => onTap(value));
   }
+}
+
+String _formatSpeedMultiplier(BuildContext context, double value) {
+  return context.l10n.playbackSpeedMultiplier(value);
 }

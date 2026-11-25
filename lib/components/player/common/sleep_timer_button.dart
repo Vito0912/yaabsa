@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:flutter/services.dart';
 
 import 'sleep_timer_modal.dart';
@@ -42,7 +43,7 @@ class SleepTimerButton extends ConsumerWidget {
       iconSize: 24,
       buttonSize: _buttonSize,
       compact: false,
-      tooltip: 'Sleep timer',
+      tooltip: context.l10n.playbackSleepTimer,
       onPressed: () => showSleepTimerSheet(context, ref),
       onLongPress: () => _toggleSleepTimerMarker(ref),
     );

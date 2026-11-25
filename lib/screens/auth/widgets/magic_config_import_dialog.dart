@@ -2,6 +2,7 @@ import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<String?> showMagicConfigImportDialog(BuildContext context) {
   return showDialog<String>(context: context, builder: (context) => const _MagicConfigImportDialog());
@@ -32,7 +33,7 @@ class _MagicConfigImportDialogState extends State<_MagicConfigImportDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Import Authentication Code'),
+      title: Text(context.l10n.authImportCodeTitle),
       content: SizedBox(
         width: 520,
         child: Column(
@@ -44,8 +45,8 @@ class _MagicConfigImportDialogState extends State<_MagicConfigImportDialog> {
               minLines: 3,
               maxLines: 8,
               autofocus: true,
-              label: 'Authentication Code',
-              hintText: 'Paste the raw Authentication Code here',
+              label: context.l10n.fieldAuthenticationCode,
+              hintText: context.l10n.authCodeHint,
             ),
             const SizedBox(height: 12),
             if (_scannerSupported)
@@ -61,13 +62,13 @@ class _MagicConfigImportDialogState extends State<_MagicConfigImportDialog> {
                   Navigator.pop(context, value);
                 },
                 icon: const Icon(Icons.qr_code_scanner_rounded),
-                label: const Text('Scan QR code'),
+                label: Text(context.l10n.actionScanQrCode),
               ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionCancel)),
         FilledButton(
           onPressed: () {
             final value = _controller.text.trim();
@@ -75,7 +76,7 @@ class _MagicConfigImportDialogState extends State<_MagicConfigImportDialog> {
               Navigator.pop(context, value);
             }
           },
-          child: const Text('Import'),
+          child: Text(context.l10n.actionImport),
         ),
       ],
     );
@@ -127,12 +128,15 @@ class _MagicQrScannerDialogState extends State<_MagicQrScannerDialog> {
                         Icon(Icons.no_photography_outlined, size: 48, color: Theme.of(context).colorScheme.error),
                         const SizedBox(height: 12),
                         Text(
-                          'Camera access is unavailable. Allow camera access in the device settings, or paste the raw code instead.',
+                          context.l10n.authCameraUnavailable,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         const SizedBox(height: 16),
-                        FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Close scanner')),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(context.l10n.actionCloseScanner),
+                        ),
                       ],
                     ),
                   ),
@@ -148,11 +152,11 @@ class _MagicQrScannerDialogState extends State<_MagicQrScannerDialog> {
                     IconButton.filledTonal(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close_rounded),
-                      tooltip: 'Close scanner',
+                      tooltip: context.l10n.actionCloseScanner,
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Scan Authentication Code',
+                      context.l10n.authScanCodeTitle,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
                     ),
                   ],
@@ -171,14 +175,14 @@ class _MagicQrScannerDialogState extends State<_MagicQrScannerDialog> {
                 ),
               ),
             ),
-            const Align(
+            Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(24, 24, 24, 32),
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
                 child: Text(
-                  'Point the camera at the QR code',
+                  context.l10n.authScanCodeInstruction,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
             ),
@@ -219,11 +223,11 @@ class _MagicPasswordChangeDialogState extends State<_MagicPasswordChangeDialog> 
   void _submit() {
     final newPassword = _newPasswordController.text;
     if (newPassword.isEmpty) {
-      setState(() => _error = 'New password is required.');
+      setState(() => _error = context.l10n.authInitialPasswordRequired);
       return;
     }
     if (newPassword != _confirmationController.text) {
-      setState(() => _error = 'Passwords do not match.');
+      setState(() => _error = context.l10n.authPasswordsDoNotMatch);
       return;
     }
     Navigator.pop(context, newPassword);
@@ -232,25 +236,25 @@ class _MagicPasswordChangeDialogState extends State<_MagicPasswordChangeDialog> 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Change your initial password'),
+      title: Text(context.l10n.authChangeInitialPasswordTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('For your security, the initial password from this Authentication Code can only be used once.'),
+          Text(context.l10n.authInitialPasswordWarning),
           const SizedBox(height: 14),
           StyledTextField(
             controller: _newPasswordController,
             obscureText: true,
             autofocus: true,
-            label: 'New password',
+            label: context.l10n.fieldPassword,
           ),
           const SizedBox(height: 10),
           StyledTextField(
             controller: _confirmationController,
             obscureText: true,
             onSubmitted: (_) => _submit(),
-            label: 'Confirm new password',
+            label: context.l10n.authConfirmPassword,
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
@@ -259,8 +263,8 @@ class _MagicPasswordChangeDialogState extends State<_MagicPasswordChangeDialog> 
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        FilledButton(onPressed: _submit, child: const Text('Change password')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionCancel)),
+        FilledButton(onPressed: _submit, child: Text(context.l10n.actionChange)),
       ],
     );
   }

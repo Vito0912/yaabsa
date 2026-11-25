@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ReaderProgressControls extends StatefulWidget {
   const ReaderProgressControls({
@@ -46,8 +48,12 @@ class _ReaderProgressControlsState extends State<ReaderProgressControls> {
     }
 
     final theme = Theme.of(context);
+    final localizations = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
+    final percentageFormatter = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
     final visible = widget.visible;
     final fraction = _pendingFraction ?? widget.fraction;
+    final progressLabel = percentageFormatter.format(fraction);
 
     return Material(
       color: theme.colorScheme.surface,
@@ -65,7 +71,7 @@ class _ReaderProgressControlsState extends State<ReaderProgressControls> {
                     Row(
                       children: [
                         IconButton(
-                          tooltip: 'Previous page',
+                          tooltip: localizations.paginationPreviousPage,
                           onPressed: widget.canGoPrevious ? widget.onPrevious : null,
                           icon: const Icon(Icons.chevron_left_rounded),
                         ),
@@ -79,24 +85,24 @@ class _ReaderProgressControlsState extends State<ReaderProgressControls> {
                                 style: theme.textTheme.labelLarge,
                               ),
                               Text(
-                                _pendingFraction == null ? widget.progress : '${(fraction * 100).round()}%',
+                                _pendingFraction == null ? widget.progress : progressLabel,
                                 style: theme.textTheme.bodySmall,
                               ),
                             ],
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Next page',
+                          tooltip: localizations.paginationNextPage,
                           onPressed: widget.canGoNext ? widget.onNext : null,
                           icon: const Icon(Icons.chevron_right_rounded),
                         ),
                       ],
                     ),
                     Semantics(
-                      label: 'Reading position',
+                      label: localizations.readerFieldReadingPosition,
                       child: Slider(
                         value: fraction,
-                        label: '${(fraction * 100).round()}%',
+                        label: progressLabel,
                         onChanged: (value) {
                           setState(() {
                             _pendingFraction = value;
@@ -117,12 +123,12 @@ class _ReaderProgressControlsState extends State<ReaderProgressControls> {
                         TextButton.icon(
                           onPressed: widget.onContents,
                           icon: const Icon(Icons.format_list_bulleted_rounded, size: 20),
-                          label: const Text('Contents & notes'),
+                          label: Text(localizations.readerContentsAndNotes),
                         ),
                         TextButton.icon(
                           onPressed: widget.onToggleControls,
                           icon: const Icon(Icons.fullscreen_rounded, size: 20),
-                          label: const Text('Focus'),
+                          label: Text(localizations.actionFocus),
                         ),
                       ],
                     ),

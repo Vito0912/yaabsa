@@ -4,6 +4,7 @@ import 'package:yaabsa/features/player/widgets/player_collection_empty_presentat
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -43,14 +44,14 @@ class _ChapterViewState extends State<ChapterView> {
           }
 
           final empty = widget.emptyMode == PlayerCollectionEmptyMode.compact
-              ? const PlayerCollectionEmptyPresentation(
+              ? PlayerCollectionEmptyPresentation(
                   icon: Icons.menu_book_outlined,
-                  title: 'No chapters available',
+                  title: context.l10n.statusNoChaptersAvailable,
                   density: PlayerCollectionEmptyDensity.compact,
                 )
               : PlayerCollectionEmptyPresentation(
                   icon: Icons.menu_book_outlined,
-                  title: 'No chapters available',
+                  title: context.l10n.statusNoChaptersAvailable,
                   subtitle: mediaItem.title,
                 );
 

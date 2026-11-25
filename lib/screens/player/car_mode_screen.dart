@@ -12,6 +12,7 @@ import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class CarModeScreen extends ConsumerWidget {
@@ -43,7 +44,7 @@ class CarModeScreen extends ConsumerWidget {
     final rewindSeconds = SettingsParser.decodeValue<int>(rewindVal, 10);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Car Mode'), actions: const [StopButton()]),
+      appBar: AppBar(title: Text(context.l10n.navCarMode), actions: const [StopButton()]),
       body: StreamBuilder<InternalMedia?>(
         stream: audioHandler.mediaItemStream.stream,
         builder: (context, snapshot) {
@@ -129,7 +130,7 @@ class CarModeScreen extends ConsumerWidget {
                                         if (showAuthor) SizedBox(height: titleToAuthorGap),
                                         if (showAuthor)
                                           Text(
-                                            media.author ?? 'Unknown Author',
+                                            media.author ?? context.l10n.unknownAuthor,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             textAlign: TextAlign.center,

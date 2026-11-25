@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:yaabsa/features/upload/library_upload_models.dart';
 import 'package:yaabsa/util/file_formats.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class UploadDraftFactory {
   UploadDraftFactory({required this.isBookLibrary, required this.libraryName});
@@ -99,7 +100,7 @@ class UploadDraftFactory {
               ignoredFiles: const <UploadPickedFile>[],
               sourceDescription: file.relativePath,
               message: (otherFiles.isNotEmpty || ignoredFiles.isNotEmpty)
-                  ? 'Non-book sidecar files were ignored for multi-file book upload grouping.'
+                  ? currentAppLocalizations().uploadIgnoredNonBookSidecarFiles
                   : null,
             ),
           )

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/subtitles/subtitle_loader.dart';
 import 'package:yaabsa/util/subtitles/subtitle_parser.dart';
@@ -66,7 +67,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
       defaultValue: defaultSettings[SettingKeys.subtitleReadAlong] as bool? ?? true,
     );
     if (!subtitlesEnabled) {
-      return const Center(child: Text('Subtitles are disabled in player settings.'));
+      return Center(child: Text(context.l10n.statusSubtitlesDisabled));
     }
 
     return StreamBuilder(
@@ -75,7 +76,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
       builder: (context, mediaSnapshot) {
         final media = mediaSnapshot.data;
         if (media == null) {
-          return const Center(child: Text('Start playback to use continuous subtitle reading mode.'));
+          return Center(child: Text(context.l10n.hintStartPlaybackForSubtitleReading));
         }
 
         final subtitleFuture = loadSubtitleDocumentForItem(
@@ -94,7 +95,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
 
             final loaded = subtitleSnapshot.data;
             if (loaded == null) {
-              return const Center(child: Text('No subtitles available for this title.'));
+              return Center(child: Text(context.l10n.statusNoSubtitlesAvailable));
             }
 
             final document = loaded.document;
@@ -116,7 +117,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
                 }
 
                 if (cueIndex < 0 || cueIndex >= document.cues.length) {
-                  return const Center(child: Text('Waiting for subtitle cue...'));
+                  return Center(child: Text(context.l10n.statusWaitingForSubtitleCue));
                 }
 
                 final activeParagraphIndex = paragraphLayout.cueToParagraphIndex[cueIndex];

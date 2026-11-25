@@ -7,6 +7,7 @@ import 'package:yaabsa/screens/player/chapter_quick_picker.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/screens/player/queue_quick_picker.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerActionBar extends StatelessWidget {
   const PlayerActionBar({
@@ -65,7 +66,7 @@ class PlayerActionBar extends StatelessWidget {
             dimension: 48,
             child: YaabsaActionIconButton(
               icon: action.icon,
-              tooltip: action.label,
+              tooltip: action.label(context.l10n),
               tone: YaabsaActionTone.neutral,
               onPressed: override,
             ),
@@ -99,7 +100,7 @@ class PlayerActionBar extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            action.label,
+            action.label(context.l10n),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.labelSmall

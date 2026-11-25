@@ -6,6 +6,7 @@ import 'package:yaabsa/components/app/item/book_list_membership_dialog.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/util/playlist_membership.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void> showBookPlaylistMembershipDialog({required BuildContext context, required LibraryItem item}) async {
   if (item.libraryId == null || item.libraryId!.isEmpty) {
@@ -17,7 +18,7 @@ Future<void> showBookPlaylistMembershipDialog({required BuildContext context, re
     builder: (_) => BookPlaylistMembershipDialog(item: item),
   );
   if (saved == true && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Playlists updated.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusPlaylistsUpdated)));
   }
 }
 
@@ -43,7 +44,7 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
       nextPageError: lists.value?.nextPageError,
       onLoadMore: () => ref.read(playlistsProvider(libraryId).notifier).loadNextPage(),
       allowed: userId != null && userId.isNotEmpty,
-      plural: 'playlists',
+      plural: context.l10n.entityPlaylists,
       id: (entry) => entry.id,
       name: (entry) => entry.name,
       membership: (entry) => switch (playlistMembership(entry, item.id)) {
@@ -55,10 +56,10 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
       canRetryEntry: (entry) => !hasCompletePlaylistItems(entry),
       disabledReason: (entry) {
         if (!canEditPlaylistMembership(entry, userId)) {
-          return 'Only your own playlists can be edited.';
+          return context.l10n.errorOnlyOwnPlaylistsCanBeEdited;
         }
         if (!hasCompletePlaylistItems(entry)) {
-          return 'Full item list unavailable.';
+          return context.l10n.errorFullListUnavailable;
         }
         return null;
       },
@@ -79,13 +80,17 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
               context: context,
               builder: (dialogContext) => AlertDialog(
                 scrollable: true,
-                title: const Text('Delete empty playlists?'),
-                content: Text(
-                  'Removing this book will leave these playlists empty. Audiobookshelf will delete them:\n\n${deleted.join('\n')}',
-                ),
+                title: Text(context.l10n.headingDeleteEmptyPlaylists),
+                content: Text(context.l10n.promptRemovingBookMayDeleteEmptyPlaylists(deleted.join('\n'))),
                 actions: [
-                  TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-                  FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Continue')),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                    child: Text(dialogContext.l10n.actionCancel),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                    child: Text(dialogContext.l10n.actionContinue),
+                  ),
                 ],
               ),
             ) ??

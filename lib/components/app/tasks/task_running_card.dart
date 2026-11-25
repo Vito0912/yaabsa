@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/tasks/abs_task.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class TaskRunningCard extends StatelessWidget {
   const TaskRunningCard({super.key, required this.task, this.progressLabel});
@@ -10,13 +11,14 @@ class TaskRunningCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isFinished = task.isFinished;
     final isFailed = task.isFailed;
 
-    final title = _taskTitle(task);
+    final title = _taskTitle(task, l10n);
     final description = task.description?.trim();
     final failureMessage = task.error?.trim();
-    final scanSummary = _scanSummary(task.data?.scanResults);
+    final scanSummary = _scanSummary(task.data?.scanResults, l10n);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
@@ -92,7 +94,7 @@ class TaskRunningCard extends StatelessWidget {
   }
 }
 
-String _taskTitle(AbsTask task) {
+String _taskTitle(AbsTask task, AppLocalizations l10n) {
   final explicitTitle = task.title?.trim();
   if (explicitTitle != null && explicitTitle.isNotEmpty) {
     return explicitTitle;
@@ -100,39 +102,39 @@ String _taskTitle(AbsTask task) {
 
   switch (task.action) {
     case 'embed-metadata':
-      return 'Embedding Metadata';
+      return l10n.taskEmbeddingMetadata;
     case 'encode-m4b':
-      return 'Encoding M4B';
+      return l10n.taskEncodingM4b;
     case 'library-scan':
-      return 'Scanning Library';
+      return l10n.taskScanningLibrary;
     case 'library-match-all':
-      return 'Matching Library Items';
+      return l10n.taskMatchingLibraryItems;
     case 'scan-item':
-      return 'Scanning Item';
+      return l10n.taskScanningItem;
     default:
-      return task.action.trim().isEmpty ? 'Task' : task.action;
+      return task.action.trim().isEmpty ? l10n.taskGeneric : task.action;
   }
 }
 
-String? _scanSummary(AbsTaskScanResults? scanResults) {
+String? _scanSummary(AbsTaskScanResults? scanResults, AppLocalizations l10n) {
   if (scanResults == null) {
     return null;
   }
 
   final segments = <String>[];
   if ((scanResults.added ?? 0) > 0) {
-    segments.add('Added ${scanResults.added}');
+    segments.add(l10n.taskScanAddedCount(scanResults.added!));
   }
   if ((scanResults.updated ?? 0) > 0) {
-    segments.add('Updated ${scanResults.updated}');
+    segments.add(l10n.taskScanUpdatedCount(scanResults.updated!));
   }
   if ((scanResults.missing ?? 0) > 0) {
-    segments.add('Missing ${scanResults.missing}');
+    segments.add(l10n.taskScanMissingCount(scanResults.missing!));
   }
 
   if ((scanResults.elapsed ?? 0) > 0) {
     final elapsed = Duration(milliseconds: scanResults.elapsed!);
-    segments.add('Elapsed ${elapsed.inSeconds}s');
+    segments.add(l10n.taskScanElapsed(l10n.durationCompactSeconds(elapsed.inSeconds)));
   }
 
   if (segments.isEmpty) {

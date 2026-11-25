@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'library_control_sheet.dart';
 
@@ -118,7 +119,7 @@ class _SortDirectionIndicator extends StatelessWidget {
     final label = isDescending ? 'DESC' : 'ASC';
 
     return Semantics(
-      label: isDescending ? 'Descending' : 'Ascending',
+      label: isDescending ? context.l10n.sortDescending : context.l10n.sortAscending,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(

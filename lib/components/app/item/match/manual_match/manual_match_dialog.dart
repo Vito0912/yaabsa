@@ -24,6 +24,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<bool> showLibraryItemManualMatchDialog({
@@ -106,7 +107,7 @@ class LibraryItemManualMatchDialog extends StatelessWidget {
             children: [
               Spacer(),
               IconButton(
-                tooltip: 'Close',
+                tooltip: context.l10n.actionClose,
                 onPressed: () => Navigator.of(context).pop(false),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -258,25 +259,26 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
   }
 
   Future<void> _runSearch(List<SearchProviderOption> providers) async {
+    final l10n = context.l10n;
     if (_searching) {
       return;
     }
 
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a title.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorManualMatchTitleRequired)));
       return;
     }
 
     final selectedProviders = providers.where((provider) => _selectedProviders.contains(provider.value)).toList();
     if (selectedProviders.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select at least one provider.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorManualMatchProviderRequired)));
       return;
     }
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorConnectionUnavailable)));
       return;
     }
 
@@ -312,7 +314,12 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
         final rawResults = extractManualMatchResultMaps(response.data);
         final parsed = rawResults
             .map(
-              (entry) => ManualMatchResult.fromMap(entry, providerValue: provider.value, providerLabel: provider.text),
+              (entry) => ManualMatchResult.fromMap(
+                entry,
+                providerValue: provider.value,
+                providerLabel: provider.text,
+                untitledLabel: l10n.statusUntitled,
+              ),
             )
             .where((entry) => entry.hasMeaningfulData)
             .toList(growable: false);
@@ -341,7 +348,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
     });
 
     if (collected.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No match results found.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorManualMatchResultsNotFound)));
     }
   }
 
@@ -372,6 +379,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
   }
 
   Future<void> _saveSelection() async {
+    final l10n = context.l10n;
     if (_saving) {
       return;
     }
@@ -381,20 +389,19 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
     }
 
     if (_enabledFields.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select at least one field to apply.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorManualMatchFieldRequired)));
       return;
     }
 
     final request = _buildUpdateRequest();
     if (request == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('No writable values were selected from this match result.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorManualMatchNoWritableFields)));
       return;
     }
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorConnectionUnavailable)));
       return;
     }
 
@@ -414,7 +421,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
       ManualMatchLastConfiguration.save(enabledFields: _enabledFields, listModes: _listModes);
       await _persistSavedConfiguration();
 
-      final message = updated ? 'Item metadata updated from manual match.' : 'No updates were necessary.';
+      final message = updated ? l10n.statusManualMatchUpdated : l10n.statusNoChangesWereNecessary;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
       if (widget.onMatched != null) {
         widget.onMatched!(updated);
@@ -426,7 +433,8 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save manual match: $error')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.errorManualMatchSaveFailed(error.toString()))));
     } finally {
       if (mounted) {
         setState(() {
@@ -925,9 +933,13 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
       case ManualMatchField.asin:
         return _normalizeText(metadata?.asin);
       case ManualMatchField.explicit:
-        return metadata?.explicit == null ? null : (metadata!.explicit! ? 'Yes' : 'No');
+        return metadata?.explicit == null
+            ? null
+            : (metadata!.explicit! ? context.l10n.optionYes : context.l10n.optionNo);
       case ManualMatchField.abridged:
-        return metadata?.abridged == null ? null : (metadata!.abridged! ? 'Yes' : 'No');
+        return metadata?.abridged == null
+            ? null
+            : (metadata!.abridged! ? context.l10n.optionYes : context.l10n.optionNo);
     }
   }
 
@@ -1066,9 +1078,15 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
                             _mobilePaneIndex = index;
                           });
                         },
-                        children: const [
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Candidates')),
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Selection')),
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(context.l10n.headingMatchCandidates),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(context.l10n.headingManualMatchSelection),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -1104,7 +1122,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
             children: [
               TextButton(
                 onPressed: _saving ? null : (widget.onCancel ?? () => Navigator.of(context).pop(false)),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.actionCancel),
               ),
               const SizedBox(width: 8),
               FilledButton.icon(
@@ -1112,7 +1130,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
                 icon: _saving
                     ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
-                label: Text(_saving ? 'Saving...' : 'Save matched fields'),
+                label: Text(_saving ? context.l10n.statusSaving : context.l10n.actionSave),
               ),
             ],
           ),

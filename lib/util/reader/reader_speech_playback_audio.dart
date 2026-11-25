@@ -65,7 +65,7 @@ extension _ReaderSpeechPlaybackAudio on ReaderSpeechPlayback {
     _subscriptions.add(
       player.errorStream.listen((error) {
         if (!_disposed) {
-          _fail(StateError('Could not play speech audio'));
+          _fail(StateError(currentAppLocalizations().errorReaderSpeechAudioUnavailable));
         }
       }),
     );
@@ -93,7 +93,7 @@ extension _ReaderSpeechPlaybackAudio on ReaderSpeechPlayback {
   void _startNative() {
     _player?.play().catchError((Object error) {
       if (!_disposed) {
-        _fail(StateError('Could not play speech audio'));
+        _fail(StateError(currentAppLocalizations().errorReaderSpeechAudioUnavailable));
       }
     }).ignore();
   }

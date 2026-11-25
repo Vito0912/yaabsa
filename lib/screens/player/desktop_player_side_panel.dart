@@ -4,16 +4,17 @@ import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
 import 'package:yaabsa/screens/player/components/bookmark_add_button.dart';
 import 'package:yaabsa/screens/player/queue.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum DesktopPlayerPanelType { bookmarks, chapters, queue }
 
 extension on DesktopPlayerPanelType {
   bool get opensFromLeft => this == DesktopPlayerPanelType.bookmarks;
 
-  String get label => switch (this) {
-    DesktopPlayerPanelType.bookmarks => 'Bookmarks',
-    DesktopPlayerPanelType.chapters => 'Chapters',
-    DesktopPlayerPanelType.queue => 'Queue',
+  String label(AppLocalizations l10n) => switch (this) {
+    DesktopPlayerPanelType.bookmarks => l10n.navBookmarks,
+    DesktopPlayerPanelType.chapters => l10n.navChapters,
+    DesktopPlayerPanelType.queue => l10n.headingQueue,
   };
 
   IconData get icon => switch (this) {
@@ -32,7 +33,7 @@ Future<void> showDesktopPlayerSidePanel(
   return showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
-    barrierLabel: 'Close ${type.label}',
+    barrierLabel: context.l10n.actionClose,
     barrierColor: Colors.black.withValues(alpha: 0.28),
     transitionDuration: const Duration(milliseconds: 280),
     pageBuilder: (context, animation, secondaryAnimation) {
@@ -66,10 +67,10 @@ Future<void> showDesktopPlayerSidePanel(
                       children: <Widget>[
                         Icon(type.icon),
                         const SizedBox(width: 12),
-                        Expanded(child: Text(type.label, style: Theme.of(context).textTheme.titleLarge)),
+                        Expanded(child: Text(type.label(context.l10n), style: Theme.of(context).textTheme.titleLarge)),
                         if (type == DesktopPlayerPanelType.bookmarks) BookmarkAddButton(itemId: media.itemId),
                         IconButton(
-                          tooltip: 'Close',
+                          tooltip: context.l10n.actionClose,
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.close_rounded),
                         ),

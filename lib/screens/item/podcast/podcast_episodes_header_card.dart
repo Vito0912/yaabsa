@@ -5,6 +5,7 @@ import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/ui/components/inputs/field_decoration.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PodcastEpisodesHeaderCard extends StatelessWidget {
   const PodcastEpisodesHeaderCard({
@@ -61,34 +62,36 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
               IconButton(
                 onPressed: onClearSelection,
                 icon: const Icon(Icons.close_rounded),
-                tooltip: 'Clear selection',
+                tooltip: context.l10n.actionClearSelection,
               ),
               const SizedBox(width: 8),
-              Text('$selectedCount selected', style: Theme.of(context).textTheme.titleMedium),
+              Text(context.l10n.selectedCount(selectedCount), style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
               if (onSelectAll != null)
                 IconButton(
                   onPressed: onSelectAll,
                   icon: const Icon(Icons.select_all_rounded),
-                  tooltip: 'Select all visible',
+                  tooltip: context.l10n.actionSelectAll,
                 ),
               if (onDownloadSelected != null)
                 IconButton(
                   onPressed: onDownloadSelected,
                   icon: const Icon(Icons.download_rounded),
-                  tooltip: 'Download selected episodes',
+                  tooltip: context.l10n.actionDownloadSelectedEpisodes,
                 ),
               if (onToggleSelectedFinished != null)
                 IconButton(
                   onPressed: onToggleSelectedFinished,
                   icon: Icon(allSelectedFinished ? Icons.remove_done_rounded : Icons.task_alt_rounded),
-                  tooltip: allSelectedFinished ? 'Mark selected as unfinished' : 'Mark selected as finished',
+                  tooltip: allSelectedFinished
+                      ? context.l10n.actionMarkAsUnfinished
+                      : context.l10n.actionMarkAsFinished,
                 ),
               if (onAddSelectedToPlaylist != null)
                 IconButton(
                   onPressed: onAddSelectedToPlaylist,
                   icon: const Icon(Icons.playlist_add_rounded),
-                  tooltip: 'Add selected episodes to playlist',
+                  tooltip: context.l10n.actionAddToPlaylist,
                 ),
             ],
           ),
@@ -97,23 +100,30 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
     }
 
     final resultLabel = visibleEpisodeCount == totalEpisodeCount
-        ? '$totalEpisodeCount episodes'
-        : '$visibleEpisodeCount of $totalEpisodeCount episodes';
+        ? context.l10n.episodeCount(totalEpisodeCount)
+        : context.l10n.statusEpisodeResultsSubset(visibleEpisodeCount, totalEpisodeCount);
     final searchField = YaabsaSearchField(
       controller: searchController,
       onChanged: onSearchChanged,
       isDense: true,
-      hintText: 'Search episodes by title',
+      hintText: context.l10n.hintSearchEpisodes,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       suffixIcon: searchQuery.trim().isEmpty
           ? null
-          : IconButton(onPressed: onClearSearch, icon: const Icon(Icons.close_rounded), tooltip: 'Clear search'),
+          : IconButton(
+              onPressed: onClearSearch,
+              icon: const Icon(Icons.close_rounded),
+              tooltip: context.l10n.actionClear,
+            ),
     );
 
     final filterButton = YaabsaExpressiveDropdownField<PodcastEpisodeProgressFilter>(
       value: progressFilter,
       options: PodcastEpisodeProgressFilter.values
-          .map((value) => YaabsaDropdownOption(value: value, label: podcastEpisodeProgressFilterLabel(value)))
+          .map(
+            (value) =>
+                YaabsaDropdownOption(value: value, label: podcastEpisodeProgressFilterLabel(value, context.l10n)),
+          )
           .toList(growable: false),
       onChanged: (value) {
         if (value != null) {
@@ -130,7 +140,7 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
     final sortButton = YaabsaExpressiveDropdownField<PodcastEpisodeSortMode>(
       value: sortMode,
       options: PodcastEpisodeSortMode.values
-          .map((value) => YaabsaDropdownOption(value: value, label: podcastEpisodeSortModeLabel(value)))
+          .map((value) => YaabsaDropdownOption(value: value, label: podcastEpisodeSortModeLabel(value, context.l10n)))
           .toList(growable: false),
       onChanged: (value) {
         if (value != null) {
@@ -152,7 +162,7 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Episodes', style: Theme.of(context).textTheme.titleMedium),
+            Text(context.l10n.headingEpisodes, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 2),
             Text(
               resultLabel,
@@ -164,11 +174,13 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
               builder: (context, constraints) {
                 final filterWidth = _widestDropdownFieldWidth(
                   context,
-                  PodcastEpisodeProgressFilter.values.map(podcastEpisodeProgressFilterLabel),
+                  PodcastEpisodeProgressFilter.values.map(
+                    (value) => podcastEpisodeProgressFilterLabel(value, context.l10n),
+                  ),
                 );
                 final sortWidth = _widestDropdownFieldWidth(
                   context,
-                  PodcastEpisodeSortMode.values.map(podcastEpisodeSortModeLabel),
+                  PodcastEpisodeSortMode.values.map((value) => podcastEpisodeSortModeLabel(value, context.l10n)),
                 );
                 const fieldSpacing = 8.0;
                 const minimumSearchWidth = 200.0;

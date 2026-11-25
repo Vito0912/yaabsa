@@ -7,15 +7,16 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/util/globals.dart' show audioHandler, isAudioHandlerInitialized;
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/router.dart';
 
 class AaosTelemetryState {
   const AaosTelemetryState({required this.isAndroid, required this.isAutomotiveDevice, this.statusMessage});
 
-  const AaosTelemetryState.initial()
+  AaosTelemetryState.initial()
     : isAndroid = false,
       isAutomotiveDevice = false,
-      statusMessage = 'AAOS integration is inactive.';
+      statusMessage = currentAppLocalizations().aaosInactiveStatus;
 
   final bool isAndroid;
   final bool isAutomotiveDevice;
@@ -46,7 +47,7 @@ class AaosService {
   final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
   final StreamController<AaosTelemetryState> _stateController = StreamController<AaosTelemetryState>.broadcast();
 
-  AaosTelemetryState _state = const AaosTelemetryState.initial();
+  AaosTelemetryState _state = AaosTelemetryState.initial();
   bool _initialized = false;
 
   Stream<AaosTelemetryState> get stream => _stateController.stream;
@@ -60,7 +61,7 @@ class AaosService {
     _initialized = true;
 
     if (kIsWeb || !Platform.isAndroid) {
-      _emit(_state.copyWith(statusMessage: 'AAOS integration is only available on Android.'));
+      _emit(_state.copyWith(statusMessage: currentAppLocalizations().aaosAndroidOnlyStatus));
       return;
     }
 
@@ -100,8 +101,8 @@ class AaosService {
         isAndroid: true,
         isAutomotiveDevice: isAutomotiveDevice,
         statusMessage: isAutomotiveDevice
-            ? 'Android Automotive OS detected.'
-            : 'Android Automotive OS not detected on this device.',
+            ? currentAppLocalizations().aaosDetectedStatus
+            : currentAppLocalizations().aaosNotDetectedStatus,
       ),
     );
 

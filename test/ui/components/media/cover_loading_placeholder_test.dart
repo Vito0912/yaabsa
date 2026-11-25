@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('shimmer changes pixels without repainting its surrounding content', (tester) async {
@@ -13,6 +14,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Center(
           child: RepaintBoundary(
             key: captureKey,

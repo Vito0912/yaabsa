@@ -1,3 +1,5 @@
+import 'package:yaabsa/util/l10n.dart';
+
 class AdminAuthenticationSettingsValidation {
   static final RegExp _redirectUriPattern = RegExp(r'^\w+://[\w\.-]+(/[\w\./-]*)*$', caseSensitive: false);
   static final RegExp _claimPattern = RegExp(r'^[a-zA-Z][a-zA-Z0-9_-]*$', caseSensitive: false);
@@ -32,17 +34,17 @@ class AdminAuthenticationSettingsValidation {
     return normalized;
   }
 
-  static String? validateRequired(String value, {required String label}) {
+  static String? validateRequired(String value, {required String label, required AppLocalizations localizations}) {
     if (value.trim().isEmpty) {
-      return '$label is required.';
+      return localizations.validationFieldRequired(label);
     }
     return null;
   }
 
-  static String? validateRedirectUris(List<String> values) {
+  static String? validateRedirectUris(List<String> values, {required AppLocalizations localizations}) {
     final uris = normalizeRedirectUris(values);
     if (uris.contains('*') && uris.length > 1) {
-      return 'Asterisk (*) must be the only redirect URI when used.';
+      return localizations.validationWildcardMustBeOnlyRedirectUri;
     }
 
     for (final uri in uris) {
@@ -50,44 +52,44 @@ class AdminAuthenticationSettingsValidation {
         continue;
       }
       if (!_redirectUriPattern.hasMatch(uri)) {
-        return 'Mobile redirect URI "$uri" is invalid.';
+        return localizations.validationMobileRedirectUriInvalid(uri);
       }
     }
 
     return null;
   }
 
-  static String? validateClaim(String value, {required String label}) {
+  static String? validateClaim(String value, {required String label, required AppLocalizations localizations}) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
       return null;
     }
     if (!_claimPattern.hasMatch(trimmed)) {
-      return '$label is invalid.';
+      return localizations.validationFieldInvalid(label);
     }
     return null;
   }
 
-  static String? validateSubfolder(String value) {
+  static String? validateSubfolder(String value, {required AppLocalizations localizations}) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
       return null;
     }
 
     if (!trimmed.startsWith('/')) {
-      return 'Subfolder must start with "/".';
+      return localizations.validationSubfolderMustStartWithSlash;
     }
 
     if (trimmed == '/') {
-      return 'Subfolder cannot be only "/".';
+      return localizations.validationSubfolderCannotBeOnlySlash;
     }
 
     if (trimmed.endsWith('/')) {
-      return 'Subfolder must not end with "/".';
+      return localizations.validationSubfolderMustNotEndWithSlash;
     }
 
     if (trimmed.contains(' ')) {
-      return 'Subfolder cannot contain spaces.';
+      return localizations.validationSubfolderCannotContainSpaces;
     }
 
     return null;

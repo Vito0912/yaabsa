@@ -7,6 +7,7 @@ import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class PlayerSettingsNotification extends ConsumerStatefulWidget {
@@ -19,48 +20,62 @@ class PlayerSettingsNotification extends ConsumerStatefulWidget {
 }
 
 class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotification> {
+  static const List<String> _actionIds = [
+    'rewind',
+    'fastForward',
+    'speed',
+    'stop',
+    'skipToNext',
+    'skipToPrevious',
+    'switchPage',
+  ];
+
   int _selectedPageIndex = 0;
   List<List<String>> _pages = [];
   bool _isInitialized = false;
 
-  final Map<String, _ActionTypeInfo> _actionInfos = {
-    'rewind': const _ActionTypeInfo(
-      label: 'Rewind',
-      icon: Icons.replay_rounded,
-      description: 'Go back by your configured rewind interval',
-    ),
-    'fastForward': const _ActionTypeInfo(
-      label: 'Fast Forward',
-      // TODO: There seems to be no forward_media that would be available as media
-      icon: Icons.forward_10_rounded,
-      description: 'Go forward by your configured forward interval',
-    ),
-    'speed': const _ActionTypeInfo(
-      label: 'Playback Speed',
-      icon: Icons.speed_rounded,
-      description: 'Cycle through playback speeds',
-    ),
-    'stop': const _ActionTypeInfo(
-      label: 'Stop',
-      icon: Icons.stop_rounded,
-      description: 'Stop playback and close notification',
-    ),
-    'skipToNext': const _ActionTypeInfo(
-      label: 'Next Chapter',
-      icon: Icons.skip_next_rounded,
-      description: 'Skip to the next chapter',
-    ),
-    'skipToPrevious': const _ActionTypeInfo(
-      label: 'Previous Chapter',
-      icon: Icons.skip_previous_rounded,
-      description: 'Go back to the previous chapter',
-    ),
-    'switchPage': const _ActionTypeInfo(
-      label: 'Switch Page',
-      icon: Icons.more_vert_rounded,
-      description: 'Switch to the next page of notification controls',
-    ),
-  };
+  _ActionTypeInfo? _actionInfo(String actionId) {
+    final l10n = context.l10n;
+
+    return switch (actionId) {
+      'rewind' => _ActionTypeInfo(
+        label: l10n.playbackRewind,
+        icon: Icons.replay_rounded,
+        description: l10n.settingRewindIntervalDescription,
+      ),
+      'fastForward' => _ActionTypeInfo(
+        label: l10n.playbackFastForward,
+        icon: Icons.forward_10_rounded,
+        description: l10n.settingFastForwardIntervalDescription,
+      ),
+      'speed' => _ActionTypeInfo(
+        label: l10n.playbackSpeed,
+        icon: Icons.speed_rounded,
+        description: l10n.playbackSpeedCycleDescription,
+      ),
+      'stop' => _ActionTypeInfo(
+        label: l10n.playbackStop,
+        icon: Icons.stop_rounded,
+        description: l10n.playbackStopNotificationDescription,
+      ),
+      'skipToNext' => _ActionTypeInfo(
+        label: l10n.playbackNextChapter,
+        icon: Icons.skip_next_rounded,
+        description: l10n.playbackNextChapterDescription,
+      ),
+      'skipToPrevious' => _ActionTypeInfo(
+        label: l10n.playbackPreviousChapter,
+        icon: Icons.skip_previous_rounded,
+        description: l10n.playbackPreviousChapterDescription,
+      ),
+      'switchPage' => _ActionTypeInfo(
+        label: l10n.actionSwitchPage,
+        icon: Icons.more_vert_rounded,
+        description: l10n.actionSwitchPageDescription,
+      ),
+      _ => null,
+    };
+  }
 
   void _loadSettings() {
     if (_isInitialized) return;
@@ -182,7 +197,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
                 child: Text(
-                  'Select Action for Slot ${slotIndex + 1}',
+                  context.l10n.notificationSelectActionForSlot(slotIndex + 1),
                   style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -193,18 +208,21 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
                   children: [
                     ListTile(
                       leading: Icon(Icons.remove_circle_outline_rounded, color: colorScheme.error),
-                      title: Text('Clear Slot', style: TextStyle(color: colorScheme.error)),
-                      subtitle: const Text('Leave this button position empty'),
+                      title: Text(context.l10n.actionClear, style: TextStyle(color: colorScheme.error)),
+                      subtitle: Text(context.l10n.statusEmptyActionSlot),
                       onTap: () {
                         _updateSlot(slotIndex, '');
                         Navigator.of(context).pop();
                       },
                     ),
-                    ..._actionInfos.entries.map((entry) {
-                      final key = entry.key;
-                      final info = entry.value;
+                    ..._actionIds.map((key) {
+                      final info = _actionInfo(key);
 
                       if (key == 'switchPage' && _pages.length <= 1) {
+                        return const SizedBox.shrink();
+                      }
+
+                      if (info == null) {
                         return const SizedBox.shrink();
                       }
 
@@ -230,7 +248,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
 
   Widget _buildPreviewButton(List<String> actions, int index, ColorScheme colorScheme) {
     final action = index < actions.length ? actions[index] : '';
-    final info = _actionInfos[action];
+    final info = _actionInfo(action);
 
     final Widget buttonChild;
     if (action.isEmpty || info == null) {
@@ -272,7 +290,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
     final isPageMissingSwitch = hasMultiplePages && !currentPageActions.contains('switchPage');
 
     return SettingsPageScaffold(
-      title: 'Media Notification Layout',
+      title: context.l10n.settingMediaNotificationLayout,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
@@ -299,14 +317,14 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Book Title',
+                            context.l10n.fieldTitle,
                             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Author Name',
+                            context.l10n.fieldAuthor,
                             style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -383,7 +401,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'This layout might look different on different versions of Android and devices.',
+                  context.l10n.statusNotificationLayoutMayVary,
                   style: textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               ),
@@ -412,7 +430,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Missing Switch Page Action',
+                            context.l10n.warningSwitchPageActionRequiredTitle,
                             style: textTheme.titleSmall?.copyWith(
                               color: colorScheme.onErrorContainer,
                               fontWeight: FontWeight.bold,
@@ -420,7 +438,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Since you have multiple pages, this page needs a "Switch Page" button so you can cycle through them.',
+                            context.l10n.warningSwitchPageActionRequired(context.l10n.actionSwitchPage),
                             style: textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer),
                           ),
                         ],
@@ -436,18 +454,21 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
             children: [
-              Text('Notification Pages', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                context.l10n.headingNotificationPages,
+                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const Spacer(),
               if (_pages.length > 1)
                 YaabsaDeleteIconButton(
-                  tooltip: 'Delete Current Page',
+                  tooltip: context.l10n.actionDelete,
                   onPressed: () => _deletePage(_selectedPageIndex),
                 ),
               if (_pages.length < 4)
                 TextButton.icon(
                   onPressed: _addPage,
                   icon: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('Add Page'),
+                  label: Text(context.l10n.actionAddPage),
                 ),
             ],
           ),
@@ -460,7 +481,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
             children: List.generate(_pages.length, (index) {
               final isSelected = index == _selectedPageIndex;
               return ChoiceChip(
-                label: Text('Page ${index + 1}'),
+                label: Text(context.l10n.notificationPageNumber(index + 1)),
                 selected: isSelected,
                 onSelected: (selected) {
                   if (selected) {
@@ -476,10 +497,10 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
         const SizedBox(height: 12),
 
         SettingsNavigationSection(
-          title: 'Arrange Buttons (Page ${_selectedPageIndex + 1})',
+          title: context.l10n.notificationArrangeButtonsPage(_selectedPageIndex + 1),
           settings: List.generate(4, (index) {
             final action = index < currentPageActions.length ? currentPageActions[index] : '';
-            final info = _actionInfos[action];
+            final info = _actionInfo(action);
 
             return ListTile(
               leading: CircleAvatar(
@@ -489,8 +510,8 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
                   color: action.isNotEmpty ? colorScheme.primary : colorScheme.outline,
                 ),
               ),
-              title: Text('Slot ${index + 1}'),
-              subtitle: Text(info?.label ?? 'Empty - Tap to assign action'),
+              title: Text(context.l10n.notificationSlotNumber(index + 1)),
+              subtitle: Text(info?.label ?? context.l10n.statusEmptyActionSlot),
               trailing: Icon(Icons.edit_outlined, size: 20, color: colorScheme.onSurfaceVariant),
               onTap: () => _showActionPicker(index),
             );
@@ -510,7 +531,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
               });
             },
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Reset to Default'),
+            label: Text(context.l10n.actionReset),
             style: OutlinedButton.styleFrom(
               foregroundColor: colorScheme.error,
               side: BorderSide(color: colorScheme.error.withValues(alpha: 0.5)),

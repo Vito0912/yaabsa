@@ -33,6 +33,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/personalized_shelf_preferences.dart';
@@ -62,7 +63,7 @@ class PersonalizedView extends HookConsumerWidget {
         return const Center(child: YaabsaCircularProgressIndicator());
       }
 
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     final currentUser = currentUserAsync.value;
@@ -191,16 +192,13 @@ class PersonalizedView extends HookConsumerWidget {
     final showOfflineLocalOnly = showOfflineDownloadsOnly || showOfflinePinnedOnly;
 
     if (libraryError != null && !showOfflineLocalOnly) {
-      final title = serverReachable ? 'Could not load personalized shelf' : 'Server connection unavailable';
-      final message = serverReachable
-          ? 'Pull down to retry loading personalized sections.'
-          : 'You appear to be offline. Pull down to retry after reconnecting.';
+      final title = serverReachable ? context.l10n.errorUnableToLoadContent : context.l10n.errorConnectionUnavailable;
+      final message = serverReachable ? context.l10n.errorRefreshAndTryAgain : context.l10n.errorRefreshWhenConnected;
 
       return _PersonalizedFeedbackView(
         icon: serverReachable ? Icons.error_outline_rounded : Icons.cloud_off_rounded,
         title: title,
         message: message,
-        detail: libraryError.toString(),
         onRefresh: () => refreshPersonalizedLibrary(withLoading: true),
       );
     }
@@ -209,8 +207,8 @@ class PersonalizedView extends HookConsumerWidget {
     if (api == null && !isLibraryLoading && !showOfflineLocalOnly) {
       return _PersonalizedFeedbackView(
         icon: Icons.cloud_off_rounded,
-        title: 'No server connection available',
-        message: 'Pull down to refresh once your connection is back.',
+        title: context.l10n.errorConnectionUnavailable,
+        message: context.l10n.errorRefreshWhenConnected,
         onRefresh: refreshPersonalizedLibrary,
       );
     }
@@ -218,10 +216,8 @@ class PersonalizedView extends HookConsumerWidget {
     if (personalizedLibrary == null && !isLibraryLoading && !showOfflineLocalOnly) {
       return _PersonalizedFeedbackView(
         icon: serverReachable ? Icons.view_carousel_outlined : Icons.cloud_off_rounded,
-        title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
-        message: serverReachable
-            ? 'No personalized sections are available for this library yet.'
-            : 'Unable to reach the server right now. Pull down to retry.',
+        title: serverReachable ? context.l10n.statusNoPersonalizedSections : context.l10n.errorConnectionUnavailable,
+        message: serverReachable ? context.l10n.errorRefreshAndTryAgain : context.l10n.errorRefreshWhenConnected,
         onRefresh: refreshPersonalizedLibrary,
       );
     }
@@ -250,7 +246,7 @@ class PersonalizedView extends HookConsumerWidget {
           sections.add(
             _SectionData(
               id: 'downloads',
-              title: 'Downloads',
+              title: context.l10n.navDownloads,
               kind: _ShelfEntityKind.libraryItem,
               entities: downloadItems ?? const [],
               isShimmer: false,
@@ -258,7 +254,12 @@ class PersonalizedView extends HookConsumerWidget {
           );
         } else if (sectionId == 'pinned' && pinnedItems != null && pinnedItems.isNotEmpty && api != null) {
           sections.add(
-            _SectionData(id: 'pinned', title: 'Pinned', kind: _ShelfEntityKind.libraryItem, entities: pinnedItems),
+            _SectionData(
+              id: 'pinned',
+              title: context.l10n.shelfPinned,
+              kind: _ShelfEntityKind.libraryItem,
+              entities: pinnedItems,
+            ),
           );
         } else {
           sections.add(_SectionData(id: sectionId, title: title, kind: kind, entities: const [], isShimmer: true));
@@ -269,6 +270,7 @@ class PersonalizedView extends HookConsumerWidget {
         personalizedLibrary ?? const PersonalizedLibrary(),
         downloadedItems: downloadItems,
         pinnedItems: pinnedItems,
+        l10n: context.l10n,
       );
       sections = _applyShelfSectionPreferences(rawSections, shelfPreferences);
     }
@@ -276,8 +278,8 @@ class PersonalizedView extends HookConsumerWidget {
     if (sections.isEmpty) {
       return _PersonalizedFeedbackView(
         icon: Icons.view_carousel_outlined,
-        title: 'No personalized sections available yet',
-        message: 'Pull down to refresh and try again.',
+        title: context.l10n.statusNoPersonalizedSections,
+        message: context.l10n.errorRefreshAndTryAgain,
         onRefresh: refreshPersonalizedLibrary,
       );
     }
@@ -326,7 +328,7 @@ class PersonalizedView extends HookConsumerWidget {
                 Positioned.fill(
                   child: Column(
                     children: [
-                      if (!serverReachable && !isLibraryLoading) const _PersonalizedConnectionBanner(),
+                      if (!serverReachable && !isLibraryLoading) _PersonalizedConnectionBanner(),
                       Expanded(
                         child: ScreenRefreshIndicator(
                           onRefresh: refreshPersonalizedLibrary,
@@ -435,7 +437,7 @@ class _PersonalizedConnectionBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Server connection is unstable. Displaying the latest available shelf data.',
+              context.l10n.statusConnectionUnstableUsingCachedData,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer),
             ),
           ),
@@ -451,13 +453,11 @@ class _PersonalizedFeedbackView extends StatelessWidget {
     required this.title,
     required this.message,
     required this.onRefresh,
-    this.detail,
   });
 
   final IconData icon;
   final String title;
   final String message;
-  final String? detail;
   final Future<void> Function() onRefresh;
 
   @override
@@ -486,17 +486,6 @@ class _PersonalizedFeedbackView extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodyMedium
                             ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
-                      if (detail != null && detail!.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          detail!,
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
-                      ],
                       const SizedBox(height: 14),
                       Wrap(
                         spacing: 8,
@@ -508,14 +497,14 @@ class _PersonalizedFeedbackView extends StatelessWidget {
                               await onRefresh();
                             },
                             icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Retry'),
+                            label: Text(context.l10n.actionRetry),
                           ),
                           OutlinedButton.icon(
                             onPressed: () {
                               context.go('/?tab=downloads&intent=downloads');
                             },
                             icon: const Icon(Icons.download_rounded),
-                            label: const Text('Open Downloads'),
+                            label: Text(context.l10n.actionOpenDownloads),
                           ),
                         ],
                       ),
@@ -538,12 +527,12 @@ const _newestEpisodesShelfId = 'newest-episodes';
 const _recentSeriesShelfId = 'recent-series';
 const _newestAuthorsShelfId = 'newest-authors';
 
-String _preferredShelfTitle(String sectionId, String fallbackTitle) {
+String _preferredShelfTitle(String sectionId, String fallbackTitle, AppLocalizations l10n) {
   switch (sectionId) {
     case _recentSeriesShelfId:
-      return 'Recently Added Series';
+      return l10n.shelfRecentlyAddedSeries;
     case _newestAuthorsShelfId:
-      return 'Recently Added Authors';
+      return l10n.shelfRecentlyAddedAuthors;
     default:
       return fallbackTitle;
   }
@@ -569,6 +558,7 @@ List<_SectionData> _buildSections(
   PersonalizedLibrary library, {
   required List<LibraryItem>? downloadedItems,
   required List<LibraryItem>? pinnedItems,
+  required AppLocalizations l10n,
 }) {
   final sections = <_SectionData>[];
 
@@ -577,7 +567,7 @@ List<_SectionData> _buildSections(
     sections.add(
       _SectionData(
         id: shelf.id,
-        title: _preferredShelfTitle(shelf.id, shelf.label),
+        title: _preferredShelfTitle(shelf.id, shelf.label, l10n),
         kind: kind,
         entities: shelf.entities.cast<Object>(),
       ),
@@ -608,17 +598,22 @@ List<_SectionData> _buildSections(
 
   if (downloadedItems == null) {
     sections.add(
-      _SectionData(id: 'downloads', title: 'Downloads', kind: _ShelfEntityKind.libraryItem, entities: const []),
+      _SectionData(id: 'downloads', title: l10n.navDownloads, kind: _ShelfEntityKind.libraryItem, entities: const []),
     );
   } else if (downloadedItems.isNotEmpty) {
     sections.add(
-      _SectionData(id: 'downloads', title: 'Downloads', kind: _ShelfEntityKind.libraryItem, entities: downloadedItems),
+      _SectionData(
+        id: 'downloads',
+        title: l10n.navDownloads,
+        kind: _ShelfEntityKind.libraryItem,
+        entities: downloadedItems,
+      ),
     );
   }
 
   if (pinnedItems != null && pinnedItems.isNotEmpty) {
     sections.add(
-      _SectionData(id: 'pinned', title: 'Pinned', kind: _ShelfEntityKind.libraryItem, entities: pinnedItems),
+      _SectionData(id: 'pinned', title: l10n.shelfPinned, kind: _ShelfEntityKind.libraryItem, entities: pinnedItems),
     );
   }
 
@@ -748,12 +743,12 @@ class _SectionRow extends HookWidget {
       }
 
       await audioHandler.play();
-    } catch (error) {
+    } catch (_) {
       if (!context.mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to queue visible items: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorQueueVisibleItems)));
     }
   }
 
@@ -953,7 +948,7 @@ class _SectionList extends StatelessWidget {
           width: viewportWidth >= 1100 ? 320 : 270,
           child: _MetaCard(
             icon: Icons.podcasts_outlined,
-            title: episode.title ?? 'Untitled episode',
+            title: episode.title ?? context.l10n.untitledEpisode,
             subtitle: episode.subtitle,
           ),
         );

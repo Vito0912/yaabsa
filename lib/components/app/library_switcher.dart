@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibrarySwitcher extends ConsumerWidget {
   const LibrarySwitcher({super.key});
@@ -31,7 +32,7 @@ class LibrarySwitcher extends ConsumerWidget {
           ),
           const SizedBox(width: 2),
           if (loading)
-            const YaabsaLoadingIndicator(size: 20, semanticLabel: 'Loading libraries')
+            YaabsaLoadingIndicator(size: 20, semanticLabel: context.l10n.operationLoadLibraries)
           else
             Icon(
               Icons.arrow_drop_down_rounded,
@@ -58,10 +59,10 @@ class LibrarySwitcher extends ConsumerWidget {
         break;
       }
     }
-    final selectedName = selectedLibrary?.name ?? fallbackName ?? 'Library';
+    final selectedName = selectedLibrary?.name ?? fallbackName ?? context.l10n.fieldLibrary;
 
     return YaabsaContextMenuButton<String>(
-      tooltip: 'Select library',
+      tooltip: context.l10n.actionSelectLibrary,
       onSelected: (String newLibraryId) async {
         await ref.read(selectedLibraryIdProvider.notifier).set(newLibraryId);
       },
@@ -110,7 +111,7 @@ class LibrarySwitcher extends ConsumerWidget {
     return userLibrariesAsyncValue.when(
       data: (libraries) {
         if (libraries.isEmpty) {
-          return _chipButton(context, selectedLibrary?.name ?? 'No library', compact: true);
+          return _chipButton(context, selectedLibrary?.name ?? context.l10n.statusNoLibrarySelected, compact: true);
         }
         return PlatformBuilder(
           mobileBuilder: (ctx) => _buildSelector(

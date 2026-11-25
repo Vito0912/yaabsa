@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum YaabsaActionTone { neutral, primary, danger }
 
@@ -55,7 +56,11 @@ class YaabsaActionIconButton extends StatelessWidget {
       YaabsaActionButtonVariant.plain || YaabsaActionButtonVariant.outlined => _toneColor(colorScheme),
     };
     final icon = isLoading
-        ? YaabsaCircularProgressIndicator(size: iconSize, color: loadingColor, semanticsLabel: '$tooltip loading')
+        ? YaabsaCircularProgressIndicator(
+            size: iconSize,
+            color: loadingColor,
+            semanticsLabel: context.l10n.statusLoadingAction(tooltip),
+          )
         : iconWidget ??
               Icon(
                 this.icon!,

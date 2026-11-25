@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
@@ -9,6 +10,8 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerSettingsSleepTimer extends ConsumerWidget {
   const PlayerSettingsSleepTimer({super.key});
@@ -16,22 +19,21 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
   static const String routeName = '/settings/player/sleep-timer';
 
   static final List<int> _timeRangeValues = List<int>.generate(48, (index) => index * 30);
-  static final List<String> _timeRangeLabels = _timeRangeValues
-      .map((minutes) => _formatMinutesOfDay(minutes))
-      .toList(growable: false);
 
-  static String _formatMinutesOfDay(int minutes) {
+  static String _formatMinutesOfDay(int minutes, String localeName) {
     final normalized = ((minutes % (24 * 60)) + (24 * 60)) % (24 * 60);
-    final hour24 = normalized ~/ 60;
-    final minute = normalized % 60;
-    final suffix = hour24 >= 12 ? 'PM' : 'AM';
-    final hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12;
-    final minutePadded = minute.toString().padLeft(2, '0');
-    return '$hour12:$minutePadded $suffix';
+    final time = DateTime(2000).add(Duration(minutes: normalized));
+    return DateFormat.jm(localeName).format(time);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final timeRangeLabels = _timeRangeValues
+        .map((minutes) => _formatMinutesOfDay(minutes, l10n.localeName))
+        .toList(growable: false);
+    final rewindValues = const [0, 5, 10, 15, 30];
+
     final autoRestartEnabledSetting = ref
         .watch(globalSettingByKeyProvider(SettingKeys.sleepTimerAutoRestartEnabled))
         .asData
@@ -54,87 +56,92 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
         .getGlobalSetting<int>(SettingKeys.sleepTimerLastDurationMinutes);
 
     return SettingsPageScaffold(
-      title: 'Player - Sleep Timer',
+      title: l10n.playbackSleepTimer,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
         SettingsNavigationSection(
-          title: 'Expiry Behavior',
+          title: l10n.settingsCategoryTimerExpiry,
           topPadding: 0,
           settings: [
             SettingDropdown<String>(
-              label: 'Sleep timer end action',
-              description: 'Choose whether playback is stopped or paused when the sleep timer expires',
+              label: l10n.settingSleepTimerEndAction,
+              description: l10n.settingSleepTimerEndActionDescription,
               values: SleepTimerExpireAction.values.map((action) => action.name).toList(),
               valueLabels: SleepTimerExpireAction.values.map((action) => action.label).toList(),
-              valueDescriptions: const ['Stop playback completely', 'Pause playback only'],
+              valueDescriptions: [l10n.playbackStop, l10n.playbackPause],
               settingKey: SettingKeys.sleepTimerExpireAction,
             ),
-            const SettingSlider<int>(
-              label: 'Sleep timer end rewind',
-              description: 'After sleep timer stops playback, rewind this much when the same item is played again',
-              values: [0, 5, 10, 15, 30],
-              valueLabels: ['Off', '5 min', '10 min', '15 min', '30 min'],
+            SettingSlider<int>(
+              label: l10n.settingSleepTimerEndRewind,
+              description: l10n.settingSleepTimerEndRewindDescription,
+              values: rewindValues,
+              valueLabels: [
+                l10n.statusOff,
+                ...rewindValues
+                    .skip(1)
+                    .map((minutes) => Duration(minutes: minutes).toLargestUnitCompactString(localizations: l10n)),
+              ],
               settingKey: SettingKeys.sleepTimerAutoRewindMinutes,
             ),
-            const SettingSwitchTile(
-              label: 'Fade audio',
-              subtitle: 'Gradually lower playback volume before the sleep timer ends',
+            SettingSwitchTile(
+              label: l10n.settingFadeAudio,
+              subtitle: l10n.settingFadeAudioDescription,
               settingKey: SettingKeys.sleepTimerFadeOutEnabled,
             ),
-            const SettingSwitchTile(
-              label: 'Show sleep timer marker',
-              subtitle: 'Shows a sleep timer on the player timeline after the timer ends. Long press to show or hide the marker again',
+            SettingSwitchTile(
+              label: l10n.settingShowSleepTimerMarker,
+              subtitle: l10n.settingShowSleepTimerMarkerDescription,
               settingKey: SettingKeys.sleepTimerShowMarker,
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Auto Restart Options',
+          title: l10n.settingsCategoryAutoRestart,
           settings: [
-            const SettingSwitchTile(
-              label: 'Auto-restart timer on playback start',
-              subtitle: 'Start the configured timer when playback starts and no timer is active',
+            SettingSwitchTile(
+              label: l10n.settingAutoRestartTimerOnPlaybackStart,
+              subtitle: l10n.settingAutoRestartTimerOnPlaybackStartDescription,
               settingKey: SettingKeys.sleepTimerAutoRestartEnabled,
             ),
             SettingDropdown<String>(
-              label: 'Automatic timer mode',
-              description: 'Chapter timers only start for items with chapters',
+              label: l10n.fieldTimerMode,
+              description: l10n.settingTimerModeDescription,
               values: const ['minutes', 'chapters'],
-              valueLabels: const ['Minutes', 'Chapters'],
+              valueLabels: [l10n.fieldMinutes, l10n.navChapters],
               settingKey: SettingKeys.sleepTimerAutoMode,
               enabled: autoRestartEnabled,
             ),
             SettingPositiveInteger(
               key: ValueKey(chapterMode),
-              label: chapterMode ? 'Number of chapters' : 'Timer minutes',
+              label: chapterMode ? l10n.fieldChapterCount : l10n.fieldMinutes,
               settingKey: chapterMode ? SettingKeys.sleepTimerAutoChapters : SettingKeys.sleepTimerAutoMinutes,
               fallback: chapterMode ? 1 : (rememberedMinutes > 0 ? rememberedMinutes : 30),
               enabled: autoRestartEnabled,
             ),
             SettingSwitchTile(
-              label: 'Only auto-restart during a time range',
-              subtitle: 'Limit automatic sleep timer restart to specific hours',
-              disabledReason: 'Enable auto-restart to configure this option',
+              label: l10n.settingAutoRestartDuringTimeRange,
+              subtitle: l10n.settingAutoRestartDuringTimeRangeDescription,
+              disabledReason: l10n.permissionAutomaticRestartRequired,
               settingKey: SettingKeys.sleepTimerAutoRestartUseTimeRange,
               enabled: autoRestartEnabled,
             ),
             SettingSlider<int>(
-              label: 'Auto-restart range start',
-              description: 'Sleep timer auto-restart becomes active at this time',
-              disabledReason: 'Enable auto-restart and time range to configure this option',
+              label: l10n.settingAutoRestartRangeStart,
+              description: l10n.settingAutoRestartRangeStartDescription,
+              disabledReason: l10n.permissionTimerRangeRequired,
               values: _timeRangeValues,
-              valueLabels: _timeRangeLabels,
+              valueLabels: timeRangeLabels,
               settingKey: SettingKeys.sleepTimerAutoRestartRangeStartMinutes,
               enabled: timeRangeEnabled,
             ),
             SettingSlider<int>(
-              label: 'Auto-restart range end',
-              description: 'Sleep timer auto-restart remains active until this time',
-              disabledReason: 'Enable auto-restart and time range to configure this option',
+              label: l10n.settingAutoRestartRangeEnd,
+              description: l10n.settingAutoRestartRangeEndDescription,
+              disabledReason: l10n.permissionTimerRangeRequired,
               values: _timeRangeValues,
-              valueLabels: _timeRangeLabels,
+              valueLabels: timeRangeLabels,
               settingKey: SettingKeys.sleepTimerAutoRestartRangeEndMinutes,
               enabled: timeRangeEnabled,
             ),

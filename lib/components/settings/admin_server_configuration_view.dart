@@ -10,6 +10,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerConfigurationView extends ConsumerStatefulWidget {
   const AdminServerConfigurationView({super.key});
@@ -41,7 +42,6 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
     'dd MMM yyyy',
     'dd MMMM yyyy',
   ];
-  static const List<String> _timeFormatLabels = <String>['h:mma (am/pm)', 'HH:mm (24-hour)'];
   static const List<String> _timeFormatValues = <String>['h:mma', 'HH:mm'];
   static const List<String> _languageValues = <String>[
     'ar',
@@ -78,42 +78,6 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
     'zh-cn',
     'zh-tw',
   ];
-  static const List<String> _languageLabels = <String>[
-    'Arabic',
-    'Belarusian',
-    'Bulgarian',
-    'Bengali',
-    'Catalan',
-    'Czech',
-    'Danish',
-    'German',
-    'English',
-    'Spanish',
-    'Estonian',
-    'Finnish',
-    'French',
-    'Hebrew',
-    'Croatian',
-    'Italian',
-    'Japanese',
-    'Lithuanian',
-    'Hungarian',
-    'Korean',
-    'Dutch',
-    'Norwegian',
-    'Polish',
-    'Portuguese (Brazil)',
-    'Russian',
-    'Slovak',
-    'Slovenian',
-    'Swedish',
-    'Turkish',
-    'Ukrainian',
-    'Vietnamese',
-    'Chinese (Simplified)',
-    'Chinese (Traditional)',
-  ];
-
   static const String _operationStoreCoverWithItem = 'storeCoverWithItem';
   static const String _operationStoreMetadataWithItem = 'storeMetadataWithItem';
   static const String _operationSortingIgnorePrefix = 'sortingIgnorePrefix';
@@ -177,23 +141,24 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
   }
 
   String? _validateCorsOrigin(String value) {
+    final l10n = currentAppLocalizations();
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      return 'Origin cannot be empty.';
+      return l10n.errorOriginRequired;
     }
 
     final uri = Uri.tryParse(trimmed);
     if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) {
-      return 'Origin must include scheme and host.';
+      return l10n.errorOriginSchemeAndHostRequired;
     }
 
     final scheme = uri.scheme.toLowerCase();
     if (scheme != 'http' && scheme != 'https') {
-      return 'Only http and https origins are supported.';
+      return l10n.errorOriginHttpHttpsOnly;
     }
 
     if ((uri.path.isNotEmpty && uri.path != '/') || uri.hasQuery || uri.hasFragment || uri.userInfo.isNotEmpty) {
-      return 'Origin must not include path, query, fragment, or user info.';
+      return l10n.errorOriginNoPathQueryFragmentOrCredentials;
     }
 
     return null;
@@ -243,6 +208,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
   }
 
   Future<void> _loadServerSettings() async {
+    final l10n = currentAppLocalizations();
     setState(() {
       _isLoading = true;
     });
@@ -271,7 +237,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
         return;
       }
 
-      final message = _resolveErrorMessage(error, fallback: 'Failed to load server settings.');
+      final fallbackMessage = l10n.errorOperationFailed(l10n.operationLoadSettings, l10n.errorUnknown);
+      final message = _resolveErrorMessage(error, fallback: fallbackMessage);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -287,6 +254,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
       return;
     }
 
+    final l10n = currentAppLocalizations();
     setState(() {
       _savingOperations.add(operationKey);
     });
@@ -316,7 +284,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
         return;
       }
 
-      final message = _resolveErrorMessage(error, fallback: 'Failed to update server settings.');
+      final fallbackMessage = l10n.errorOperationFailed(l10n.operationSaveServerSettings, l10n.errorUnknown);
+      final message = _resolveErrorMessage(error, fallback: fallbackMessage);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -333,11 +302,12 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
     }
 
     if (sortingPrefixes.isEmpty) {
-      const message = 'At least one sorting prefix is required.';
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(currentAppLocalizations().errorSortingPrefixRequired)));
       return;
     }
 
+    final l10n = currentAppLocalizations();
     setState(() {
       _savingOperations.add(_operationSortingPrefixes);
     });
@@ -367,7 +337,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
         return;
       }
 
-      final message = _resolveErrorMessage(error, fallback: 'Failed to update sorting prefixes.');
+      final fallbackMessage = l10n.errorOperationFailed(l10n.operationSaveServerSettings, l10n.errorUnknown);
+      final message = _resolveErrorMessage(error, fallback: fallbackMessage);
       if (fallbackSortingPrefixes != null && _settings != null) {
         setState(() {
           _settings = _settings!.copyWith(sortingPrefixes: fallbackSortingPrefixes);
@@ -387,22 +358,17 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage server settings.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.promptSignInToManageSettings));
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -427,8 +393,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Row(
               children: [
-                const Expanded(child: Text('Failed to load server settings.')),
-                TextButton(onPressed: () => unawaited(_loadServerSettings()), child: const Text('Retry')),
+                Expanded(child: Text(l10n.errorOperationFailed(l10n.operationLoadSettings, l10n.errorUnknown))),
+                TextButton(onPressed: () => unawaited(_loadServerSettings()), child: Text(l10n.actionRetry)),
               ],
             ),
           );
@@ -448,12 +414,12 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
           children: [
             if (_isLoading) const YaabsaLinearProgressIndicator(minHeight: 2),
             SettingsNavigationSection(
-              title: 'General',
+              title: l10n.settingsCategoryGeneral,
               topPadding: 12,
               settings: [
                 SettingSwitchTile.remote(
-                  label: 'Store covers with item',
-                  subtitle: 'Store covers in the library item folder instead of /metadata/items (only one file named cover will be kept)',
+                  label: l10n.settingStoreCoversWithItem,
+                  subtitle: l10n.settingStoreCoversWithItemDescription,
                   value: settings.storeCoverWithItem ?? false,
                   isLoading: _isSaving(_operationStoreCoverWithItem),
                   onValueChanged: _isSaving(_operationStoreCoverWithItem)
@@ -468,8 +434,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                         },
                 ),
                 SettingSwitchTile.remote(
-                  label: 'Store metadata with item',
-                  subtitle: 'Store metadata files in library item folders instead of /metadata/items',
+                  label: l10n.settingStoreMetadataWithItem,
+                  subtitle: l10n.settingStoreMetadataWithItemDescription,
                   value: settings.storeMetadataWithItem ?? false,
                   isLoading: _isSaving(_operationStoreMetadataWithItem),
                   onValueChanged: _isSaving(_operationStoreMetadataWithItem)
@@ -484,8 +450,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                         },
                 ),
                 SettingSwitchTile.remote(
-                  label: 'Ignore prefixes when sorting',
-                  subtitle: 'Ignore prefix values like "the" when sorting titles (e.g. "The Book Title" is sorted as "Book Title, The")',
+                  label: l10n.settingIgnorePrefixesWhenSorting,
+                  subtitle: l10n.settingIgnorePrefixesWhenSortingDescription,
                   value: sortingIgnorePrefix,
                   isLoading: _isSaving(_operationSortingIgnorePrefix),
                   onValueChanged: _isSaving(_operationSortingIgnorePrefix)
@@ -503,7 +469,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: StringChipListInput(
-                      label: 'Prefixes to Ignore (case insensitive)',
+                      label: l10n.fieldPrefixesToIgnore,
                       values: sortingPrefixes,
                       enabled: !_isSaving(_operationSortingPrefixes),
                       normalizer: (value) => value.trim().toLowerCase(),
@@ -527,10 +493,10 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
               ],
             ),
             SettingsNavigationSection(
-              title: 'Regional',
+              title: l10n.settingsCategoryRegional,
               settings: [
                 SettingDropdown<String>.remote(
-                  label: 'Date Format',
+                  label: l10n.fieldDateFormat,
                   values: _dateFormatValues,
                   valueLabels: _dateFormatLabels,
                   value: selectedDateFormat,
@@ -546,9 +512,9 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                   },
                 ),
                 SettingDropdown<String>.remote(
-                  label: 'Time Format',
+                  label: l10n.fieldTimeFormat,
                   values: _timeFormatValues,
-                  valueLabels: _timeFormatLabels,
+                  valueLabels: [l10n.optionTimeFormat12Hour, l10n.optionTimeFormat24Hour],
                   value: selectedTimeFormat,
                   enabled: !_isSaving(_operationTimeFormat),
                   isLoading: _isSaving(_operationTimeFormat),
@@ -562,9 +528,11 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                   },
                 ),
                 SettingDropdown<String>.remote(
-                  label: 'Language',
+                  label: l10n.fieldLanguage,
                   values: _languageValues,
-                  valueLabels: _languageLabels,
+                  valueLabels: _languageValues
+                      .map((languageCode) => l10n.serverLanguageName(languageCode.replaceAll('-', '_')))
+                      .toList(growable: false),
                   value: selectedLanguage,
                   enabled: !_isSaving(_operationLanguage),
                   isLoading: _isSaving(_operationLanguage),
@@ -580,11 +548,11 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
               ],
             ),
             SettingsNavigationSection(
-              title: 'Scanner',
+              title: l10n.settingsCategoryScanner,
               settings: [
                 SettingSwitchTile.remote(
-                  label: 'Parse subtitles',
-                  subtitle: 'Extract subtitles from audiobook folder names. Subtitle text must be separated by " - "',
+                  label: l10n.settingParseSubtitles,
+                  subtitle: l10n.settingParseSubtitlesDescription,
                   value: settings.scannerParseSubtitle ?? false,
                   isLoading: _isSaving(_operationScannerParseSubtitle),
                   onValueChanged: _isSaving(_operationScannerParseSubtitle)
@@ -599,8 +567,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                         },
                 ),
                 SettingSwitchTile.remote(
-                  label: 'Find covers',
-                  subtitle: 'Attempt to find covers online if missing (extends scan time)',
+                  label: l10n.settingFindCovers,
+                  subtitle: l10n.settingFindCoversDescription,
                   value: settings.scannerFindCovers ?? false,
                   isLoading: _isSaving(_operationScannerFindCovers),
                   onValueChanged: _isSaving(_operationScannerFindCovers)
@@ -615,8 +583,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                         },
                 ),
                 SettingSwitchTile.remote(
-                  label: 'Prefer matched metadata',
-                  subtitle: 'Overwrite existing details with matched metadata during Quick Match',
+                  label: l10n.settingPreferMatchedMetadata,
+                  subtitle: l10n.settingPreferMatchedMetadataDescription,
                   value: settings.scannerPreferMatchedMetadata ?? false,
                   isLoading: _isSaving(_operationScannerPreferMatchedMetadata),
                   onValueChanged: _isSaving(_operationScannerPreferMatchedMetadata)
@@ -631,9 +599,8 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                         },
                 ),
                 SettingSwitchTile.remote(
-                  label: 'Automatically scan libraries for changes',
-                  subtitle:
-                      'Automatically add or update items when file changes are detected (requires server restart)',
+                  label: l10n.settingScanLibrariesAutomatically,
+                  subtitle: l10n.settingScanLibrariesAutomaticallyDescription,
                   value: !scannerWatcherDisabled,
                   isLoading: _isSaving(_operationScannerDisableWatcher),
                   onValueChanged: _isSaving(_operationScannerDisableWatcher)
@@ -650,12 +617,12 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
               ],
             ),
             SettingsNavigationSection(
-              title: 'Security',
+              title: l10n.settingsCategorySecurity,
               settings: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   child: StringChipListInput(
-                    label: 'Allowed CORS Origins',
+                    label: l10n.fieldAllowedCorsOrigins,
                     values: allowedOrigins,
                     enabled: !_isSaving(_operationAllowedOrigins),
                     validator: _validateCorsOrigin,
@@ -682,7 +649,10 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          l10n.errorOperationFailed(l10n.operationLoadUser, l10n.errorUnknown),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

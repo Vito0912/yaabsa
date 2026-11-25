@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class YaabsaMultiSelectOption {
   const YaabsaMultiSelectOption({required this.id, required this.label, this.subtitle});
@@ -17,7 +18,7 @@ class YaabsaMultiSelectListCard extends StatelessWidget {
     required this.onSelectionChanged,
     this.enabled = true,
     this.maxHeight = 220,
-    this.emptyMessage = 'No options available.',
+    this.emptyMessage,
   });
 
   final String title;
@@ -26,12 +27,13 @@ class YaabsaMultiSelectListCard extends StatelessWidget {
   final ValueChanged<Set<String>> onSelectionChanged;
   final bool enabled;
   final double maxHeight;
-  final String emptyMessage;
+  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final allOptionsSelected = options.isNotEmpty && selectedIds.length == options.length;
+    final emptyMessage = this.emptyMessage ?? context.l10n.statusNoOptionsAvailable;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -39,7 +41,7 @@ class YaabsaMultiSelectListCard extends StatelessWidget {
         Row(
           children: [
             Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
-            Text('${selectedIds.length}/${options.length}', style: theme.textTheme.bodySmall),
+            Text(context.l10n.selectionPosition(selectedIds.length, options.length), style: theme.textTheme.bodySmall),
           ],
         ),
         const SizedBox(height: 8),
@@ -53,11 +55,11 @@ class YaabsaMultiSelectListCard extends StatelessWidget {
                       final allOptionIds = options.map((option) => option.id).toSet();
                       onSelectionChanged(allOptionIds);
                     },
-              child: const Text('Select all'),
+              child: Text(context.l10n.actionSelectAll),
             ),
             TextButton(
               onPressed: !enabled || selectedIds.isEmpty ? null : () => onSelectionChanged(<String>{}),
-              child: const Text('Clear all'),
+              child: Text(context.l10n.actionClearAll),
             ),
           ],
         ),

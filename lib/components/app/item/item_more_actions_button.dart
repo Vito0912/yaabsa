@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum ItemMoreAction {
   editItem,
@@ -26,7 +27,7 @@ class ItemMoreActionsButton extends StatelessWidget {
     super.key,
     required this.onActionSelected,
     this.enabled = true,
-    this.tooltip = 'More actions',
+    this.tooltip,
     this.showMarkAction = true,
     this.showEditItem = false,
     this.showMarkAsFinished = true,
@@ -47,7 +48,7 @@ class ItemMoreActionsButton extends StatelessWidget {
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
   final bool enabled;
-  final String tooltip;
+  final String? tooltip;
   final bool showMarkAction;
   final bool showEditItem;
   final bool showMarkAsFinished;
@@ -65,84 +66,92 @@ class ItemMoreActionsButton extends StatelessWidget {
   final bool isPinned;
   final YaabsaActionButtonShape shape;
 
-  List<_ItemMoreActionOption> _actionOptions({bool desktop = false}) {
+  List<_ItemMoreActionOption> _actionOptions(AppLocalizations localizations, {bool desktop = false}) {
     return [
       if (showSelect)
-        const _ItemMoreActionOption(action: ItemMoreAction.select, label: 'Select', icon: Icons.check_box_outlined),
+        _ItemMoreActionOption(
+          action: ItemMoreAction.select,
+          label: localizations.actionSelect,
+          icon: Icons.check_box_outlined,
+        ),
       if (showEditItem)
-        const _ItemMoreActionOption(action: ItemMoreAction.editItem, label: 'Edit item', icon: Icons.edit_rounded),
+        _ItemMoreActionOption(
+          action: ItemMoreAction.editItem,
+          label: localizations.actionEdit,
+          icon: Icons.edit_rounded,
+        ),
       if (showQuickMatch)
-        const _ItemMoreActionOption(
+        _ItemMoreActionOption(
           action: ItemMoreAction.quickMatch,
-          label: 'Quick Match',
+          label: localizations.actionQuickMatch,
           icon: Icons.auto_fix_high_rounded,
         ),
       if (showManualMatch)
-        const _ItemMoreActionOption(
+        _ItemMoreActionOption(
           action: ItemMoreAction.manualMatch,
-          label: 'Manual Match',
+          label: localizations.actionManualMatch,
           icon: Icons.manage_search_rounded,
         ),
       if (showPinAction)
         _ItemMoreActionOption(
           action: ItemMoreAction.togglePin,
-          label: isPinned ? 'Unpin from Shelf' : 'Pin to Shelf',
+          label: isPinned ? localizations.actionUnpinFromShelf : localizations.actionPinToShelf,
           icon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
         ),
       if (showMarkAction && desktop && showMarkAsFinished)
-        const _ItemMoreActionOption(
+        _ItemMoreActionOption(
           action: ItemMoreAction.markAsFinished,
-          label: 'Mark As Finished',
+          label: localizations.actionMarkAsFinished,
           icon: Icons.task_alt_rounded,
         ),
       if (showMarkAction && desktop && showMarkAsUnfinished)
-        const _ItemMoreActionOption(
+        _ItemMoreActionOption(
           action: ItemMoreAction.markAsUnfinished,
-          label: 'Mark As Unfinished',
+          label: localizations.actionMarkAsUnfinished,
           icon: Icons.remove_done_rounded,
         ),
       if (showSetProgress && desktop)
-        const _ItemMoreActionOption(
+        _ItemMoreActionOption(
           action: ItemMoreAction.setProgress,
-          label: 'Set progress',
+          label: localizations.actionSetProgress,
           icon: Icons.tune_rounded,
         ),
       if (showMarkAction && !desktop)
         _ItemMoreActionOption(
           action: showMarkAsUnfinished ? ItemMoreAction.markAsUnfinished : ItemMoreAction.markAsFinished,
-          label: showMarkAsUnfinished ? 'Mark As Unfinished' : 'Mark As Finished',
+          label: showMarkAsUnfinished ? localizations.actionMarkAsUnfinished : localizations.actionMarkAsFinished,
           icon: showMarkAsUnfinished ? Icons.remove_done_rounded : Icons.task_alt_rounded,
         ),
       if (showAddToPlaylist)
         _ItemMoreActionOption(
           action: ItemMoreAction.addToPlaylist,
-          label: manageMemberships ? 'Manage playlists' : 'Add To Playlist',
+          label: manageMemberships ? localizations.actionManagePlaylists : localizations.actionAddToPlaylist,
           icon: Icons.playlist_add_rounded,
         ),
       if (showAddToCollection)
         _ItemMoreActionOption(
           action: ItemMoreAction.addToCollection,
-          label: manageMemberships ? 'Manage collections' : 'Add To Collection',
+          label: manageMemberships ? localizations.actionManageCollections : localizations.actionAddToCollection,
           icon: Icons.collections_bookmark_outlined,
         ),
       if (showDeleteItem)
-        const _ItemMoreActionOption(
+        _ItemMoreActionOption(
           action: ItemMoreAction.deleteItem,
-          label: 'Delete Audiobook',
+          label: localizations.actionDelete,
           icon: Icons.delete_outline_rounded,
           isDestructive: true,
         ),
       if (showPlayHistory)
-        const _ItemMoreActionOption(
+        _ItemMoreActionOption(
           action: ItemMoreAction.playHistory,
-          label: 'Play History',
+          label: localizations.navPlayHistory,
           icon: Icons.history_rounded,
         ),
     ];
   }
 
   Future<void> _openActionDialog(BuildContext context) async {
-    final options = _actionOptions();
+    final options = _actionOptions(context.l10n);
     final selectedAction = await showDialog<ItemMoreAction>(
       context: context,
       useRootNavigator: false,
@@ -175,7 +184,7 @@ class ItemMoreActionsButton extends StatelessWidget {
   }
 
   List<M3EMenuNode> _buildDesktopMenuNodes(BuildContext context) {
-    final options = _actionOptions(desktop: true);
+    final options = _actionOptions(context.l10n, desktop: true);
     final optionsByAction = {for (final option in options) option.action: option};
     final nodes = <M3EMenuNode>[];
 
@@ -190,7 +199,9 @@ class ItemMoreActionsButton extends StatelessWidget {
       ItemMoreAction.manualMatch,
     ]);
     if (editEntries.isNotEmpty) {
-      nodes.add(M3EMenuSubmenu(label: 'Edit', leading: const Icon(Icons.edit_rounded), children: editEntries));
+      nodes.add(
+        M3EMenuSubmenu(label: context.l10n.actionEdit, leading: const Icon(Icons.edit_rounded), children: editEntries),
+      );
     }
 
     for (final action in [ItemMoreAction.togglePin]) {
@@ -206,7 +217,13 @@ class ItemMoreActionsButton extends StatelessWidget {
       ItemMoreAction.setProgress,
     ]);
     if (progressEntries.isNotEmpty) {
-      nodes.add(M3EMenuSubmenu(label: 'Progress', leading: const Icon(Icons.tune_rounded), children: progressEntries));
+      nodes.add(
+        M3EMenuSubmenu(
+          label: context.l10n.fieldProgress,
+          leading: const Icon(Icons.tune_rounded),
+          children: progressEntries,
+        ),
+      );
     }
 
     final addToEntries = _submenuEntries(context, optionsByAction, [
@@ -214,7 +231,9 @@ class ItemMoreActionsButton extends StatelessWidget {
       ItemMoreAction.addToCollection,
     ]);
     if (addToEntries.isNotEmpty) {
-      nodes.add(M3EMenuSubmenu(label: 'Add to', leading: const Icon(Icons.add_rounded), children: addToEntries));
+      nodes.add(
+        M3EMenuSubmenu(label: context.l10n.actionAdd, leading: const Icon(Icons.add_rounded), children: addToEntries),
+      );
     }
 
     for (final action in [ItemMoreAction.deleteItem, ItemMoreAction.playHistory]) {
@@ -282,11 +301,13 @@ class ItemMoreActionsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedTooltip = tooltip ?? context.l10n.actionMoreActions;
+
     if (context.isDesktop) {
       final menuMaxHeight = (MediaQuery.sizeOf(context).height - 32).clamp(0.0, double.infinity).toDouble();
 
       return YaabsaContextMenuButton<ItemMoreAction>(
-        tooltip: tooltip,
+        tooltip: resolvedTooltip,
         enabled: enabled,
         icon: const Icon(Icons.more_vert_rounded),
         iconSize: 19,
@@ -307,7 +328,7 @@ class ItemMoreActionsButton extends StatelessWidget {
       shape: shape,
       enabled: enabled,
       onPressed: () => _openActionDialog(context),
-      tooltip: tooltip,
+      tooltip: resolvedTooltip,
     );
   }
 }

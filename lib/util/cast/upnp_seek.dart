@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:upnp_client/upnp_client.dart';
 import 'package:yaabsa/util/cast/cast_backend.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Duration? parseUpnpTime(String? value) {
   final parts = value?.split(':');
@@ -27,7 +28,7 @@ Future<Duration> seekUpnp(AvTransportService transport, Duration target, {requir
 
   for (var attempt = 0; attempt < 3; attempt++) {
     if (!isCurrent()) {
-      throw StateError('Cast playback was cancelled');
+      throw StateError(currentAppLocalizations().errorCastCancelled);
     }
 
     await transport.seek(SeekMode.relTime, '$hours:$minutes:$remainder');
@@ -35,12 +36,12 @@ Future<Duration> seekUpnp(AvTransportService transport, Duration target, {requir
     for (var check = 0; check < 4; check++) {
       await Future<void>.delayed(const Duration(milliseconds: 500));
       if (!isCurrent()) {
-        throw StateError('Cast playback was cancelled');
+        throw StateError(currentAppLocalizations().errorCastCancelled);
       }
 
       final progress = await transport.getPositionInfo().timeout(const Duration(seconds: 5));
       if (!isCurrent()) {
-        throw StateError('Cast playback was cancelled');
+        throw StateError(currentAppLocalizations().errorCastCancelled);
       }
 
       final actual = parseUpnpTime(progress.relTime);
@@ -55,5 +56,5 @@ Future<Duration> seekUpnp(AvTransportService transport, Duration target, {requir
     }
   }
 
-  throw const CastPlaybackException('The receiver could not seek to the requested position', canTranscode: false);
+  throw CastPlaybackException(currentAppLocalizations().errorCastSeekFailed, canTranscode: false);
 }

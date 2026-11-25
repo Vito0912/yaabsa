@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaabsa/components/app/item/book_list_membership_dialog.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('removing loaded rows still offers later pages instead of reporting an empty library', (tester) async {
@@ -11,6 +12,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: StatefulBuilder(
           builder: (context, setState) {
             removeRows = () {
@@ -56,6 +59,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Builder(
           builder: (context) {
             return Scaffold(

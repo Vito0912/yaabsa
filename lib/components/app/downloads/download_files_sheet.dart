@@ -8,6 +8,7 @@ import 'package:yaabsa/provider/common/stored_downloads_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -67,7 +68,10 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
         requiredUserId: user.id,
       );
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not download: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.errorDownloadFileFailed(error.toString()))));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -78,11 +82,11 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete file'),
-        content: Text('Remove ${file.name} from offline storage?'),
+        title: Text(context.l10n.headingDeleteFile),
+        content: Text(context.l10n.promptDeleteDownloadedFile(file.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.actionCancel)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(context.l10n.actionDelete)),
         ],
       ),
     );
@@ -97,10 +101,14 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
     try {
       final deleted = await downloadHandler.deleteDownloadedFile(download, file.inode, userId: userId);
       if (mounted && !deleted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete this file')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.errorDeleteDownloadedFileFailed)));
       }
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not delete file: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.errorDeleteDownloadedFileDetails(error.toString()))));
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -117,7 +125,10 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
     try {
       await downloadHandler.cancelDownloadForItem(widget.itemId, episodeId: widget.episodeId);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not cancel: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.errorCancelDownloadDetails(error.toString()))));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -137,10 +148,10 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
     if (download == null) {
       final entry = ref.watch(storedDownloadEntryProvider(widget.itemId, episodeId: widget.episodeId));
       if (entry.isLoading) return const Center(child: YaabsaCircularProgressIndicator());
-      if (entry.hasError) return const Center(child: Text('Could not load this download'));
-      return const Center(child: Text('This download has been removed'));
+      if (entry.hasError) return Center(child: Text(context.l10n.errorLoadDownloadFilesFailed));
+      return Center(child: Text(context.l10n.statusDownloadNoLongerAvailable));
     }
-    final title = download.episode?.title ?? download.item?.title ?? 'Download';
+    final title = download.episode?.title ?? download.item?.title ?? context.l10n.actionDownload;
     return SafeArea(
       top: false,
       child: Column(
@@ -165,14 +176,17 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${download.numberOfDownloadedFiles} of ${download.numberOfFiles} files offline',
+                        context.l10n.downloadedFileCountSummary(
+                          download.numberOfDownloadedFiles,
+                          download.numberOfFiles,
+                        ),
                         style: TextStyle(color: colors.onSurfaceVariant),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.actionClose,
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close_rounded),
                 ),
@@ -183,12 +197,12 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
             child: Row(
               children: [
-                Expanded(child: Text('Files', style: Theme.of(context).textTheme.titleSmall)),
+                Expanded(child: Text(context.l10n.fieldFiles, style: Theme.of(context).textTheme.titleSmall)),
                 if (active)
                   TextButton.icon(
                     onPressed: _busy ? null : _cancel,
                     icon: const Icon(Icons.close_rounded),
-                    label: const Text('Cancel download'),
+                    label: Text(context.l10n.actionCancelDownload),
                   )
                 else if (download.numberOfDownloadedFiles < download.numberOfFiles)
                   FilledButton.tonalIcon(
@@ -196,7 +210,7 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
                     icon: _busy && _deletingInode == null
                         ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.download_rounded),
-                    label: const Text('Download missing'),
+                    label: Text(context.l10n.actionDownloadMissingFiles),
                   )
                 else
                   const Icon(Icons.offline_pin_rounded),
@@ -227,7 +241,7 @@ class _DownloadFilesSheetState extends ConsumerState<DownloadFilesSheet> {
                   onPressed: () =>
                       ref.invalidate(downloadFilesForItemProvider(widget.itemId, episodeId: widget.episodeId)),
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Retry loading files'),
+                  label: Text(context.l10n.actionRetryLoadingFiles),
                 ),
               ),
             ),
@@ -265,10 +279,10 @@ class _DownloadFileRow extends ConsumerWidget {
     );
     final colors = Theme.of(context).colorScheme;
     final label = file.downloaded
-        ? 'Offline'
+        ? context.l10n.statusOffline
         : status != null
         ? ItemDownloadIndicator(status: status).label
-        : 'Not downloaded';
+        : context.l10n.statusNotDownloaded;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       leading: Icon(
@@ -280,15 +294,17 @@ class _DownloadFileRow extends ConsumerWidget {
         color: file.downloaded ? colors.primary : colors.onSurfaceVariant,
       ),
       title: Text(file.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-      subtitle: Text('$label${file.size != null && file.size! > 0 ? ' · ${formatBytes(file.size!)}' : ''}'),
+      subtitle: Text(
+        '$label${file.size != null && file.size! > 0 ? ' · ${formatBytes(file.size!, localizations: context.l10n)}' : ''}',
+      ),
       trailing: deleting
           ? const SizedBox.square(dimension: 22, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
           : file.downloaded
-          ? YaabsaDeleteIconButton(tooltip: 'Delete file', onPressed: onDelete)
+          ? YaabsaDeleteIconButton(tooltip: context.l10n.actionDelete, onPressed: onDelete)
           : status != null
           ? RepaintBoundary(child: ItemDownloadIndicator(status: status))
           : IconButton.filledTonal(
-              tooltip: 'Download file',
+              tooltip: context.l10n.actionDownload,
               onPressed: canDownload ? onDownload : null,
               icon: const Icon(Icons.download_rounded),
             ),

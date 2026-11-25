@@ -6,7 +6,15 @@ import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
+
+const _shortPauseThresholdValues = [15, 30, 45, 60, 90, 120, 180, 300];
+const _longPauseThresholdValues = [300, 600, 900, 1200, 1800, 2700, 3600];
+const _shortRewindValues = [3, 5, 10, 15, 20, 30];
+const _mediumRewindValues = [10, 15, 20, 30, 45, 60];
+const _longRewindValues = [20, 30, 45, 60, 90, 120];
 
 class PlayerSettingsSmartRewind extends ConsumerWidget {
   const PlayerSettingsSmartRewind({super.key});
@@ -20,62 +28,72 @@ class PlayerSettingsSmartRewind extends ConsumerWidget {
     final smartRewindEnabled = SettingsParser.decodeValue<bool>(smartRewindSetting, smartRewindDefault);
 
     return SettingsPageScaffold(
-      title: 'Player - Smart Rewind',
+      title: context.l10n.settingSmartRewind,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
         SettingsNavigationSection(
-          title: 'Smart Rewind Settings',
+          title: context.l10n.settingSmartRewind,
           topPadding: 0,
           settings: [
             SettingSwitchTile(
-              label: 'Smart rewind',
-              subtitle: 'When resuming after a pause, rewind by an amount based on pause duration',
+              label: context.l10n.settingSmartRewind,
+              subtitle: context.l10n.settingSmartRewindDescription,
               settingKey: SettingKeys.smartRewindEnabled,
             ),
             SettingSlider<int>(
-              label: 'Short-pause threshold',
-              description: 'If paused up to this amount, the short smart rewind value is used',
-              disabledReason: 'Enable Smart rewind to configure this option',
-              values: const [15, 30, 45, 60, 90, 120, 180, 300],
-              valueLabels: const ['15 s', '30 s', '45 s', '1 min', '1.5 min', '2 min', '3 min', '5 min'],
+              label: context.l10n.settingShortPauseThreshold,
+              description: context.l10n.settingShortPauseThresholdDescription,
+              disabledReason: context.l10n.permissionEnableSettingToChangeOption(context.l10n.settingSmartRewind),
+              values: _shortPauseThresholdValues,
+              valueLabels: _shortPauseThresholdValues
+                  .map((seconds) => Duration(seconds: seconds).toCompactRemainingString(localizations: context.l10n))
+                  .toList(growable: false),
               settingKey: SettingKeys.smartRewindShortPauseThresholdSeconds,
               enabled: smartRewindEnabled,
             ),
             SettingSlider<int>(
-              label: 'Long-pause threshold',
-              description: 'If paused longer than the short threshold and up to this amount, the medium smart rewind value is used (longer pauses use the long smart rewind value)',
-              disabledReason: 'Enable Smart rewind to configure this option',
-              values: const [300, 600, 900, 1200, 1800, 2700, 3600],
-              valueLabels: const ['5 min', '10 min', '15 min', '20 min', '30 min', '45 min', '60 min'],
+              label: context.l10n.settingLongPauseThreshold,
+              description: context.l10n.settingLongPauseThresholdDescription,
+              disabledReason: context.l10n.permissionEnableSettingToChangeOption(context.l10n.settingSmartRewind),
+              values: _longPauseThresholdValues,
+              valueLabels: _longPauseThresholdValues
+                  .map((seconds) => Duration(seconds: seconds).toCompactRemainingString(localizations: context.l10n))
+                  .toList(growable: false),
               settingKey: SettingKeys.smartRewindLongPauseThresholdSeconds,
               enabled: smartRewindEnabled,
             ),
             SettingSlider<int>(
-              label: 'Short rewind amount',
-              description: 'Rewind amount used for short pauses',
-              disabledReason: 'Enable Smart rewind to configure this option',
-              values: const [3, 5, 10, 15, 20, 30],
-              valueLabels: const ['3 s', '5 s', '10 s', '15 s', '20 s', '30 s'],
+              label: context.l10n.settingShortRewindAmount,
+              description: context.l10n.settingShortRewindAmountDescription,
+              disabledReason: context.l10n.permissionEnableSettingToChangeOption(context.l10n.settingSmartRewind),
+              values: _shortRewindValues,
+              valueLabels: _shortRewindValues
+                  .map((seconds) => Duration(seconds: seconds).toCompactRemainingString(localizations: context.l10n))
+                  .toList(growable: false),
               settingKey: SettingKeys.smartRewindShortRewindSeconds,
               enabled: smartRewindEnabled,
             ),
             SettingSlider<int>(
-              label: 'Medium rewind amount',
-              description: 'Rewind amount used for medium pauses',
-              disabledReason: 'Enable Smart rewind to configure this option',
-              values: const [10, 15, 20, 30, 45, 60],
-              valueLabels: const ['10 s', '15 s', '20 s', '30 s', '45 s', '60 s'],
+              label: context.l10n.settingMediumRewindAmount,
+              description: context.l10n.settingMediumRewindAmountDescription,
+              disabledReason: context.l10n.permissionEnableSettingToChangeOption(context.l10n.settingSmartRewind),
+              values: _mediumRewindValues,
+              valueLabels: _mediumRewindValues
+                  .map((seconds) => Duration(seconds: seconds).toCompactRemainingString(localizations: context.l10n))
+                  .toList(growable: false),
               settingKey: SettingKeys.smartRewindMediumRewindSeconds,
               enabled: smartRewindEnabled,
             ),
             SettingSlider<int>(
-              label: 'Long rewind amount',
-              description: 'Rewind amount used for long pauses',
-              disabledReason: 'Enable Smart rewind to configure this option',
-              values: const [20, 30, 45, 60, 90, 120],
-              valueLabels: const ['20 s', '30 s', '45 s', '60 s', '90 s', '120 s'],
+              label: context.l10n.settingLongRewindAmount,
+              description: context.l10n.settingLongRewindAmountDescription,
+              disabledReason: context.l10n.permissionEnableSettingToChangeOption(context.l10n.settingSmartRewind),
+              values: _longRewindValues,
+              valueLabels: _longRewindValues
+                  .map((seconds) => Duration(seconds: seconds).toCompactRemainingString(localizations: context.l10n))
+                  .toList(growable: false),
               settingKey: SettingKeys.smartRewindLongRewindSeconds,
               enabled: smartRewindEnabled,
             ),

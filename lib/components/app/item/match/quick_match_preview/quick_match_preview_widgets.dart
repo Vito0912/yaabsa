@@ -5,6 +5,7 @@ import 'package:yaabsa/components/app/item/match/quick_match_preview/quick_match
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class QuickMatchPreviewHeader extends StatelessWidget {
   const QuickMatchPreviewHeader({super.key});
@@ -16,10 +17,10 @@ class QuickMatchPreviewHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('Preview changes', style: Theme.of(context).textTheme.titleLarge),
+          Text(context.l10n.headingPreviewChanges, style: Theme.of(context).textTheme.titleLarge),
           const Spacer(),
           IconButton(
-            tooltip: 'Close',
+            tooltip: context.l10n.actionClose,
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.close_rounded),
           ),
@@ -46,8 +47,8 @@ class QuickMatchPreviewSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actionButtons = <Widget>[
-      TextButton(onPressed: onSelectAll, child: const Text('Select all changes')),
-      TextButton(onPressed: onClearSelection, child: const Text('Clear selection')),
+      TextButton(onPressed: onSelectAll, child: Text(context.l10n.actionSelectAll)),
+      TextButton(onPressed: onClearSelection, child: Text(context.l10n.actionClearSelection)),
     ];
 
     if (context.isMobile) {
@@ -64,7 +65,7 @@ class QuickMatchPreviewSummary extends StatelessWidget {
         runSpacing: 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          _SummaryChip(label: '$changedCount/$totalCount with changes'),
+          _SummaryChip(label: context.l10n.quickMatchChangeSummary(changedCount, totalCount)),
           ...actionButtons,
         ],
       ),
@@ -106,14 +107,16 @@ class QuickMatchPreviewActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final applyLabel = applying ? 'Applying...' : 'Apply $selectedCount';
+    final applyLabel = applying
+        ? context.l10n.statusApplying
+        : context.l10n.actionApplyQuickMatchChanges(selectedCount);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          TextButton(onPressed: applying ? null : onClose, child: const Text('Close')),
+          TextButton(onPressed: applying ? null : onClose, child: Text(context.l10n.actionClose)),
           const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: applying ? null : onApply,
@@ -137,8 +140,8 @@ class QuickMatchPreviewLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progressText = (completed != null && total != null)
-        ? 'Searching matches... ($completed/$total completed)'
-        : 'Searching matches...';
+        ? context.l10n.statusSearchingMatchesProgress(completed!, total!)
+        : context.l10n.statusSearchingMatches;
     final progressPercent = (completed != null && total != null && total! > 0) ? (completed! / total!) : null;
 
     return Center(
@@ -175,7 +178,7 @@ class QuickMatchPreviewFailure extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'Could not load preview: $error',
+          context.l10n.errorQuickMatchPreviewLoadFailed(error),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
         ),
@@ -216,7 +219,7 @@ class QuickMatchPreviewNoResultCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   ),
-                  child: Text('No match', style: Theme.of(context).textTheme.labelSmall),
+                  child: Text(context.l10n.statusNoMatch, style: Theme.of(context).textTheme.labelSmall),
                 ),
               ],
             ),
@@ -231,9 +234,7 @@ class QuickMatchPreviewNoResultCard extends StatelessWidget {
             ],
             const SizedBox(height: 8),
             Text(
-              error == null
-                  ? 'No metadata result was returned for this item with the selected provider.'
-                  : 'Metadata search failed: $error',
+              error ?? context.l10n.statusNoMatchResultForItem,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error),
             ),
           ],
@@ -314,9 +315,9 @@ class QuickMatchPreviewResultCard extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 10,
                 children: [
-                  _CoverCard(label: 'Before cover', child: buildCurrentCover()),
+                  _CoverCard(label: context.l10n.fieldCurrentCover, child: buildCurrentCover()),
                   _CoverCard(
-                    label: 'After cover',
+                    label: context.l10n.fieldSelectedCover,
                     child: coverWillChange ? _networkCoverPreview(context, result.coverUrl!) : buildCurrentCover(),
                   ),
                 ],
@@ -324,7 +325,7 @@ class QuickMatchPreviewResultCard extends StatelessWidget {
             const SizedBox(height: 8),
             if (rows.isEmpty)
               Text(
-                'No metadata field changes detected for this item.',
+                context.l10n.statusNoMetadataFieldChanges,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
               )
             else
@@ -371,9 +372,13 @@ class QuickMatchComparisonTable extends StatelessWidget {
                 if (constraints.maxWidth < 640) {
                   return Row(
                     children: [
-                      Expanded(child: Text('Before', style: Theme.of(context).textTheme.labelMedium)),
+                      Expanded(
+                        child: Text(context.l10n.headingBeforeValue, style: Theme.of(context).textTheme.labelMedium),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: Text('After', style: Theme.of(context).textTheme.labelMedium)),
+                      Expanded(
+                        child: Text(context.l10n.headingAfterValue, style: Theme.of(context).textTheme.labelMedium),
+                      ),
                     ],
                   );
                 }
@@ -381,9 +386,13 @@ class QuickMatchComparisonTable extends StatelessWidget {
                 return Row(
                   children: [
                     const SizedBox(width: 150),
-                    Expanded(child: Text('Before', style: Theme.of(context).textTheme.labelMedium)),
+                    Expanded(
+                      child: Text(context.l10n.headingBeforeValue, style: Theme.of(context).textTheme.labelMedium),
+                    ),
                     const SizedBox(width: 10),
-                    Expanded(child: Text('After', style: Theme.of(context).textTheme.labelMedium)),
+                    Expanded(
+                      child: Text(context.l10n.headingAfterValue, style: Theme.of(context).textTheme.labelMedium),
+                    ),
                   ],
                 );
               },
@@ -450,7 +459,7 @@ class _ComparisonRowTile extends StatelessWidget {
   Widget _valueText(BuildContext context, String value) {
     return Text(
       value,
-      maxLines: row.label == 'Description' ? 4 : 2,
+      maxLines: row.label == context.l10n.fieldDescription ? 4 : 2,
       overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.bodySmall,
     );

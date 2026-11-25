@@ -1,6 +1,8 @@
 import 'package:background_downloader/background_downloader.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class DownloadStatus extends StatelessWidget {
@@ -8,6 +10,8 @@ class DownloadStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return StreamBuilder<List<TaskRecord>>(
       stream: downloadHandler.taskQueueStream,
       initialData: downloadHandler.taskQueueSnapshot,
@@ -25,11 +29,13 @@ class DownloadStatus extends StatelessWidget {
         }
 
         final remainingFiles = tasks.length;
-        final centerLabel = remainingFiles > 99 ? '99+' : '$remainingFiles';
+        final centerLabel = remainingFiles > 99
+            ? '99+'
+            : NumberFormat.decimalPattern(l10n.localeName).format(remainingFiles);
         final overallProgress = _calculateOverallProgress(tasks);
 
         return Tooltip(
-          message: '$remainingFiles file${remainingFiles == 1 ? '' : 's'} remaining',
+          message: l10n.downloadRemainingFileCount(remainingFiles),
           child: InkWell(
             borderRadius: BorderRadius.circular(999),
             onTap: () => _showProgressSheet(context),
@@ -76,19 +82,21 @@ class DownloadStatus extends StatelessWidget {
               stream: downloadHandler.taskQueueStream,
               initialData: downloadHandler.taskQueueSnapshot,
               builder: (context, snapshot) {
+                final l10n = context.l10n;
+
                 if (snapshot.hasError) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('Could not load active downloads: ${snapshot.error}'),
+                      child: Text(l10n.errorCouldNotLoadActiveDownloads),
                     ),
                   );
                 }
 
                 final tasks = _activeTasks(snapshot.data ?? const <TaskRecord>[]);
                 if (tasks.isEmpty) {
-                  return const Center(
-                    child: Padding(padding: EdgeInsets.all(24), child: Text('No active downloads.')),
+                  return Center(
+                    child: Padding(padding: const EdgeInsets.all(24), child: Text(l10n.statusNoActiveDownloads)),
                   );
                 }
 
@@ -98,12 +106,9 @@ class DownloadStatus extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Downloads in progress', style: Theme.of(context).textTheme.titleMedium),
+                      Text(l10n.headingDownloadsInProgress, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 4),
-                      Text(
-                        '${tasks.length} file${tasks.length == 1 ? '' : 's'} remaining',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                      Text(l10n.downloadRemainingFileCount(tasks.length), style: Theme.of(context).textTheme.bodySmall),
                       const SizedBox(height: 12),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(999),
@@ -122,7 +127,7 @@ class DownloadStatus extends StatelessWidget {
                               contentPadding: EdgeInsets.zero,
                               title: Text(_taskTitle(task), maxLines: 1, overflow: TextOverflow.ellipsis),
                               trailing: IconButton(
-                                tooltip: 'Cancel download',
+                                tooltip: l10n.actionCancelDownload,
                                 icon: const Icon(Icons.close_rounded),
                                 onPressed: () async {
                                   try {
@@ -131,15 +136,15 @@ class DownloadStatus extends StatelessWidget {
                                       return;
                                     }
                                     final message = canceled
-                                        ? 'Canceled ${_taskTitle(task)}.'
-                                        : 'Could not cancel ${_taskTitle(task)}.';
+                                        ? l10n.statusDownloadCanceledNamed(_taskTitle(task))
+                                        : l10n.errorCancelDownloadNamed(_taskTitle(task));
                                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
                                   } catch (e) {
                                     if (!context.mounted) {
                                       return;
                                     }
                                     ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(content: Text('Could not cancel download: $e')));
+                                        .showSnackBar(SnackBar(content: Text(l10n.errorCancelDownload)));
                                   }
                                 },
                               ),
@@ -154,7 +159,14 @@ class DownloadStatus extends StatelessWidget {
                                     child: YaabsaLinearProgressIndicator(value: progress, minHeight: 5),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('${_statusLabel(task.status)} | ${(progress * 100).toStringAsFixed(0)}%'),
+                                  Text(
+                                    l10n.statusWithProgress(
+                                      _statusLabel(task.status, l10n),
+                                      (NumberFormat.percentPattern(
+                                        l10n.localeName,
+                                      )..maximumFractionDigits = 0).format(progress),
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -231,34 +243,36 @@ class DownloadStatus extends StatelessWidget {
     return task.task.taskId;
   }
 
-  String _statusLabel(TaskStatus status) {
+  String _statusLabel(TaskStatus status, AppLocalizations l10n) {
     switch (status) {
       case TaskStatus.enqueued:
-        return 'Queued';
+        return l10n.statusQueued;
       case TaskStatus.running:
-        return 'Downloading';
+        return l10n.statusDownloading;
       case TaskStatus.waitingToRetry:
-        return 'Retrying';
+        return l10n.statusRetrying;
       case TaskStatus.paused:
-        return 'Paused';
+        return l10n.statusPaused;
       case TaskStatus.complete:
-        return 'Complete';
+        return l10n.statusComplete;
       case TaskStatus.notFound:
-        return 'Not found';
+        return l10n.statusNotFound;
       case TaskStatus.failed:
-        return 'Failed';
+        return l10n.statusFailed;
       case TaskStatus.canceled:
-        return 'Canceled';
+        return l10n.statusCanceled;
     }
   }
 
   void _showErrorDialog(BuildContext context, Object? error) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Download Error'),
-        content: Text('Error: $error'),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+        title: Text(l10n.headingDownloadError),
+        content: Text(l10n.errorUnknown),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.actionOk))],
       ),
     );
   }

@@ -11,6 +11,7 @@ import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dar
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<CreatePodcastRequest?> showPodcastCreateDialog({
   required BuildContext context,
@@ -120,6 +121,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final selectedFolder = _selectedFolder;
     final imageUrl = _trimToNull(_imageUrlController.text);
     final pathPreview = selectedFolder == null
@@ -127,7 +129,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
         : p.join(selectedFolder.fullPath, _sanitizePathSegment(_titleController.text));
 
     return AlertDialog(
-      title: const Text('Add Podcast'),
+      title: Text(l10n.actionAddPodcast),
       content: SizedBox(
         width: 760,
         child: SingleChildScrollView(
@@ -146,21 +148,21 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
               ),
               const SizedBox(height: 12),
               LibraryItemEditorSectionCard(
-                title: 'Metadata',
+                title: l10n.headingMetadata,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _CreateDialogResponsiveFields(
                       children: [
                         StyledTextField(
-                          label: 'Title *',
+                          label: l10n.fieldRequired(l10n.fieldTitle),
                           controller: _titleController,
                           onChanged: (_) => setState(() {}),
                         ),
-                        StyledTextField(label: 'Author', controller: _authorController),
-                        StyledTextField(label: 'Language', controller: _languageController),
+                        StyledTextField(label: l10n.fieldAuthor, controller: _authorController),
+                        StyledTextField(label: l10n.fieldLanguage, controller: _languageController),
                         StyledTextField(
-                          label: 'RSS Feed URL *',
+                          label: l10n.fieldRequired(l10n.fieldRssFeedUrl),
                           hintText: 'https://example.com/feed.xml',
                           controller: _feedUrlController,
                         ),
@@ -173,10 +175,10 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                           },
                         ),
                         StringChipListInput(
-                          label: 'Genres',
+                          label: l10n.fieldGenres,
                           values: _genres,
                           suggestions: _genresSuggestions,
-                          hintText: 'Add genre',
+                          hintText: l10n.hintAddGenre,
                           onChanged: (next) {
                             setState(() {
                               _genres = _compactStrings(next);
@@ -186,18 +188,18 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    StyledTextField(label: 'Description', controller: _descriptionController, maxLines: 4),
+                    StyledTextField(label: l10n.fieldDescription, controller: _descriptionController, maxLines: 4),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
               LibraryItemEditorSectionCard(
-                title: 'Storage',
+                title: l10n.headingStorage,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     YaabsaDropdownField<String>(
-                      label: 'Library folder *',
+                      label: l10n.fieldRequired(l10n.fieldLibraryFolder),
                       value: _selectedFolderId,
                       items: _folders
                           .map((folder) => DropdownMenuItem<String>(value: folder.id, child: Text(folder.fullPath)))
@@ -228,7 +230,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                                   _explicit = value;
                                 });
                               },
-                              title: const Text('Explicit content'),
+                              title: Text(l10n.settingPodcastExplicitContent),
                             ),
                           ),
                           const Divider(height: 1),
@@ -242,7 +244,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                                   _autoDownloadEpisodes = value;
                                 });
                               },
-                              title: const Text('Auto download new episodes'),
+                              title: Text(l10n.settingPodcastAutoDownloadEpisodes),
                             ),
                           ),
                         ],
@@ -256,7 +258,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.actionCancel)),
         FilledButton.icon(
           onPressed: () {
             final request = _buildRequest();
@@ -266,7 +268,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
             Navigator.of(context).pop(request);
           },
           icon: const Icon(Icons.add_rounded),
-          label: const Text('Create podcast'),
+          label: Text(l10n.actionCreatePodcast),
         ),
       ],
     );
@@ -275,24 +277,24 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
   CreatePodcastRequest? _buildRequest() {
     final selectedFolder = _selectedFolder;
     if (selectedFolder == null) {
-      _showValidationError('Choose a target library folder.');
+      _showValidationError(context.l10n.validationLibraryFolderRequired);
       return null;
     }
 
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      _showValidationError('Title is required.');
+      _showValidationError(context.l10n.validationTitleRequired);
       return null;
     }
 
     final feedUrl = _feedUrlController.text.trim();
     if (feedUrl.isEmpty) {
-      _showValidationError('RSS feed URL is required.');
+      _showValidationError(context.l10n.validationRssFeedUrlRequired);
       return null;
     }
 
     if (!_isValidHttpUrl(feedUrl)) {
-      _showValidationError('Feed URL must be a valid HTTP or HTTPS URL.');
+      _showValidationError(context.l10n.validationHttpUrlRequired);
       return null;
     }
 
@@ -340,7 +342,7 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
   String _sanitizePathSegment(String value) {
     final withoutInvalidChars = value.replaceAll(RegExp(r'[<>:"/\\|?*]'), ' ').trim();
     final collapsedWhitespace = withoutInvalidChars.replaceAll(RegExp(r'\s+'), ' ');
-    return collapsedWhitespace.isEmpty ? 'Podcast' : collapsedWhitespace;
+    return collapsedWhitespace.isEmpty ? context.l10n.mediaTypePodcast : collapsedWhitespace;
   }
 }
 

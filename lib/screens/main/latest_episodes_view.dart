@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -26,10 +27,10 @@ class LatestEpisodesView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
     if (selectedLibrary.mediaType != 'podcast') {
-      return const Center(child: Text('Latest Episodes is available for podcast libraries.'));
+      return Center(child: Text(context.l10n.errorPodcastLibraryRequired));
     }
 
     final api = ref.watch(absApiProvider);
@@ -85,7 +86,7 @@ class LatestEpisodesView extends HookConsumerWidget {
         audioHandler.playPodcastEpisode(item, resolvedEpisode);
       } catch (error) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not play this episode: $error')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorMediaCannotPlay)));
         }
       } finally {
         pendingEpisodeIds.value = {...pendingEpisodeIds.value}..remove(episode.id);
@@ -101,11 +102,11 @@ class LatestEpisodesView extends HookConsumerWidget {
             child: ListView(
               controller: scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
-                SizedBox(height: 160),
-                Icon(Icons.podcasts_rounded, size: 48),
-                SizedBox(height: 16),
-                Center(child: Text('No incomplete recent episodes found.')),
+              children: [
+                const SizedBox(height: 160),
+                const Icon(Icons.podcasts_rounded, size: 48),
+                const SizedBox(height: 16),
+                Center(child: Text(context.l10n.statusNoRecentEpisodes)),
               ],
             ),
           );
@@ -127,7 +128,7 @@ class LatestEpisodesView extends HookConsumerWidget {
                       constraints: const BoxConstraints(maxWidth: 960),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Latest Episodes', style: Theme.of(context).textTheme.headlineSmall),
+                        child: Text(context.l10n.shelfLatestEpisodes, style: Theme.of(context).textTheme.headlineSmall),
                       ),
                     ),
                   ),
@@ -183,7 +184,7 @@ class LatestEpisodesView extends HookConsumerWidget {
       loading: () => const LoadingView(showDownloadsShortcut: false),
       error: (error, stackTrace) => ConnectionIssueView.requestFailed(
         error: error,
-        title: 'Could not load latest episodes',
+        title: context.l10n.errorLoadingNamedContent(context.l10n.shelfLatestEpisodes),
         onRetry: () => ref.read(provider.notifier).refresh(),
         showDownloadsShortcut: false,
       ),
@@ -216,7 +217,7 @@ class _LatestEpisodeCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final podcastTitle = episode.podcast?.metadata.title?.trim();
     final podcastAuthor = episode.podcast?.metadata.author?.trim();
-    final publishedLabel = podcastFormatEpisodeDate(episode);
+    final publishedLabel = podcastFormatEpisodeDate(episode, localeName: Localizations.localeOf(context).toString());
     final durationSeconds = episode.audioFile?.duration ?? episode.audioTrack?.duration ?? episode.duration;
     final durationLabel = durationSeconds == null
         ? null
@@ -247,7 +248,7 @@ class _LatestEpisodeCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      podcastEpisodeTitle(episode),
+                      podcastEpisodeTitle(episode) ?? context.l10n.untitledEpisode,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium,

@@ -10,7 +10,9 @@ import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/oidc_provider.dart';
+import 'package:yaabsa/provider/core/locale_provider.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/globals.dart'
     show appName, audioHandler, containerRef, isAudioHandlerInitialized, packageInfo;
 import 'package:yaabsa/util/aaos_service.dart';
@@ -25,7 +27,6 @@ import 'package:yaabsa/util/router.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -155,6 +156,8 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appLogLevelSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appLogLevel)).asData?.value;
+    final locale = ref.watch(localeProvider);
+    ref.watch(localeEffectsProvider);
 
     appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));
 
@@ -167,7 +170,9 @@ class MyApp extends ConsumerWidget {
           return MaterialApp(
             title: appName,
             debugShowCheckedModeBanner: false,
-            localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
+            localizationsDelegates: yaabsaLocalizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: locale,
             themeMode: themeSelection.materialThemeMode,
             theme: themeSelection.themeData(Brightness.light),
             darkTheme: themeSelection.themeData(Brightness.dark),
@@ -187,6 +192,8 @@ class _ReadyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeSelection = watchAppThemeSelection(ref);
+    final locale = ref.watch(localeProvider);
+    ref.watch(localeEffectsProvider);
 
     ref.watch(mediaProgressProvider);
 
@@ -207,7 +214,9 @@ class _ReadyApp extends ConsumerWidget {
           ),
         );
       },
-      localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
+      localizationsDelegates: yaabsaLocalizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
       themeMode: themeSelection.materialThemeMode,
       theme: themeSelection.themeData(Brightness.light),
       darkTheme: themeSelection.themeData(Brightness.dark),

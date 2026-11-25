@@ -7,6 +7,7 @@ import 'package:yaabsa/api/library/library_settings.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/settings/smart_download_source_editor.dart';
 import 'package:yaabsa/models/queue_source.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'smart_download_test_support.dart';
 
@@ -63,7 +64,11 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
       ),
     );
     await tester.tap(find.text('Open editor'));

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/paged_list_footer.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class BookListMembershipDialog<T> extends StatefulWidget {
   const BookListMembershipDialog({
@@ -304,13 +305,13 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Could not load ${widget.plural}.'),
-            TextButton(onPressed: _saving ? null : _reload, child: const Text('Retry')),
+            Text(context.l10n.errorLoadNamedListFailed(widget.plural)),
+            TextButton(onPressed: _saving ? null : _reload, child: Text(context.l10n.actionRetry)),
           ],
         ),
       );
     } else if (_original!.isEmpty && !widget.hasNextPage) {
-      content = Center(child: Text('No ${widget.plural} found in this library.'));
+      content = Center(child: Text(context.l10n.statusNoNamedListsFound(widget.plural)));
     } else {
       content = NotificationListener<ScrollNotification>(
         onNotification: (notification) {
@@ -336,7 +337,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
             final id = widget.id(original);
             final entry = _displayEntries[id] ?? original;
             final reason = _conflictedIds.contains(id)
-                ? 'This list changed. Review the updates before saving.'
+                ? context.l10n.statusNamedListChangedReviewUpdates
                 : widget.disabledReason(entry);
             final membership = _memberships[id];
             return CheckboxListTile(
@@ -364,7 +365,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
     return PopScope(
       canPop: !_saving,
       child: AlertDialog(
-        title: Text('Manage ${widget.plural}'),
+        title: Text(context.l10n.headingManageNamedLists(widget.plural)),
         content: SizedBox(
           width: 520,
           height: MediaQuery.sizeOf(context).height * 0.55,
@@ -379,17 +380,20 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
                     child: OutlinedButton.icon(
                       onPressed: allowed && !_saving && !loading ? _createEntry : null,
                       icon: const Icon(Icons.add_rounded),
-                      label: Text(widget.createEntryLabel ?? 'Create'),
+                      label: Text(widget.createEntryLabel ?? context.l10n.actionCreate),
                     ),
                   ),
                 ),
-              if (!allowed) const Text('Editing is not allowed.'),
+              if (!allowed) Text(context.l10n.errorEditingListNotAllowed),
               if (_conflictedIds.isNotEmpty)
-                TextButton(onPressed: _saving || loading ? null : _reviewUpdates, child: const Text('Review updates')),
+                TextButton(
+                  onPressed: _saving || loading ? null : _reviewUpdates,
+                  child: Text(context.l10n.actionReviewUpdates),
+                ),
               if (data?.any((entry) => widget.canRetryEntry?.call(entry) ?? false) ?? false)
                 TextButton(
                   onPressed: _saving || loading ? null : _reload,
-                  child: const Text('Retry unavailable lists'),
+                  child: Text(context.l10n.actionRetryUnavailableLists),
                 ),
               if (_error != null)
                 Flexible(
@@ -403,7 +407,10 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
           ),
         ),
         actions: [
-          TextButton(onPressed: _saving ? null : () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: _saving ? null : () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.actionCancel),
+          ),
           FilledButton(
             onPressed:
                 allowed &&
@@ -415,7 +422,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
                     _conflictedIds.isEmpty
                 ? _save
                 : null,
-            child: Text(_saving ? 'Saving…' : 'Save changes'),
+            child: Text(_saving ? context.l10n.statusSaving : context.l10n.actionSave),
           ),
         ],
       ),

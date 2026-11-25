@@ -34,6 +34,7 @@ import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemBookView extends ConsumerWidget {
   const LibraryItemBookView({super.key, required this.item, required this.canDownload});
@@ -231,9 +232,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                           }
                                           if (!isPdf) {
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Only PDF reading is currently supported on Linux'),
-                                              ),
+                                              SnackBar(content: Text(context.l10n.errorPdfReadingLinuxOnly)),
                                             );
                                             return;
                                           }
@@ -247,13 +246,14 @@ class LibraryItemBookView extends ConsumerWidget {
                                             return;
                                           }
                                           ScaffoldMessenger.of(context)
-                                              .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                                              .showSnackBar(SnackBar(content: Text(context.l10n.statusDownloadQueued)));
                                         } catch (e) {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text(context.l10n.errorDownloadStartFailed)),
+                                          );
                                         }
                                       },
                                       onDeleteDownload: () async {
@@ -263,7 +263,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                         try {
                                           final result = await runWithLoadingSnackBar(
                                             context: context,
-                                            message: 'Deleting downloaded files...',
+                                            message: context.l10n.statusDeletingDownloadedFiles,
                                             action: () => downloadHandler.deleteDownloadedItem(
                                               storedDownload,
                                               userId: currentUser.id,
@@ -272,12 +272,14 @@ class LibraryItemBookView extends ConsumerWidget {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          final failedSuffix = result.failedFiles > 0
-                                              ? ' ${result.failedFiles} file(s) could not be removed.'
-                                              : '';
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix'),
+                                              content: Text(
+                                                context.l10n.downloadFilesDeleteSummary(
+                                                  result.deletedFiles,
+                                                  result.failedFiles,
+                                                ),
+                                              ),
                                             ),
                                           );
                                         } catch (e) {
@@ -285,7 +287,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                             return;
                                           }
                                           ScaffoldMessenger.of(context)
-                                              .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                              .showSnackBar(SnackBar(content: Text(context.l10n.errorDeleteDownload)));
                                         }
                                       },
                                       onQueueToggle: () {
@@ -395,9 +397,9 @@ class LibraryItemBookView extends ConsumerWidget {
                                               showPinnedShelfSnackBar(context: context, undo: undo);
                                             } catch (error) {
                                               if (context.mounted) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text('Could not update Pinned: $error')),
-                                                );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(SnackBar(content: Text(context.l10n.errorUpdatePinned)));
                                               }
                                             }
                                             return;

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum UploadFileKind { item, other, ignored }
 
@@ -105,15 +106,15 @@ class UploadItemDraft {
 }
 
 extension UploadItemStatusLabel on UploadItemStatus {
-  String get label {
+  String label(AppLocalizations l10n) {
     return switch (this) {
-      UploadItemStatus.ready => 'Ready',
-      UploadItemStatus.checkingPaths => 'Checking paths',
-      UploadItemStatus.warning => 'Warning',
-      UploadItemStatus.uploading => 'Uploading',
-      UploadItemStatus.success => 'Uploaded',
-      UploadItemStatus.failed => 'Failed',
-      UploadItemStatus.canceled => 'Canceled',
+      UploadItemStatus.ready => l10n.statusReady,
+      UploadItemStatus.checkingPaths => l10n.statusChecking,
+      UploadItemStatus.warning => l10n.statusWarning,
+      UploadItemStatus.uploading => l10n.statusUploading,
+      UploadItemStatus.success => l10n.statusUploaded,
+      UploadItemStatus.failed => l10n.statusFailed,
+      UploadItemStatus.canceled => l10n.statusCanceled,
     };
   }
 }

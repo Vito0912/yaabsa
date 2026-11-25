@@ -4,6 +4,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/wear/wear_preferences_provider.dart';
 import 'package:yaabsa/provider/wear/wear_sign_in_provider.dart';
 import 'package:yaabsa/screens/wear/components/wear_browse_scaffold.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class WearSettingsScreen extends ConsumerStatefulWidget {
@@ -74,7 +75,7 @@ class _WearSettingsScreenState extends ConsumerState<WearSettingsScreen> {
       child: WearBrowseButton(
         title: title,
         titleLines: 2,
-        subtitle: value ? 'On' : 'Off',
+        subtitle: value ? context.l10n.statusOn : context.l10n.statusOff,
         icon: icon,
         trailing: Icon(
           value ? Icons.check_circle_rounded : Icons.circle_outlined,
@@ -91,73 +92,73 @@ class _WearSettingsScreenState extends ConsumerState<WearSettingsScreen> {
     final preferences = ref.watch(wearPreferencesProvider);
     final children = <Widget>[
       WearBrowseButton(
-        title: 'Playback speed',
-        subtitle: '${preferences.speed}×',
+        title: context.l10n.playbackSpeed,
+        subtitle: context.l10n.playbackSpeedMultiplier(preferences.speed),
         icon: Icons.speed,
         onPressed: _saving
             ? null
             : () => _choose<double>(
-                title: 'Playback speed',
+                title: context.l10n.playbackSpeed,
                 key: SettingKeys.playbackSpeed,
                 options: const [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3],
                 current: preferences.speed,
-                label: (value) => '$value×',
+                label: (value) => context.l10n.playbackSpeedMultiplier(value),
               ),
       ),
       WearBrowseButton(
-        title: 'Rewind',
-        subtitle: '${preferences.rewindSeconds} seconds',
+        title: context.l10n.fieldRewindInterval,
+        subtitle: context.l10n.durationSeconds(preferences.rewindSeconds),
         icon: Icons.replay,
         onPressed: _saving
             ? null
             : () => _choose<int>(
-                title: 'Rewind',
+                title: context.l10n.fieldRewindInterval,
                 key: SettingKeys.rewindInterval,
                 options: const [5, 10, 15, 30, 60],
                 current: preferences.rewindSeconds,
-                label: (value) => '$value seconds',
+                label: (value) => context.l10n.durationSeconds(value),
               ),
       ),
       WearBrowseButton(
-        title: 'Fast forward',
-        subtitle: '${preferences.forwardSeconds} seconds',
+        title: context.l10n.fieldFastForwardInterval,
+        subtitle: context.l10n.durationSeconds(preferences.forwardSeconds),
         icon: Icons.fast_forward,
         onPressed: _saving
             ? null
             : () => _choose<int>(
-                title: 'Fast forward',
+                title: context.l10n.fieldFastForwardInterval,
                 key: SettingKeys.fastForwardInterval,
                 options: const [5, 10, 15, 30, 60],
                 current: preferences.forwardSeconds,
-                label: (value) => '$value seconds',
+                label: (value) => context.l10n.durationSeconds(value),
               ),
       ),
       _toggle(
-        title: 'Cover background',
+        title: context.l10n.wearCoverBackground,
         key: SettingKeys.wearCoverBackground,
         value: preferences.coverBackground,
         icon: Icons.image_outlined,
       ),
       _toggle(
-        title: 'Ambient title and author',
+        title: context.l10n.wearAmbientTitleAndAuthor,
         key: SettingKeys.wearAmbientMetadata,
         value: preferences.ambientMetadata,
         icon: Icons.watch_outlined,
       ),
       _toggle(
-        title: 'Cover grid',
+        title: context.l10n.wearCoverGrid,
         key: SettingKeys.wearCoverGrid,
         value: preferences.coverGrid,
         icon: Icons.grid_view_rounded,
       ),
       _toggle(
-        title: 'Flat scrolling',
+        title: context.l10n.wearFlatScrolling,
         key: SettingKeys.wearFlatScrolling,
         value: preferences.flatScrolling,
         icon: Icons.view_agenda_outlined,
       ),
       _toggle(
-        title: 'Item progress',
+        title: context.l10n.wearItemProgress,
         key: SettingKeys.wearItemProgress,
         value: preferences.itemProgress,
         icon: Icons.timelapse,
@@ -165,7 +166,7 @@ class _WearSettingsScreenState extends ConsumerState<WearSettingsScreen> {
       if (_error != null) Text(_error!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
     ];
     return WearBrowseScaffold(
-      title: 'Settings',
+      title: context.l10n.navSettings,
       itemCount: children.length,
       itemBuilder: (context, index) => children[index],
     );

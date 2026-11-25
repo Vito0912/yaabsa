@@ -3,6 +3,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/buttons/playback_action_button.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
@@ -71,9 +72,13 @@ class PodcastHeaderCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+                IconButton(
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  tooltip: context.l10n.actionBack,
+                ),
                 const SizedBox(width: 4),
-                Text('Podcast', style: Theme.of(context).textTheme.titleSmall),
+                Text(context.l10n.mediaTypePodcast, style: Theme.of(context).textTheme.titleSmall),
               ],
             ),
             const SizedBox(height: 8),
@@ -139,7 +144,7 @@ class PodcastHeaderCard extends StatelessWidget {
               ),
             if (hasDescription) ...[
               const SizedBox(height: 10),
-              Text('DESCRIPTION', style: Theme.of(context).textTheme.labelSmall),
+              Text(context.l10n.fieldDescription, style: Theme.of(context).textTheme.labelSmall),
               const SizedBox(height: 6),
               Text(
                 showFullDescription ? description : previewDescription!,
@@ -148,7 +153,10 @@ class PodcastHeaderCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
-              TextButton(onPressed: onToggleDescription, child: Text(showFullDescription ? 'Show less' : 'Show more')),
+              TextButton(
+                onPressed: onToggleDescription,
+                child: Text(showFullDescription ? context.l10n.actionShowLess : context.l10n.actionReadMore),
+              ),
             ],
           ],
         ),
@@ -198,11 +206,13 @@ class _PodcastHeaderText extends StatelessWidget {
   Widget build(BuildContext context) {
     final metadata = item.media?.podcastMedia?.metadata;
     final author = metadata?.author;
-    final countLabel = '$visibleEpisodes / $totalEpisodes episodes';
+    final countLabel = visibleEpisodes == totalEpisodes
+        ? context.l10n.episodeCount(totalEpisodes)
+        : context.l10n.statusEpisodeResultsSubset(visibleEpisodes, totalEpisodes);
     final durationLabel = duration == null ? null : formatDurationLong(duration!);
     final playLabel = isLoadingCurrentPlayableEpisode
-        ? 'Loading'
-        : (isPlayingCurrentPlayableEpisode ? 'Pause' : (isCurrentPlayableEpisode ? 'Resume' : 'Play'));
+        ? context.l10n.statusLoading
+        : (isPlayingCurrentPlayableEpisode ? context.l10n.playbackPause : context.l10n.playbackPlay);
     final onPressed = isLoadingCurrentPlayableEpisode
         ? null
         : (isPlayingCurrentPlayableEpisode ? onPauseLatest : onPlayLatest);
@@ -224,7 +234,7 @@ class _PodcastHeaderText extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         Text(
-          durationLabel == null ? countLabel : '$countLabel • $durationLabel',
+          durationLabel == null ? countLabel : context.l10n.podcastEpisodeCountAndDuration(countLabel, durationLabel),
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
@@ -244,7 +254,7 @@ class _PodcastHeaderText extends StatelessWidget {
                 icon: Icons.shuffle_rounded,
                 variant: YaabsaActionButtonVariant.filledTonal,
                 shape: YaabsaActionButtonShape.rounded,
-                tooltip: 'Play random episode',
+                tooltip: context.l10n.actionPlayRandomItem,
                 onPressed: onShuffle,
               ),
             if (onDownloadPress != null)
@@ -252,7 +262,7 @@ class _PodcastHeaderText extends StatelessWidget {
                 icon: Icons.download_rounded,
                 variant: YaabsaActionButtonVariant.filledTonal,
                 shape: YaabsaActionButtonShape.rounded,
-                tooltip: 'Download options',
+                tooltip: context.l10n.actionDownloadOptions,
                 onPressed: onDownloadPress,
               ),
             if (onFindEpisodes != null)
@@ -264,7 +274,7 @@ class _PodcastHeaderText extends StatelessWidget {
                 variant: YaabsaActionButtonVariant.filledTonal,
                 shape: YaabsaActionButtonShape.rounded,
                 enabled: !isFindingEpisodes,
-                tooltip: 'Find episodes',
+                tooltip: context.l10n.actionFindEpisodes,
                 onPressed: onFindEpisodes,
               ),
             if (onEditPodcast != null)
@@ -272,7 +282,7 @@ class _PodcastHeaderText extends StatelessWidget {
                 icon: Icons.edit_rounded,
                 variant: YaabsaActionButtonVariant.filledTonal,
                 shape: YaabsaActionButtonShape.rounded,
-                tooltip: 'Edit podcast',
+                tooltip: context.l10n.actionEdit,
                 onPressed: onEditPodcast,
               ),
             if (onMoreActionSelected != null)

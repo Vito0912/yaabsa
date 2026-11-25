@@ -8,6 +8,7 @@ import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_ranked_panel.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class StatsAdvancedDashboard extends StatelessWidget {
   const StatsAdvancedDashboard({super.key, required this.statsAsync, required this.onRefresh, this.loadingProgress});
@@ -29,66 +30,78 @@ class StatsAdvancedDashboard extends StatelessWidget {
             metrics: [
               StatsMetric(
                 icon: Icons.schedule_rounded,
-                label: 'Total listening',
+                label: context.l10n.fieldTotalListening,
                 value: formatListeningSeconds(stats.totalListeningTime),
                 emphasized: true,
               ),
               StatsMetric(
                 icon: Icons.history_rounded,
-                label: 'Sessions',
-                value: '${stats.totalSessions}',
+                label: context.l10n.fieldSessions,
+                value: context.l10n.sessionCount(stats.totalSessions),
                 emphasized: true,
               ),
               StatsMetric(
                 icon: Icons.timer_outlined,
-                label: 'Average session',
+                label: context.l10n.fieldAverageSession,
                 value: formatListeningSeconds(stats.averageSessionTime),
               ),
               StatsMetric(
                 icon: Icons.align_horizontal_left_rounded,
-                label: 'Median session',
+                label: context.l10n.fieldMedianSession,
                 value: formatListeningSeconds(stats.medianSessionTime),
               ),
               StatsMetric(
                 icon: Icons.hourglass_top_rounded,
-                label: 'Longest session',
+                label: context.l10n.fieldLongestSession,
                 value: formatListeningSeconds(stats.longestSessionTime),
               ),
               StatsMetric(
                 icon: Icons.local_fire_department_rounded,
-                label: 'Longest streak',
-                value: '${stats.longestStreakDays} days',
+                label: context.l10n.fieldLongestStreak,
+                value: context.l10n.dayCount(stats.longestStreakDays),
               ),
               StatsMetric(
                 icon: Icons.menu_book_rounded,
-                label: 'Book listening',
+                label: context.l10n.fieldBookListening,
                 value: formatListeningSeconds(stats.totalBookListeningTime),
               ),
               StatsMetric(
                 icon: Icons.podcasts_rounded,
-                label: 'Podcast listening',
+                label: context.l10n.fieldPodcastListening,
                 value: formatListeningSeconds(stats.totalPodcastListeningTime),
               ),
-              StatsMetric(icon: Icons.library_books_rounded, label: 'Unique items', value: '${stats.uniqueItems}'),
-              StatsMetric(icon: Icons.people_alt_rounded, label: 'Unique authors', value: '${stats.uniqueAuthors}'),
+              StatsMetric(
+                icon: Icons.library_books_rounded,
+                label: context.l10n.fieldUniqueItems,
+                value: context.l10n.itemCount(stats.uniqueItems),
+              ),
+              StatsMetric(
+                icon: Icons.people_alt_rounded,
+                label: context.l10n.fieldUniqueAuthors,
+                value: context.l10n.authorCount(stats.uniqueAuthors),
+              ),
               if (stats.favoriteWeekday != null)
-                StatsMetric(icon: Icons.today_rounded, label: 'Favorite weekday', value: stats.favoriteWeekday!),
+                StatsMetric(
+                  icon: Icons.today_rounded,
+                  label: context.l10n.fieldFavoriteWeekday,
+                  value: formatWeekdayName(stats.favoriteWeekday!),
+                ),
               if (stats.favoriteHour != null)
                 StatsMetric(
                   icon: Icons.access_time_rounded,
-                  label: 'Favorite hour',
-                  value: '${stats.favoriteHour!.toString().padLeft(2, '0')}:00',
+                  label: context.l10n.fieldFavoriteHour,
+                  value: formatHourBucket('${stats.favoriteHour!.toString().padLeft(2, '0')}:00'),
                 ),
               if (stats.firstSessionAt != null)
                 StatsMetric(
                   icon: Icons.first_page_rounded,
-                  label: 'First session',
+                  label: context.l10n.fieldFirstSession,
                   value: formatDateTimeLabel(fromEpochMs(stats.firstSessionAt)),
                 ),
               if (stats.lastSessionAt != null)
                 StatsMetric(
                   icon: Icons.last_page_rounded,
-                  label: 'Latest session',
+                  label: context.l10n.fieldLatestSession,
                   value: formatDateTimeLabel(fromEpochMs(stats.lastSessionAt)),
                 ),
             ],
@@ -101,7 +114,7 @@ class StatsAdvancedDashboard extends StatelessWidget {
               final width = (constraints.maxWidth - ((columns - 1) * spacing)) / columns;
               final panels = [
                 StatsRankedPanel(
-                  title: 'Top items',
+                  title: context.l10n.headingTopItems,
                   icon: Icons.library_books_rounded,
                   entries: [
                     for (final item in stats.topItems)
@@ -114,7 +127,7 @@ class StatsAdvancedDashboard extends StatelessWidget {
                   ],
                 ),
                 StatsRankedPanel(
-                  title: 'Top authors',
+                  title: context.l10n.headingTopAuthors,
                   icon: Icons.people_alt_rounded,
                   entries: [
                     for (final author in stats.topAuthors)
@@ -129,12 +142,12 @@ class StatsAdvancedDashboard extends StatelessWidget {
                   ],
                 ),
                 StatsRankedPanel(
-                  title: 'Weekday breakdown',
+                  title: context.l10n.headingWeekdayBreakdown,
                   icon: Icons.view_week_rounded,
                   entries: [
                     for (final bucket in stats.weekdayBreakdown)
                       StatsRankedEntry(
-                        label: bucket.label,
+                        label: formatWeekdayName(bucket.label),
                         value: bucket.totalListeningTime,
                         trailing: formatListeningSeconds(bucket.totalListeningTime),
                       ),
@@ -142,12 +155,12 @@ class StatsAdvancedDashboard extends StatelessWidget {
                   previewCount: 7,
                 ),
                 StatsRankedPanel(
-                  title: 'Busiest hours',
+                  title: context.l10n.headingBusiestHours,
                   icon: Icons.schedule_rounded,
                   entries: [
                     for (final bucket in stats.hourlyBreakdown)
                       StatsRankedEntry(
-                        label: bucket.label,
+                        label: formatHourBucket(bucket.label),
                         value: bucket.totalListeningTime,
                         trailing: formatListeningSeconds(bucket.totalListeningTime),
                       ),
@@ -156,12 +169,12 @@ class StatsAdvancedDashboard extends StatelessWidget {
                 ),
                 if (stats.monthlyBreakdown.isNotEmpty)
                   StatsRankedPanel(
-                    title: 'Top months',
+                    title: context.l10n.headingTopMonths,
                     icon: Icons.calendar_month_rounded,
                     entries: [
                       for (final bucket in stats.monthlyBreakdown)
                         StatsRankedEntry(
-                          label: bucket.label,
+                          label: formatMonthBucket(bucket.label),
                           value: bucket.totalListeningTime,
                           trailing: formatListeningSeconds(bucket.totalListeningTime),
                         ),
@@ -181,12 +194,12 @@ class StatsAdvancedDashboard extends StatelessWidget {
       loading: () => _AdvancedLoading(progress: loadingProgress),
       error: (error, _) => StatsMessage(
         icon: Icons.error_outline_rounded,
-        title: 'Advanced analytics could not be calculated',
+        title: context.l10n.statsAdvancedUnavailable,
         message: error.toString(),
         action: OutlinedButton.icon(
           onPressed: onRefresh,
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Try again'),
+          label: Text(context.l10n.actionRetry),
         ),
       ),
     );
@@ -201,8 +214,20 @@ class _AdvancedLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final value = progress?.progress;
-    final pages = progress == null ? null : '${progress!.loadedPages}/${progress!.totalPages ?? '?'} pages';
-    final sessions = progress == null ? null : '${progress!.loadedSessions}/${progress!.totalSessions ?? '?'} sessions';
+    final pages = progress == null
+        ? null
+        : context.l10n.progressCountLoaded(
+            formatNumber(progress!.loadedPages),
+            progress!.totalPages == null ? '?' : formatNumber(progress!.totalPages!),
+            context.l10n.fieldPages,
+          );
+    final sessions = progress == null
+        ? null
+        : context.l10n.progressCountLoaded(
+            formatNumber(progress!.loadedSessions),
+            progress!.totalSessions == null ? '?' : formatNumber(progress!.totalSessions!),
+            context.l10n.fieldSessions,
+          );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
@@ -211,7 +236,9 @@ class _AdvancedLoading extends StatelessWidget {
           YaabsaLinearProgressIndicator(value: value),
           const SizedBox(height: 12),
           Text(
-            progress == null ? 'Loading advanced analytics…' : 'Loading advanced analytics • $pages • $sessions',
+            progress == null
+                ? context.l10n.statsLoadingAnalytics
+                : context.l10n.statsLoadingAnalyticsProgress(pages!, sessions!),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],

@@ -34,6 +34,7 @@ import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/auth/account_removal.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SettingsSearchItem {
@@ -50,425 +51,556 @@ class SettingsSearchItem {
   });
 }
 
-final List<SettingsSearchItem> searchableSettings = [
-  const SettingsSearchItem(
-    title: 'Settings backup',
-    description: 'Import or export app preferences and player layouts',
-    categoryPath: 'Settings > Application Settings',
-    route: SettingsBackupSettings.routeName,
-  ),
-  const SettingsSearchItem(
-    title: 'Refresh Progress on Resume',
-    description: 'Update book and episode progress when the app returns to the foreground',
-    categoryPath: 'Settings > Library',
-    route: LibrarySettings.routeName,
-  ),
-  if (PlayerSettingsCompatibility.isSupported)
-    const SettingsSearchItem(
-      title: 'Disable FDK AAC decoder',
-      description: 'Work around AAC decoder crashes. Restart the app to apply.',
-      categoryPath: 'Settings > Player > Compatibility',
-      route: PlayerSettingsCompatibility.routeName,
+List<SettingsSearchItem> searchableSettings(AppLocalizations l10n) {
+  return [
+    SettingsSearchItem(
+      title: l10n.settingsBackupTitle,
+      description: l10n.settingsBackupDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryApplicationSettings),
+      route: SettingsBackupSettings.routeName,
     ),
-  const SettingsSearchItem(
-    title: 'Server Management',
-    description: 'Configure visibility for collections, editing, deletion, and uploading',
-    categoryPath: 'Settings > Management',
-    route: '/settings/server-management',
-  ),
-  const SettingsSearchItem(
-    title: 'Timeline mode',
-    description: 'Choose whether the seek bar tracks a chapter, the full audiobook, or both',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Cover size',
-    description: 'Set the artwork size in the adaptive player',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Immersive player colors',
-    description: 'Use artwork colors in player backgrounds',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Timeline markers',
-    description: 'Choose whether the full timeline displays chapter markers, bookmark markers, both, or none',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Fast forward interval',
-    description: 'How many seconds to skip when jumping forward',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Rewind interval',
-    description: 'How many seconds to skip when rewinding',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Remember playback speed per book',
-    description: 'Each book remembers its own speed and new books start with your last used speed',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Auto queue',
-    description: 'Automatically queue upcoming books when playback starts',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Auto queue everywhere',
-    description: 'Auto queue books from the first linked series even when starting playback outside a series view',
-    categoryPath: 'Settings > Player > General',
-    route: '/settings/player/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Smart rewind',
-    description: 'When resuming after a pause, rewind by an amount based on pause duration',
-    categoryPath: 'Settings > Player > Smart rewind',
-    route: '/settings/player/smart-rewind',
-  ),
-  const SettingsSearchItem(
-    title: 'Short-pause threshold',
-    description: 'If paused up to this amount, the short smart rewind value is used',
-    categoryPath: 'Settings > Player > Smart rewind',
-    route: '/settings/player/smart-rewind',
-  ),
-  const SettingsSearchItem(
-    title: 'Long-pause threshold',
-    description:
-        'If paused longer than the short threshold and up to this amount, the medium smart rewind value is used',
-    categoryPath: 'Settings > Player > Smart rewind',
-    route: '/settings/player/smart-rewind',
-  ),
-  const SettingsSearchItem(
-    title: 'Short rewind amount',
-    description: 'Rewind amount used for short pauses',
-    categoryPath: 'Settings > Player > Smart rewind',
-    route: '/settings/player/smart-rewind',
-  ),
-  const SettingsSearchItem(
-    title: 'Medium rewind amount',
-    description: 'Rewind amount used for medium pauses',
-    categoryPath: 'Settings > Player > Smart rewind',
-    route: '/settings/player/smart-rewind',
-  ),
-  const SettingsSearchItem(
-    title: 'Long rewind amount',
-    description: 'Rewind amount used for long pauses',
-    categoryPath: 'Settings > Player > Smart rewind',
-    route: '/settings/player/smart-rewind',
-  ),
-  const SettingsSearchItem(
-    title: 'Sleep timer end action',
-    description: 'Choose whether playback is stopped or paused when the sleep timer expires',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Sleep timer end rewind',
-    description: 'After sleep timer stops playback, rewind this much when the same item is played again',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Fade audio',
-    description: 'Gradually lower playback volume before the sleep timer ends',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Show sleep timer marker',
-    description: 'Shows sleep timer on the player timeline after the timer ends',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Auto-restart timer on playback start',
-    description: 'Automatically start a new sleep timer using your last duration on playback start',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Only auto-restart during a time range',
-    description: 'Limit automatic sleep timer restart to specific hours',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Auto-restart range start',
-    description: 'Sleep timer auto-restart becomes active at this time',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Auto-restart range end',
-    description: 'Sleep timer auto-restart remains active until this time',
-    categoryPath: 'Settings > Player > Sleep timer',
-    route: '/settings/player/sleep-timer',
-  ),
-  const SettingsSearchItem(
-    title: 'Enable subtitles',
-    description: 'Show subtitle tracks (.srt and .vtt) during playback when available',
-    categoryPath: 'Settings > Player > Subtitles',
-    route: '/settings/player/subtitles',
-  ),
-  const SettingsSearchItem(
-    title: 'Highlight speaker labels',
-    description: 'Highlight speaker names in subtitles',
-    categoryPath: 'Settings > Player > Subtitles',
-    route: '/settings/player/subtitles',
-  ),
-  const SettingsSearchItem(
-    title: 'Enable read along',
-    description: 'Highlight currently spoken words in subtitles',
-    categoryPath: 'Settings > Player > Subtitles',
-    route: '/settings/player/subtitles',
-  ),
-  const SettingsSearchItem(
-    title: 'Shake to reset sleep timer',
-    description: 'Shake to reset an active sleep timer back to its full duration',
-    categoryPath: 'Settings > Player > Shake controls',
-    route: '/settings/player/shake-controls',
-  ),
-  const SettingsSearchItem(
-    title: 'Shake to rewind',
-    description: 'Shake while playing to rewind by the configured rewind interval',
-    categoryPath: 'Settings > Player > Shake controls',
-    route: '/settings/player/shake-controls',
-  ),
-  const SettingsSearchItem(
-    title: 'Shake sensitivity',
-    description: 'Lower values trigger more easily, higher values require a stronger shake',
-    categoryPath: 'Settings > Player > Shake controls',
-    route: '/settings/player/shake-controls',
-  ),
-  const SettingsSearchItem(
-    title: 'Shake vibration feedback',
-    description: 'Vibrate when a shake action is triggered',
-    categoryPath: 'Settings > Player > Shake controls',
-    route: '/settings/player/shake-controls',
-  ),
-  const SettingsSearchItem(
-    title: 'Shelf Sections',
-    description: 'Choose which shelf sections are visible and their order',
-    categoryPath: 'Settings > Library',
-    route: '/settings/library',
-  ),
-  const SettingsSearchItem(
-    title: 'Library Grid Scale',
-    description: 'Scales library item cards in all grid views',
-    categoryPath: 'Settings > Library',
-    route: '/settings/library',
-  ),
-  const SettingsSearchItem(
-    title: 'Collapse Series',
-    description: 'Collapse books in series into a single entry',
-    categoryPath: 'Settings > Library',
-    route: '/settings/library',
-  ),
-  const SettingsSearchItem(
-    title: 'View Subtitles',
-    description: 'Configure supporting information shown below library, series, and author cards',
-    categoryPath: 'Settings > Library > View Subtitles',
-    route: '/settings/library/view-subtitles',
-  ),
-  const SettingsSearchItem(
-    title: 'Show Shelf Play Button',
-    description: 'Adds a play-all button on Continue Listening and Newest shelves',
-    categoryPath: 'Settings > Library',
-    route: '/settings/library',
-  ),
-  const SettingsSearchItem(
-    title: 'Show Shuffle Button',
-    description: 'Adds a shuffle button to collections, playlists, and podcasts',
-    categoryPath: 'Settings > Library',
-    route: '/settings/library',
-  ),
-  const SettingsSearchItem(
-    title: 'Check Server Updates',
-    description: 'Checks for ABS updates via GitHub',
-    categoryPath: 'Settings > Library',
-    route: '/settings/library',
-  ),
-  const SettingsSearchItem(
-    title: 'Download Location',
-    description: 'Configure directory to save downloaded audiobooks',
-    categoryPath: 'Settings > Downloads',
-    route: '/settings/downloads',
-  ),
-  const SettingsSearchItem(
-    title: 'Download only on Wi-Fi',
-    description: 'Including Smart Downloads',
-    categoryPath: 'Settings > Downloads',
-    route: '/settings/downloads',
-  ),
-  const SettingsSearchItem(
-    title: 'Maximum parallel downloads',
-    description: 'Limit the number of files downloaded at the same time',
-    categoryPath: 'Settings > Downloads',
-    route: '/settings/downloads',
-  ),
-  const SettingsSearchItem(
-    title: 'Smart Downloads',
-    description: 'Automatically download and remove items according to download rules',
-    categoryPath: 'Settings > Downloads',
-    route: '/settings/library/smart-downloads',
-  ),
-  const SettingsSearchItem(
-    title: 'Theme Settings',
-    description: 'Configure Theme mode (light, dark, amoled, system), preset palette, and custom accent color',
-    categoryPath: 'Settings > Appearance',
-    route: '/settings/appearance/theme',
-  ),
-  const SettingsSearchItem(
-    title: 'Navigation Settings',
-    description: 'Configure displayed tabs, their order, and the default view',
-    categoryPath: 'Settings > Appearance',
-    route: '/settings/appearance/navigation',
-  ),
-  const SettingsSearchItem(
-    title: 'Language',
-    description: 'Configure app display language',
-    categoryPath: 'Settings > Appearance',
-    route: '/settings/appearance',
-  ),
-  const SettingsSearchItem(
-    title: 'Max buffer size',
-    description: 'Maximum size of the audio buffer in bytes (hint for the OS)',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
-  const SettingsSearchItem(
-    title: 'Keep Screen On',
-    description: 'Prevent screen from turning off during playback',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
-  const SettingsSearchItem(
-    title: 'Lock Media Notification',
-    description: 'Keep media controls visible in system notification panel',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
-  const SettingsSearchItem(
-    title: 'Media notification type',
-    description: 'Choose whether notification progress tracks the full book or current chapter',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
-  if (defaultTargetPlatform == TargetPlatform.android)
-    const SettingsSearchItem(
-      title: 'Media Notification Actions',
-      description: 'Customize the actions available in the media notification',
-      categoryPath: 'Settings > Global Player',
-      route: '/settings/player/notification',
+    SettingsSearchItem(
+      title: l10n.settingRefreshProgressOnResume,
+      description: l10n.settingRefreshProgressOnResumeDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary),
+      route: LibrarySettings.routeName,
     ),
-  const SettingsSearchItem(
-    title: 'Auto-play last played on app start',
-    description: 'Resume the last played item on app launch if it is not finished',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
-  const SettingsSearchItem(
-    title: 'Always show mini player',
-    description: 'Keep the mini player visible for your most recently played item',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
-  const SettingsSearchItem(
-    title: 'Keep websocket active in background',
-    description: 'Keep websocket connected in the background to sync updates (may increase battery usage)',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
-  const SettingsSearchItem(
-    title: 'Enable caching',
-    description: 'Enable response caching for API requests',
-    categoryPath: 'Settings > Caching',
-    route: '/settings/caching/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Speedup mode',
-    description: 'Combine caching with background refreshes to load faster',
-    categoryPath: 'Settings > Caching',
-    route: '/settings/caching/general',
-  ),
-  const SettingsSearchItem(
-    title: 'Remove authors without books',
-    description: 'Add a button in the author section to delete authors without books',
-    categoryPath: 'Settings > Tools',
-    route: '/settings/tools',
-  ),
-  const SettingsSearchItem(
-    title: 'Force metadata refresh',
-    description: 'Add a button to force recreation of metadata files in Admin Server Settings',
-    categoryPath: 'Settings > Tools',
-    route: '/settings/tools',
-  ),
-  const SettingsSearchItem(
-    title: 'Match audiobook chapters',
-    description: 'Add a quick match option for fast chapter matching, including bulk mode',
-    categoryPath: 'Settings > Tools',
-    route: '/settings/tools',
-  ),
-  const SettingsSearchItem(
-    title: 'Split genres/tags',
-    description: 'Add a button to split genres and tags in Admin Server Settings',
-    categoryPath: 'Settings > Tools',
-    route: '/settings/tools',
-  ),
-  const SettingsSearchItem(
-    title: 'Log Level',
-    description: 'Choose the minimum severity level of logs to capture',
-    categoryPath: 'Settings > Logs',
-    route: '/settings/logs',
-  ),
-  const SettingsSearchItem(
-    title: 'Reader Theme',
-    description: 'Background and text color theme of the reader',
-    categoryPath: 'Settings > Ebook-Reader',
-    route: '/settings/reader',
-  ),
-  const SettingsSearchItem(
-    title: 'Reader Font Size',
-    description: 'Adjust the size of the reader text',
-    categoryPath: 'Settings > Ebook-Reader',
-    route: '/settings/reader',
-  ),
-  const SettingsSearchItem(
-    title: 'Reader Line Spacing',
-    description: 'Adjust the line spacing of the reader text',
-    categoryPath: 'Settings > Ebook-Reader',
-    route: '/settings/reader',
-  ),
-  const SettingsSearchItem(
-    title: 'Reader Layout Mode',
-    description: 'Choose between paginated columns or vertical infinite scroll',
-    categoryPath: 'Settings > Ebook-Reader',
-    route: '/settings/reader',
-  ),
-  const SettingsSearchItem(
-    title: 'Hide mini player when reading',
-    description: 'Hides the bottom audio mini player in the book reader',
-    categoryPath: 'Settings > Ebook-Reader',
-    route: '/settings/reader',
-  ),
-  const SettingsSearchItem(
-    title: 'Start session when reading',
-    description: 'Track reading time on the server with direct play',
-    categoryPath: 'Settings > Ebook-Reader',
-    route: '/settings/reader',
-  ),
-];
+    if (PlayerSettingsCompatibility.isSupported)
+      SettingsSearchItem(
+        title: l10n.settingDisableFdkAacDecoder,
+        description: l10n.settingDisableFdkAacDecoderDescription,
+        categoryPath: _settingsCategoryPath(
+          l10n,
+          section: l10n.settingsCategoryPlayer,
+          subsection: l10n.settingsCategoryCompatibility,
+        ),
+        route: PlayerSettingsCompatibility.routeName,
+      ),
+    SettingsSearchItem(
+      title: l10n.settingServerManagement,
+      description: l10n.settingServerManagementDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryManagement),
+      route: '/settings/server-management',
+    ),
+    SettingsSearchItem(
+      title: l10n.fieldTimelineMode,
+      description: l10n.settingTimelineModeDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.fieldCoverSize,
+      description: l10n.settingCoverSizeDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.fieldImmersivePlayerColors,
+      description: l10n.settingImmersivePlayerColorsDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingTimelineMarkers,
+      description: l10n.settingTimelineMarkersDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.fieldFastForwardInterval,
+      description: l10n.settingFastForwardIntervalDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.fieldRewindInterval,
+      description: l10n.settingRewindIntervalDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingRememberPlaybackSpeedPerBook,
+      description: l10n.settingRememberPlaybackSpeedPerBookDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingAutoQueue,
+      description: l10n.settingAutoQueueDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingAutoQueueEverywhere,
+      description: l10n.settingAutoQueueEverywhereDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryGeneral,
+      ),
+      route: '/settings/player/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingSmartRewind,
+      description: l10n.settingSmartRewindDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingSmartRewind,
+      ),
+      route: '/settings/player/smart-rewind',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShortPauseThreshold,
+      description: l10n.settingShortPauseThresholdDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingSmartRewind,
+      ),
+      route: '/settings/player/smart-rewind',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingLongPauseThreshold,
+      description: l10n.settingLongPauseThresholdDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingSmartRewind,
+      ),
+      route: '/settings/player/smart-rewind',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShortRewindAmount,
+      description: l10n.settingShortRewindAmountDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingSmartRewind,
+      ),
+      route: '/settings/player/smart-rewind',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingMediumRewindAmount,
+      description: l10n.settingMediumRewindAmountDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingSmartRewind,
+      ),
+      route: '/settings/player/smart-rewind',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingLongRewindAmount,
+      description: l10n.settingLongRewindAmountDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingSmartRewind,
+      ),
+      route: '/settings/player/smart-rewind',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingSleepTimerEndAction,
+      description: l10n.settingSleepTimerEndActionDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingSleepTimerEndRewind,
+      description: l10n.settingSleepTimerEndRewindDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingFadeAudio,
+      description: l10n.settingFadeAudioDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShowSleepTimerMarker,
+      description: l10n.settingShowSleepTimerMarkerDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingAutoRestartTimerOnPlaybackStart,
+      description: l10n.settingAutoRestartTimerOnPlaybackStartDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingAutoRestartDuringTimeRange,
+      description: l10n.settingAutoRestartDuringTimeRangeDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingAutoRestartRangeStart,
+      description: l10n.settingAutoRestartRangeStartDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingAutoRestartRangeEnd,
+      description: l10n.settingAutoRestartRangeEndDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playbackSleepTimer,
+      ),
+      route: '/settings/player/sleep-timer',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingEnableSubtitles,
+      description: l10n.settingEnableSubtitlesDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playerComponentSubtitles,
+      ),
+      route: '/settings/player/subtitles',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingHighlightSpeakerLabels,
+      description: l10n.settingHighlightSpeakerLabelsDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playerComponentSubtitles,
+      ),
+      route: '/settings/player/subtitles',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingEnableReadAlong,
+      description: l10n.settingEnableReadAlongDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.playerComponentSubtitles,
+      ),
+      route: '/settings/player/subtitles',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShakeToResetSleepTimer,
+      description: l10n.settingShakeToResetSleepTimerDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryShakeControls,
+      ),
+      route: '/settings/player/shake-controls',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShakeToRewind,
+      description: l10n.settingShakeToRewindDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryShakeControls,
+      ),
+      route: '/settings/player/shake-controls',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShakeSensitivity,
+      description: l10n.settingShakeSensitivityDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryShakeControls,
+      ),
+      route: '/settings/player/shake-controls',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShakeVibrationFeedback,
+      description: l10n.settingShakeVibrationFeedbackDescription,
+      categoryPath: _settingsCategoryPath(
+        l10n,
+        section: l10n.settingsCategoryPlayer,
+        subsection: l10n.settingsCategoryShakeControls,
+      ),
+      route: '/settings/player/shake-controls',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShelfSections,
+      description: l10n.settingShelfSectionsDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary),
+      route: '/settings/library',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingLibraryGridScale,
+      description: l10n.settingLibraryGridScaleDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary),
+      route: '/settings/library',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingCollapseSeries,
+      description: l10n.settingCollapseSeriesDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary),
+      route: '/settings/library',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingViewSubtitles,
+      description: l10n.settingViewSubtitlesDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary, subsection: l10n.settingViewSubtitles),
+      route: '/settings/library/view-subtitles',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShowShelfPlayButton,
+      description: l10n.settingShowShelfPlayButtonDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary),
+      route: '/settings/library',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingShowShuffleButton,
+      description: l10n.settingShowShuffleButtonDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary),
+      route: '/settings/library',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingCheckServerUpdates,
+      description: l10n.settingCheckServerUpdatesDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navLibrary),
+      route: '/settings/library',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingDownloadLocation,
+      description: l10n.settingDownloadLocationDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navDownloads),
+      route: '/settings/downloads',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingDownloadOnlyOnWiFi,
+      description: l10n.settingDownloadOnlyOnWiFiDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navDownloads),
+      route: '/settings/downloads',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingMaximumParallelDownloads,
+      description: l10n.settingMaximumParallelDownloadsDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navDownloads),
+      route: '/settings/downloads',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingSmartDownloads,
+      description: l10n.settingSmartDownloadsDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.navDownloads),
+      route: '/settings/library/smart-downloads',
+    ),
+    SettingsSearchItem(
+      title: l10n.themeSettingsTitle,
+      description: l10n.themeSettingsSubtitle,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryAppearance),
+      route: '/settings/appearance/theme',
+    ),
+    SettingsSearchItem(
+      title: l10n.navigationSettingsTitle,
+      description: l10n.navigationSettingsSubtitle,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryAppearance),
+      route: '/settings/appearance/navigation',
+    ),
+    SettingsSearchItem(
+      title: l10n.fieldLanguage,
+      description: l10n.settingLanguageDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryAppearance),
+      route: '/settings/appearance',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingMaxBufferSize,
+      description: l10n.settingMaxBufferSizeDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+      route: '/settings/global-player',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingKeepScreenOn,
+      description: l10n.settingKeepScreenOnDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+      route: '/settings/global-player',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingLockMediaNotification,
+      description: l10n.settingLockMediaNotificationDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+      route: '/settings/global-player',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingMediaNotificationType,
+      description: l10n.settingMediaNotificationTypeDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+      route: '/settings/global-player',
+    ),
+    if (defaultTargetPlatform == TargetPlatform.android)
+      SettingsSearchItem(
+        title: l10n.settingMediaNotificationActions,
+        description: l10n.settingMediaNotificationActionsDescription,
+        categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+        route: '/settings/player/notification',
+      ),
+    SettingsSearchItem(
+      title: l10n.settingAutoPlayLastPlayedOnAppStart,
+      description: l10n.settingAutoPlayLastPlayedOnAppStartDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+      route: '/settings/global-player',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingAlwaysShowMiniPlayer,
+      description: l10n.settingAlwaysShowMiniPlayerDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+      route: '/settings/global-player',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingKeepWebSocketActiveInBackground,
+      description: l10n.settingKeepWebSocketActiveInBackgroundDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryGlobalPlayer),
+      route: '/settings/global-player',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingEnableCaching,
+      description: l10n.settingEnableCachingDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryCaching),
+      route: '/settings/caching/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingSpeedupMode,
+      description: l10n.settingSpeedupModeDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryCaching),
+      route: '/settings/caching/general',
+    ),
+    SettingsSearchItem(
+      title: l10n.actionRemoveAuthorsWithoutBooks,
+      description: l10n.settingRemoveAuthorsWithoutBooksDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryTools),
+      route: '/settings/tools',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingForceMetadataRefresh,
+      description: l10n.settingForceMetadataRefreshDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryTools),
+      route: '/settings/tools',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingMatchAudiobookChapters,
+      description: l10n.settingMatchAudiobookChaptersDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryTools),
+      route: '/settings/tools',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingSplitGenresAndTags,
+      description: l10n.settingSplitGenresAndTagsDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryTools),
+      route: '/settings/tools',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingLogLevel,
+      description: l10n.settingLogLevelDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryLogs),
+      route: '/settings/logs',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingReaderTheme,
+      description: l10n.settingReaderThemeDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryReader),
+      route: '/settings/reader',
+    ),
+    SettingsSearchItem(
+      title: l10n.readerFieldTextSize,
+      description: l10n.settingReaderFontSizeDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryReader),
+      route: '/settings/reader',
+    ),
+    SettingsSearchItem(
+      title: l10n.readerFieldLineSpacing,
+      description: l10n.settingReaderLineSpacingDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryReader),
+      route: '/settings/reader',
+    ),
+    SettingsSearchItem(
+      title: l10n.readerFieldPageLayout,
+      description: l10n.settingReaderLayoutModeDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryReader),
+      route: '/settings/reader',
+    ),
+    SettingsSearchItem(
+      title: l10n.readerHideMiniPlayer,
+      description: l10n.readerHideMiniPlayerDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryReader),
+      route: '/settings/reader',
+    ),
+    SettingsSearchItem(
+      title: l10n.settingStartSessionWhenReading,
+      description: l10n.settingStartSessionWhenReadingDescription,
+      categoryPath: _settingsCategoryPath(l10n, section: l10n.settingsCategoryReader),
+      route: '/settings/reader',
+    ),
+  ];
+}
+
+String _settingsCategoryPath(AppLocalizations l10n, {required String section, String? subsection}) {
+  final category = subsection ?? 'none';
+
+  return l10n.settingsCategoryPath(l10n.navSettings, section, category);
+}
 
 class MainSettingsScreen extends ConsumerStatefulWidget {
   const MainSettingsScreen({super.key});
@@ -530,13 +662,13 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open $label')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.settingsOpenLinkFailed(label))));
     } catch (_) {
       if (!context.mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open $label')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.settingsOpenLinkFailed(label))));
     }
   }
 
@@ -559,11 +691,19 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
       ref.invalidate(currentUserProvider);
       invalidateUserScopedProviders(ref);
 
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted user ${user.username}')));
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete user ${user.username}: $e')));
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.settingsAccountRemoved(user.username))));
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.settingsAccountRemovalFailed(user.username))));
     }
   }
 
@@ -596,8 +736,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
   Future<void> _showOwnMagicConfig(BuildContext context, User user) async {
     final server = user.server;
     if (server == null || server.url.trim().isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('This account has no configured server address.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.settingsNoServerAddress)));
       return;
     }
 
@@ -639,7 +778,8 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Switched to ${user.username}')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.l10n.settingsAccountSwitched(user.username))));
   }
 
   void _showDeleteUserConfirmationDialog(BuildContext context, User user, WidgetRef ref) {
@@ -648,12 +788,12 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Delete User?'),
-          content: Text('Are you sure you want to delete "${user.username}"? This action cannot be undone.'),
+          title: Text(context.l10n.settingsRemoveAccountTitle),
+          content: Text(context.l10n.settingsRemoveAccountPrompt(user.username)),
           actions: <Widget>[
-            TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
+            TextButton(child: Text(context.l10n.actionCancel), onPressed: () => Navigator.of(dialogContext).pop()),
             TextButton(
-              child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(context.l10n.actionRemove, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _deleteUser(context, ref, user);
@@ -671,12 +811,12 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Sign Out Current Account?'),
-          content: Text('Sign out from "${user.username}" on this device?'),
+          title: Text(context.l10n.actionSignOut),
+          content: Text(context.l10n.settingsSignOutPrompt(user.username)),
           actions: <Widget>[
-            TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
+            TextButton(child: Text(context.l10n.actionCancel), onPressed: () => Navigator.of(dialogContext).pop()),
             TextButton(
-              child: Text('Sign Out', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(context.l10n.actionSignOut, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _deleteUser(context, ref, user);
@@ -705,7 +845,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Text(
-                'ACTIVE ACCOUNT',
+                context.l10n.settingsActiveAccount,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -745,7 +885,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                     ),
                                   ),
                                   Text(
-                                    currentUser.server?.url ?? 'No server connected',
+                                    currentUser.server?.url ?? context.l10n.errorConnectionUnavailable,
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                                     ),
@@ -758,11 +898,11 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                             IconButton(
                               onPressed: () => _showOwnMagicConfig(context, currentUser),
                               icon: const Icon(Icons.qr_code_2_rounded),
-                              tooltip: 'Create Authentication Code',
+                              tooltip: context.l10n.settingsCreateAuthenticationCode,
                             ),
                             const SizedBox(width: 4),
                             IconButton(
-                              tooltip: 'Server connection',
+                              tooltip: context.l10n.settingsServerConnection,
                               icon: const Icon(Icons.dns_outlined),
                               color: Theme.of(context).colorScheme.onPrimaryContainer,
                               onPressed: () => context.push(ServerConnectionSettings.routeName),
@@ -771,7 +911,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                         )
                       : Center(
                           child: Text(
-                            'No active user.',
+                            context.l10n.errorNoActiveUser,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
                           ),
@@ -786,7 +926,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.manage_accounts_outlined),
-                      label: const Text('Manage Accounts'),
+                      label: Text(context.l10n.settingsManageAccounts),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         foregroundColor: Theme.of(context).colorScheme.primary,
@@ -802,7 +942,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.person_add_alt_1_outlined),
-                      label: const Text('Add Account'),
+                      label: Text(context.l10n.settingsAddAccount),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -824,24 +964,24 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
             ),
             if (currentUser != null) ...[
               SettingsNavigationSection(
-                title: "${currentUser.username}'s Preferences",
+                title: context.l10n.settingsAccountPreferences(currentUser.username),
                 items: [
                   if (!AaosService.instance.currentState.isAutomotiveDevice &&
                       _hasAnyServerManagementPermission(currentUser))
                     SettingsNavigationItem(
                       icon: Icons.admin_panel_settings_outlined,
-                      title: 'Server Management',
+                      title: context.l10n.settingServerManagement,
                       onTap: () => context.push(ServerManagementSettings.routeName),
                     ),
                   SettingsNavigationItem(
                     icon: Icons.play_circle_outline_rounded,
-                    title: 'Player Settings',
+                    title: context.l10n.settingsPlayerSettings,
                     onTap: () => context.push(PlayerSettings.routeName),
                   ),
                   if (!AaosService.instance.currentState.isAutomotiveDevice)
                     SettingsNavigationItem(
                       icon: Icons.menu_book_rounded,
-                      title: 'Ebook-Reader Settings',
+                      title: context.l10n.readerSettingsTitle,
                       onTap: () => context.push(ReaderSettings.routeName),
                     ),
                 ],
@@ -856,7 +996,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
       ),
       error: (e, st) => Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text('Error loading user data: $e', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(context.l10n.errorCouldNotLoadUser, style: TextStyle(color: Theme.of(context).colorScheme.error)),
       ),
     );
   }
@@ -884,7 +1024,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text('Manage Accounts', style: Theme.of(context).textTheme.titleLarge),
+                      child: Text(context.l10n.settingsManageAccounts, style: Theme.of(context).textTheme.titleLarge),
                     ),
                     Expanded(
                       child: ListView(
@@ -893,7 +1033,10 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                           if (currentUser != null)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                              child: Text('Current Account', style: Theme.of(context).textTheme.labelLarge),
+                              child: Text(
+                                context.l10n.settingsCurrentAccount,
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
                             ),
                           if (currentUser != null)
                             ListTile(
@@ -902,10 +1045,10 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                 child: Text(currentUser.username.substring(0, 1).toUpperCase()),
                               ),
                               title: Text(currentUser.username),
-                              subtitle: Text(currentUser.server?.url ?? 'No server'),
+                              subtitle: Text(currentUser.server?.url ?? context.l10n.errorConnectionUnavailable),
                               trailing: IconButton(
                                 icon: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.error),
-                                tooltip: 'Sign out this account',
+                                tooltip: context.l10n.actionSignOut,
                                 onPressed: () {
                                   Navigator.pop(bottomSheetContext);
                                   _showSignOutCurrentUserConfirmationDialog(context, currentUser, ref);
@@ -916,13 +1059,16 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                           if (otherUsers.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                              child: Text('Other Accounts', style: Theme.of(context).textTheme.labelLarge),
+                              child: Text(
+                                context.l10n.settingsOtherAccounts,
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
                             ),
                           if (otherUsers.isEmpty)
                             Padding(
                               padding: const EdgeInsets.all(20.0),
                               child: Text(
-                                'No other accounts available.',
+                                context.l10n.settingsNoOtherAccounts,
                                 textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
@@ -934,20 +1080,20 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                 child: Text(user.username.substring(0, 1).toUpperCase()),
                               ),
                               title: Text(user.username),
-                              subtitle: Text(user.server?.url ?? 'No server'),
+                              subtitle: Text(user.server?.url ?? context.l10n.statusServerAddressUnavailable),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
                                     icon: Icon(Icons.swap_horiz_rounded, color: Theme.of(context).colorScheme.primary),
-                                    tooltip: 'Switch to this user',
+                                    tooltip: context.l10n.settingsSwitchToUser,
                                     onPressed: () async {
                                       Navigator.pop(bottomSheetContext);
                                       await _switchActiveUser(context, ref, user);
                                     },
                                   ),
                                   YaabsaDeleteIconButton(
-                                    tooltip: 'Delete this user',
+                                    tooltip: context.l10n.actionRemove,
                                     onPressed: () {
                                       Navigator.pop(bottomSheetContext);
                                       _showDeleteUserConfirmationDialog(context, user, ref);
@@ -976,10 +1122,13 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
     final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final showCarIntegrationSettings = isAndroid || isIOS;
 
-    final filteredSettings = searchableSettings.where((item) {
-      final query = _searchQuery.trim().toLowerCase();
-      if (query.isEmpty) return false;
-      return item.title.toLowerCase().contains(query) || item.description.toLowerCase().contains(query);
+    final searchQuery = _searchQuery.trim().toLowerCase();
+    final filteredSettings = searchableSettings(context.l10n).where((item) {
+      if (searchQuery.isEmpty) {
+        return false;
+      }
+
+      return item.title.toLowerCase().contains(searchQuery) || item.description.toLowerCase().contains(searchQuery);
     }).toList();
 
     final content = Column(
@@ -990,7 +1139,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
           child: SearchBar(
             focusNode: _searchFocusNode,
             leading: const Icon(Icons.search),
-            hintText: 'Search settings...',
+            hintText: context.l10n.settingsSearchHint,
             onChanged: (value) {
               setState(() {
                 _searchQuery = value;
@@ -1040,7 +1189,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        "No settings found for '$_searchQuery'",
+                                        context.l10n.searchNoResultsFor(_searchQuery),
                                         style: Theme.of(context).textTheme.titleMedium
                                             ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                                         textAlign: TextAlign.center,
@@ -1051,7 +1200,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                               )
                             else
                               SettingsNavigationSection(
-                                title: 'Search Results',
+                                title: context.l10n.searchResults,
                                 topPadding: 12,
                                 items: filteredSettings.map((item) {
                                   return SettingsNavigationItem(
@@ -1089,12 +1238,11 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                   children: [
                                     if (isAaos)
                                       SettingsNavigationSection(
-                                        title: 'Car Integration',
+                                        title: context.l10n.settingsCarIntegration,
                                         items: [
                                           SettingsNavigationItem(
                                             icon: Icons.play_circle_outline,
-                                            title: 'Open Car Library',
-                                            subtitle: 'Switch to the system Media Center',
+                                            title: context.l10n.aaosOpenMediaCenter,
                                             onTap: () async {
                                               await AaosService.instance.launchMediaCenter(finishActivity: true);
                                             },
@@ -1102,49 +1250,51 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                         ],
                                       ),
                                     SettingsNavigationSection(
-                                      title: 'Application Settings',
+                                      title: context.l10n.settingsCategoryApplicationSettings,
                                       items: [
                                         SettingsNavigationItem(
                                           icon: Icons.library_books_outlined,
-                                          title: 'Library',
+                                          title: context.l10n.navLibrary,
                                           onTap: () => context.push(LibrarySettings.routeName),
                                         ),
                                         SettingsNavigationItem(
                                           icon: Icons.download_for_offline_outlined,
-                                          title: 'Downloads',
+                                          title: context.l10n.navDownloads,
                                           onTap: () => context.push(DownloadSettings.routeName),
                                         ),
                                         SettingsNavigationItem(
                                           icon: Icons.palette_outlined,
-                                          title: 'Appearance',
+                                          title: context.l10n.settingsCategoryAppearance,
                                           onTap: () => context.push(AppearanceSettings.routeName),
                                         ),
                                         SettingsNavigationItem(
                                           icon: Icons.play_circle_outline_outlined,
-                                          title: 'Global Player',
+                                          title: context.l10n.settingsCategoryGlobalPlayer,
                                           onTap: () => context.push(GlobalPlayerSettings.routeName),
                                         ),
                                         if (showCarIntegrationSettings)
                                           SettingsNavigationItem(
                                             icon: Icons.directions_car_filled_outlined,
                                             title: aaosState.isAutomotiveDevice
-                                                ? 'AAOS'
-                                                : (isIOS ? 'CarPlay' : 'Android Auto'),
+                                                ? context.l10n.settingsAndroidAutomotive
+                                                : (isIOS
+                                                      ? context.l10n.settingsCarPlay
+                                                      : context.l10n.settingsAndroidAuto),
                                             onTap: () => context.push(AndroidAutoSettings.routeName),
                                           ),
                                         SettingsNavigationItem(
                                           icon: Icons.cached_outlined,
-                                          title: 'Caching',
+                                          title: context.l10n.settingsCategoryCaching,
                                           onTap: () => context.push(CachingSettings.routeName),
                                         ),
                                         SettingsNavigationItem(
                                           icon: Icons.settings_backup_restore_rounded,
-                                          title: 'Settings backup',
+                                          title: context.l10n.settingsBackupTitle,
                                           onTap: () => context.push(SettingsBackupSettings.routeName),
                                         ),
                                         SettingsNavigationItem(
                                           icon: Icons.menu_book_outlined,
-                                          title: 'Ebook Reader',
+                                          title: context.l10n.readerSettingsTitle,
                                           onTap: () => context.push(ReaderSettings.routeName),
                                         ),
                                       ],
@@ -1167,39 +1317,42 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                   error: (error, stackTrace) => const SizedBox.shrink(),
                                 ),
                             SettingsNavigationSection(
-                              title: 'About & Support',
+                              title: context.l10n.settingsAboutSupport,
                               items: [
                                 SettingsNavigationItem(
                                   icon: Icons.code_rounded,
-                                  title: 'View on GitHub',
-                                  onTap: () => _openSupportLink(context, _githubRepoUri, 'GitHub repository'),
+                                  title: context.l10n.settingsViewOnGitHub,
+                                  onTap: () =>
+                                      _openSupportLink(context, _githubRepoUri, context.l10n.settingsGitHubRepository),
                                 ),
                                 SettingsNavigationItem(
                                   icon: Icons.bug_report_outlined,
-                                  title: 'Report bug or enhancement',
-                                  onTap: () => _openSupportLink(context, _githubIssueUri, 'issue tracker'),
+                                  title: context.l10n.settingsReportIssue,
+                                  onTap: () =>
+                                      _openSupportLink(context, _githubIssueUri, context.l10n.settingsIssueTracker),
                                 ),
                                 SettingsNavigationItem(
                                   icon: Icons.favorite_outline,
-                                  title: 'Sponsor',
-                                  subtitle: 'Help covering active costs and support development',
-                                  onTap: () => _openSupportLink(context, _githubSponsorUri, 'GitHub Sponsors page'),
+                                  title: context.l10n.settingsSponsor,
+                                  subtitle: context.l10n.settingsSponsorDescription,
+                                  onTap: () =>
+                                      _openSupportLink(context, _githubSponsorUri, context.l10n.settingsGitHubSponsors),
                                 ),
                                 SettingsNavigationItem(
                                   icon: Icons.article_outlined,
-                                  title: 'Logs',
+                                  title: context.l10n.settingsCategoryLogs,
                                   onTap: () =>
                                       Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
                                 ),
                                 SettingsNavigationItem(
                                   icon: Icons.info_outline_rounded,
-                                  title: 'Information & Attribution',
-                                  subtitle: 'Licenses, app version, licenses, and more',
+                                  title: context.l10n.settingsInformationTitle,
+                                  subtitle: context.l10n.settingsInformationDescription,
                                   onTap: () => LicenseSettings.showLicensePage(context: context),
                                 ),
                                 SettingsNavigationItem(
                                   icon: Icons.history_rounded,
-                                  title: 'Changelog',
+                                  title: context.l10n.changelogTitle,
                                   onTap: () => showChangelogDialog(context),
                                 ),
                               ],

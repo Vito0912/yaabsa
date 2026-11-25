@@ -1,14 +1,16 @@
+import 'package:yaabsa/util/l10n.dart';
+
 enum PlayerCollectionEmptyMode { hide, compact, full }
 
 extension PlayerCollectionEmptyModeX on PlayerCollectionEmptyMode {
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case PlayerCollectionEmptyMode.hide:
-        return 'Hide widget';
+        return l10n.optionHideWidget;
       case PlayerCollectionEmptyMode.compact:
-        return 'Compact message';
+        return l10n.optionCompactMessage;
       case PlayerCollectionEmptyMode.full:
-        return 'Full placeholder';
+        return l10n.optionFullPlaceholder;
     }
   }
 

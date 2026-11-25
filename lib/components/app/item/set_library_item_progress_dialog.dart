@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 typedef SetLibraryItemProgressSelection = ({double progress, DateTime startedDate, DateTime? finishedDate});
 
@@ -114,14 +115,14 @@ class _SetLibraryItemProgressDialogState extends State<SetLibraryItemProgressDia
 
     if (selectedSeconds == null) {
       setState(() {
-        _timeError = 'Enter time as hours:minutes:seconds.';
+        _timeError = context.l10n.validationEnterTimeFormat;
       });
       return;
     }
 
     if (selectedSeconds > _durationSeconds) {
       setState(() {
-        _timeError = 'Time cannot exceed ${_formatClockTime(_durationSeconds)}.';
+        _timeError = context.l10n.validationTimeExceedsDuration(_formatClockTime(_durationSeconds));
       });
       return;
     }
@@ -134,14 +135,14 @@ class _SetLibraryItemProgressDialogState extends State<SetLibraryItemProgressDia
 
     if (selectedPercentage == null) {
       setState(() {
-        _percentageError = 'Enter a percentage.';
+        _percentageError = context.l10n.validationPercentageRequired;
       });
       return;
     }
 
     if (selectedPercentage > 100) {
       setState(() {
-        _percentageError = 'Percentage cannot exceed 100.';
+        _percentageError = context.l10n.validationPercentageExceedsMaximum;
       });
       return;
     }
@@ -193,12 +194,15 @@ class _SetLibraryItemProgressDialogState extends State<SetLibraryItemProgressDia
   @override
   Widget build(BuildContext context) {
     final localizations = MaterialLocalizations.of(context);
+    final appLocalizations = context.l10n;
     final startedDateLabel = localizations.formatMediumDate(_startedDate);
     final isFinished = _selectedProgress >= 1;
-    final finishedDateLabel = _finishedDate == null ? 'Not finished' : localizations.formatMediumDate(_finishedDate!);
+    final finishedDateLabel = _finishedDate == null
+        ? appLocalizations.statusNotFinished
+        : localizations.formatMediumDate(_finishedDate!);
 
     return AlertDialog(
-      title: const Text('Set progress'),
+      title: Text(appLocalizations.actionSetProgress),
       content: SizedBox(
         width: 360,
         child: Column(
@@ -212,9 +216,11 @@ class _SetLibraryItemProgressDialogState extends State<SetLibraryItemProgressDia
                   flex: 3,
                   child: StyledTextField(
                     controller: _timeController,
-                    label: 'Elapsed time',
+                    label: appLocalizations.fieldElapsedTime,
                     hintText: 'H:MM:SS',
-                    helperText: _timeError == null ? 'Book length: ${_formatClockTime(_durationSeconds)}' : null,
+                    helperText: _timeError == null
+                        ? appLocalizations.hintBookLength(_formatClockTime(_durationSeconds))
+                        : null,
                     errorText: _timeError,
                     keyboardType: TextInputType.datetime,
                     inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9:]'))],
@@ -226,7 +232,7 @@ class _SetLibraryItemProgressDialogState extends State<SetLibraryItemProgressDia
                   flex: 2,
                   child: StyledTextField(
                     controller: _percentageController,
-                    label: 'Progress',
+                    label: appLocalizations.fieldProgress,
                     hintText: '0-100',
                     suffixText: '%',
                     errorText: _percentageError,
@@ -241,14 +247,14 @@ class _SetLibraryItemProgressDialogState extends State<SetLibraryItemProgressDia
             OutlinedButton.icon(
               onPressed: () => _selectDate(isFinishedDate: false),
               icon: const Icon(Icons.calendar_today_rounded),
-              label: Text('Started: $startedDateLabel', overflow: TextOverflow.ellipsis),
+              label: Text(appLocalizations.labelStartedDate(startedDateLabel), overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () => _selectDate(isFinishedDate: true),
               icon: const Icon(Icons.event_available_rounded),
               label: Text(
-                isFinished ? 'Finished: $finishedDateLabel' : 'Set finished',
+                isFinished ? appLocalizations.labelFinishedDate(finishedDateLabel) : appLocalizations.actionSetFinished,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -256,13 +262,13 @@ class _SetLibraryItemProgressDialogState extends State<SetLibraryItemProgressDia
         ),
       ),
       actions: [
-        TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
+        TextButton(onPressed: widget.onCancel, child: Text(appLocalizations.actionCancel)),
         FilledButton(
           onPressed: _timeError == null && _percentageError == null
               ? () =>
                     widget.onSave((progress: _selectedProgress, startedDate: _startedDate, finishedDate: _finishedDate))
               : null,
-          child: const Text('Save'),
+          child: Text(appLocalizations.actionSave),
         ),
       ],
     );

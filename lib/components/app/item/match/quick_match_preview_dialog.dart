@@ -15,6 +15,7 @@ import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<bool> showQuickMatchPreviewDialog({
   required BuildContext context,
@@ -121,7 +122,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
     if (api == null) {
       setState(() {
         _isLoading = false;
-        _loadingError = 'No API session available.';
+        _loadingError = context.l10n.errorConnectionUnavailable;
       });
       return;
     }
@@ -176,6 +177,8 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
       return;
     }
 
+    final l10n = context.l10n;
+
     LibraryItem currentItem = item;
     if (providerIndex == 0) {
       try {
@@ -186,14 +189,14 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
         } else {
           _markEntryCompleted(
             entryIndex,
-            QuickMatchPreviewEntry(item: item, error: 'Could not load current item metadata.'),
+            QuickMatchPreviewEntry(item: item, error: l10n.errorLoadCurrentItemMetadataFailed),
           );
           return;
         }
-      } catch (error) {
+      } catch (_) {
         _markEntryCompleted(
           entryIndex,
-          QuickMatchPreviewEntry(item: item, error: 'Could not load current item metadata: $error'),
+          QuickMatchPreviewEntry(item: item, error: l10n.errorLoadCurrentItemMetadataFailed),
         );
         return;
       }
@@ -209,7 +212,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
     if (rawTitle == null) {
       _markEntryCompleted(
         entryIndex,
-        QuickMatchPreviewEntry(item: currentItem, error: 'No title available for search.'),
+        QuickMatchPreviewEntry(item: currentItem, error: l10n.errorItemTitleUnavailableForSearch),
       );
       return;
     }
@@ -234,7 +237,12 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
       ManualMatchResult? bestResult;
 
       for (final rawResult in rawResults) {
-        final result = ManualMatchResult.fromMap(rawResult, providerValue: providerValue, providerLabel: providerLabel);
+        final result = ManualMatchResult.fromMap(
+          rawResult,
+          providerValue: providerValue,
+          providerLabel: providerLabel,
+          untitledLabel: l10n.statusUntitled,
+        );
         if (result.hasMeaningfulData) {
           bestResult = result;
           break;
@@ -252,7 +260,8 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
           mediaType: mediaType,
           providerIndex: providerIndex,
           getProviderLabel: getProviderLabel,
-          errorMsg: 'No match found.',
+          errorMsg: null,
+          l10n: l10n,
         );
       }
     } catch (error) {
@@ -265,6 +274,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
         providerIndex: providerIndex,
         getProviderLabel: getProviderLabel,
         errorMsg: error.toString(),
+        l10n: l10n,
       );
     }
   }
@@ -277,7 +287,8 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
     required String mediaType,
     required int providerIndex,
     required String Function(String) getProviderLabel,
-    required String errorMsg,
+    required String? errorMsg,
+    required AppLocalizations l10n,
   }) {
     if (providerIndex + 1 < widget.providerValues.length) {
       _enqueueTask(
@@ -292,13 +303,10 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
         ),
       );
     } else {
-      _markEntryCompleted(
-        entryIndex,
-        QuickMatchPreviewEntry(
-          item: item,
-          error: widget.providerValues.length > 1 ? 'No results found with any provider.' : errorMsg,
-        ),
-      );
+      final error = errorMsg == null
+          ? (widget.providerValues.length > 1 ? l10n.statusNoMetadataMatchesFromProviders : null)
+          : l10n.errorMetadataSearchFailed(errorMsg);
+      _markEntryCompleted(entryIndex, QuickMatchPreviewEntry(item: item, error: error));
     }
   }
 
@@ -345,6 +353,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
   }
 
   Future<void> _applySelected(List<QuickMatchPreviewEntry> entries) async {
+    final l10n = context.l10n;
     if (_applying) {
       return;
     }
@@ -354,8 +363,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
         .toList(growable: false);
     if (selectedEntries.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Select at least one matched item with changes to apply.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorSelectQuickMatchItems)));
       }
       return;
     }
@@ -363,7 +371,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorConnectionUnavailable)));
       }
       return;
     }
@@ -417,12 +425,12 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
     });
 
     final parts = <String>[];
-    parts.add(updatedCount == 1 ? 'Updated 1 item.' : 'Updated $updatedCount items.');
+    parts.add(l10n.statusQuickMatchItemsUpdated(updatedCount));
     if (unchangedCount > 0) {
-      parts.add(unchangedCount == 1 ? '1 item had no changes.' : '$unchangedCount items had no changes.');
+      parts.add(l10n.statusQuickMatchItemsUnchanged(unchangedCount));
     }
     if (failedCount > 0) {
-      parts.add(failedCount == 1 ? '1 item failed.' : '$failedCount items failed.');
+      parts.add(l10n.statusQuickMatchItemsFailed(failedCount));
     }
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(parts.join(' '))));
@@ -577,6 +585,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
                           item: item,
                           result: result,
                           overrideDetails: widget.overrideDetails,
+                          l10n: context.l10n,
                         ).where((row) => row.changed).toList(growable: false);
                         final coverWillChange = _willReplaceCover(result);
                         final selectable = _canSelectEntry(entry);
@@ -649,6 +658,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
       item: entry.item,
       result: result,
       overrideDetails: widget.overrideDetails,
+      l10n: context.l10n,
     ).any((row) => row.changed);
   }
 

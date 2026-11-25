@@ -12,12 +12,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
+import 'package:yaabsa/provider/core/locale_provider.dart';
 import 'package:yaabsa/screens/wear/wear_home_screen.dart';
 import 'package:yaabsa/ui/theme/wear_theme.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
 import 'package:yaabsa/util/init.dart' show Init;
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/logger.dart';
 
 late final WearAudioHandler wearAudioHandler;
@@ -47,9 +49,9 @@ void main() {
       Init.initLogger();
       wearAudioHandler = await AudioService.init(
         builder: () => WearAudioHandler(),
-        config: const AudioServiceConfig(
+        config: AudioServiceConfig(
           androidNotificationChannelId: 'de.vito0912.yaabsa.wear.audio',
-          androidNotificationChannelName: 'Playback',
+          androidNotificationChannelName: currentAppLocalizations().playbackTitle,
           androidNotificationIcon: 'drawable/ic_launcher_monochrome',
           androidNotificationOngoing: false,
           androidStopForegroundOnPause: false,
@@ -69,10 +71,15 @@ class WearApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeSelection = watchAppThemeSelection(ref);
+    final locale = ref.watch(localeProvider);
+    ref.watch(localeEffectsProvider);
     // The watch always uses the AMOLED dark variant of the shared app theme:
     // same palette as the phone app on a pure-black background.
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: yaabsaLocalizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
       theme: buildWearTheme(
         buildAppThemeData(
           brightness: Brightness.dark,

@@ -33,6 +33,7 @@ import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 import 'package:yaabsa/ui/previews/material_3_controls_preview.dart';
 import 'package:yaabsa/ui/previews/preview_theme.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'load_sdk_fonts.dart';
 
@@ -1373,6 +1374,8 @@ void main() {
       final boundary = GlobalKey();
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           debugShowCheckedModeBanner: false,
           theme: buildWearTheme(ThemeData.dark(useMaterial3: true)),
           home: RepaintBoundary(

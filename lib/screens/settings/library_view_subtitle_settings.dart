@@ -9,6 +9,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryViewSubtitleSettings extends ConsumerWidget {
   const LibraryViewSubtitleSettings({super.key});
@@ -20,16 +21,16 @@ class LibraryViewSubtitleSettings extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'View Subtitles',
+      title: context.l10n.settingViewSubtitles,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         currentUser.when(
           data: (user) {
             if (user == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure view subtitles.'),
+                child: Text(context.l10n.promptSignInToManageSettings),
               );
             }
 
@@ -45,8 +46,10 @@ class LibraryViewSubtitleSettings extends ConsumerWidget {
             padding: EdgeInsets.all(16),
             child: Center(child: YaabsaCircularProgressIndicator()),
           ),
-          error: (error, _) =>
-              Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load view subtitle settings: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString())),
+          ),
         ),
       ],
     );
@@ -66,12 +69,6 @@ class LibraryViewSubtitlePreferencesEditor extends ConsumerStatefulWidget {
 class _LibraryViewSubtitlePreferencesEditorState extends ConsumerState<LibraryViewSubtitlePreferencesEditor> {
   bool _isSaving = false;
 
-  String get _subtitleSettingLabel => switch (widget.view) {
-    LibraryViewSubtitleView.library => 'Choose which information is displayed under items',
-    LibraryViewSubtitleView.series => 'Choose which information is displayed under series',
-    LibraryViewSubtitleView.authors => 'Choose which information is displayed under authors',
-  };
-
   Future<void> _persist(LibraryViewSubtitlePreferences preferences) async {
     if (_isSaving) {
       return;
@@ -88,8 +85,16 @@ class _LibraryViewSubtitlePreferencesEditorState extends ConsumerState<LibraryVi
           );
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to update ${widget.view.label}: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.errorOperationFailed(
+                context.l10n.operationSaveSubtitlesForView(widget.view.label),
+                error.toString(),
+              ),
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -114,8 +119,13 @@ class _LibraryViewSubtitlePreferencesEditorState extends ConsumerState<LibraryVi
     final nextFields = preferences.fields.toList();
     if (selected) {
       if (nextFields.length >= LibraryViewSubtitlePreferencesCodec.maxCustomFields) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('You can only select up to 3 fields for custom subtitles')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.validationMaxSubtitleFields(LibraryViewSubtitlePreferencesCodec.maxCustomFields),
+            ),
+          ),
+        );
         return;
       }
       nextFields.add(field);
@@ -157,7 +167,7 @@ class _LibraryViewSubtitlePreferencesEditorState extends ConsumerState<LibraryVi
                 Column(
                   children: [
                     SettingDropdown<LibraryViewSubtitleMode>.remote(
-                      label: _subtitleSettingLabel,
+                      label: context.l10n.librarySubtitleChooseInfo(widget.view.label),
                       values: LibraryViewSubtitleMode.values,
                       valueLabels: [for (final mode in LibraryViewSubtitleMode.values) mode.label],
                       valueDescriptions: [for (final mode in LibraryViewSubtitleMode.values) mode.description],

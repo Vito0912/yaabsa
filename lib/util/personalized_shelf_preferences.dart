@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 const String _newestEpisodesSectionId = 'newest-episodes';
@@ -49,27 +50,27 @@ enum PersonalizedShelfSection {
   String get label {
     switch (this) {
       case PersonalizedShelfSection.continueListening:
-        return 'Continue Listening';
+        return currentAppLocalizations().shelfContinueListening;
       case PersonalizedShelfSection.continueReading:
-        return 'Continue Reading';
+        return currentAppLocalizations().shelfContinueReading;
       case PersonalizedShelfSection.newestEpisodes:
-        return 'Newest Episodes';
+        return currentAppLocalizations().shelfLatestEpisodes;
       case PersonalizedShelfSection.pinned:
-        return 'Pinned';
+        return currentAppLocalizations().shelfPinned;
       case PersonalizedShelfSection.downloads:
-        return 'Downloads';
+        return currentAppLocalizations().navDownloads;
       case PersonalizedShelfSection.listenAgain:
-        return 'Listen Again';
+        return currentAppLocalizations().shelfListenAgain;
       case PersonalizedShelfSection.continueSeries:
-        return 'Continue Series';
+        return currentAppLocalizations().shelfContinueSeries;
       case PersonalizedShelfSection.recentlyAdded:
-        return 'Recently Added';
+        return currentAppLocalizations().shelfRecentlyAdded;
       case PersonalizedShelfSection.discover:
-        return 'Discover';
+        return currentAppLocalizations().shelfDiscover;
       case PersonalizedShelfSection.recentSeries:
-        return 'Recently Added Series';
+        return currentAppLocalizations().shelfRecentlyAddedSeries;
       case PersonalizedShelfSection.newestAuthors:
-        return 'Recently Added Authors';
+        return currentAppLocalizations().shelfRecentlyAddedAuthors;
     }
   }
 

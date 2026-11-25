@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_sliver_list.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('episode list leaves space after its preceding header', (tester) async {
@@ -9,6 +10,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: CustomScrollView(
             slivers: [

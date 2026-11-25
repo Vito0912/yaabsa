@@ -4,6 +4,7 @@ import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_provider_dropdown.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManualMatchSearchCard extends StatelessWidget {
   const ManualMatchSearchCard({
@@ -36,14 +37,14 @@ class ManualMatchSearchCard extends StatelessWidget {
             final providerField = _buildProviderField(context);
             final titleField = StyledTextField(
               controller: titleController,
-              label: 'Title',
-              hintText: 'Search title',
+              label: context.l10n.fieldTitle,
+              hintText: context.l10n.hintSearchTitle,
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => onSearch(),
             );
             final authorField = StyledTextField(
               controller: authorController,
-              label: 'Author',
+              label: context.l10n.fieldAuthor,
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => onSearch(),
             );
@@ -52,7 +53,7 @@ class ManualMatchSearchCard extends StatelessWidget {
               icon: searching
                   ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                   : const Icon(Icons.search_rounded),
-              label: Text(searching ? 'Searching...' : 'Search'),
+              label: Text(searching ? context.l10n.statusSearching : context.l10n.actionSearch),
             );
 
             if (constraints.maxWidth >= 980) {
@@ -107,29 +108,24 @@ class ManualMatchSearchCard extends StatelessWidget {
   Widget _buildProviderField(BuildContext context) {
     return providersAsync.when(
       loading: () => InputDecorator(
-        decoration: yaabsaFieldDecoration(context, label: 'Providers'),
-        child: const Row(
+        decoration: yaabsaFieldDecoration(context, label: context.l10n.fieldMetadataProviders),
+        child: Row(
           children: [
-            SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2.0)),
-            SizedBox(width: 8),
-            Text('Loading...'),
+            const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2.0)),
+            const SizedBox(width: 8),
+            Text(context.l10n.statusLoading),
           ],
         ),
       ),
-      error: (error, _) => InputDecorator(
-        decoration: yaabsaFieldDecoration(context, label: 'Providers').copyWith(errorText: 'Failed to load providers'),
-        child: Text(
-          '$error',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+      error: (_, _) => InputDecorator(
+        decoration: yaabsaFieldDecoration(context, label: context.l10n.fieldMetadataProviders),
+        child: Text(context.l10n.errorLoadMetadataProvidersFailed, style: Theme.of(context).textTheme.bodySmall),
       ),
       data: (providers) {
         if (providers.isEmpty) {
           return InputDecorator(
-            decoration: yaabsaFieldDecoration(context, label: 'Providers'),
-            child: const Text('No providers available'),
+            decoration: yaabsaFieldDecoration(context, label: context.l10n.fieldMetadataProviders),
+            child: Text(context.l10n.statusNoMetadataProvidersAvailable),
           );
         }
 

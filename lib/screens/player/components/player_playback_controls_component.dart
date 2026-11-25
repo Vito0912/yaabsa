@@ -9,6 +9,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 
 class PlayerTransportControlsComponent extends ConsumerWidget {
@@ -89,7 +90,7 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
                   onPressed: () {
                     audioHandler.toggleMix();
                   },
-                  tooltip: 'Shuffle Queue',
+                  tooltip: context.l10n.playbackShuffleQueue,
                 ),
               if (showSkip)
                 SkipButton(
@@ -126,7 +127,7 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
                   onPressed: () {
                     audioHandler.cycleLoopMode();
                   },
-                  tooltip: isLoopOn ? 'Loop On' : 'Loop Off',
+                  tooltip: context.l10n.playbackRepeatStatus(isLoopOn ? context.l10n.statusOn : context.l10n.statusOff),
                 ),
             ];
 

@@ -5,6 +5,7 @@ import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<List<String>?> showBookEditorSheet({
   required BuildContext context,
@@ -149,7 +150,8 @@ class _BookEditorSheetState extends ConsumerState<_BookEditorSheet> {
         actions: [
           if (widget.skipLabel != null)
             TextButton(onPressed: () => Navigator.of(context).pop(<String>[]), child: Text(widget.skipLabel!)),
-          if (_selectedIds.isNotEmpty) TextButton(onPressed: _clearSelection, child: const Text('Unselect all')),
+          if (_selectedIds.isNotEmpty)
+            TextButton(onPressed: _clearSelection, child: Text(context.l10n.actionUnselectAll)),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilledButton(
@@ -168,8 +170,8 @@ class _BookEditorSheetState extends ConsumerState<_BookEditorSheet> {
             children: [
               YaabsaSearchField(
                 controller: _searchController,
-                label: 'Search books',
-                hintText: 'Title, author, or series',
+                label: context.l10n.searchBooks,
+                hintText: context.l10n.searchBooksTitleAuthorSeries,
               ),
               const SizedBox(height: 8),
               Expanded(
@@ -314,13 +316,13 @@ class _SelectedBooksPane extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Selected (${selectedIds.length})', style: Theme.of(context).textTheme.titleSmall),
+            Text(context.l10n.selectedCount(selectedIds.length), style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Expanded(
               child: selectedIds.isEmpty
                   ? Center(
                       child: Text(
-                        'No books selected.',
+                        context.l10n.booksNoneSelected,
                         style: Theme.of(context).textTheme.bodySmall
                             ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),

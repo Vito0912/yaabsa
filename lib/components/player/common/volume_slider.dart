@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/components/player/common/volume_slider_panel.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
@@ -82,7 +83,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
                   iconSize: 24,
                   buttonSize: _buttonSize.width,
                   compact: false,
-                  tooltip: 'Volume ${(volume * 100).round()}%',
+                  tooltip: context.l10n.playerVolumeTooltip((volume * 100).round()),
                   onPressed: () => _handlePress(context, volume),
                 ),
               ),

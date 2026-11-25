@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ItemDescription extends StatefulWidget {
   const ItemDescription({super.key, required this.item, this.useCard = true, this.initiallyExpanded = false});
@@ -43,7 +44,7 @@ class _ItemDescriptionState extends State<ItemDescription> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('About this book', style: Theme.of(context).textTheme.titleMedium),
+                Text(context.l10n.headingAboutThisBook, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 if (_expanded)
                   SelectionArea(
@@ -73,7 +74,7 @@ class _ItemDescriptionState extends State<ItemDescription> {
                         _expanded = !_expanded;
                       });
                     },
-                    label: Text(_expanded ? 'Show less' : 'Read more'),
+                    label: Text(_expanded ? context.l10n.actionShowLess : context.l10n.actionReadMore),
                   ),
                 ],
               ],

@@ -55,7 +55,7 @@ extension _BGAudioHandlerSpeech on BGAudioHandler {
         episodeId: null,
         sessionId: 'epub:tts:${DateTime.now().microsecondsSinceEpoch}',
         title: item.title,
-        subtitle: 'Read aloud',
+        subtitle: currentAppLocalizations().readerReadAloud,
         author: item.authorString,
         cover: _speechCover,
         tracks: const [],
@@ -94,7 +94,11 @@ extension _BGAudioHandlerSpeech on BGAudioHandler {
 
         media.duration = state.duration.inMicroseconds / 1e6;
         media.chapters = timeline.chapters.toList();
-        media.subtitle = state.isEstimated ? 'Read aloud · Estimated time' : 'Read aloud';
+        media.subtitle = state.isEstimated
+            ? currentAppLocalizations().readerReadAloudEstimatedTime(
+                (state.duration - state.position).toCompactRemainingString(),
+              )
+            : currentAppLocalizations().readerReadAloud;
         mediaItemStream.add(media);
         _refreshChapterNotificationState();
         _updateMediaItemForChapterNotification();

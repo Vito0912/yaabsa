@@ -12,6 +12,7 @@ import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/buttons/playback_action_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 export 'package:yaabsa/components/app/item/library_item_media_sections.dart';
 
@@ -26,7 +27,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
   return <ItemMetadataRowData>[
     if (metadata?.series != null && metadata!.series!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Series',
+        label: context.l10n.fieldSeries,
         values: metadata.series!
             .map(
               (series) => ItemLinkValue(
@@ -38,14 +39,14 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (metadata?.authors != null && metadata!.authors!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Authors',
+        label: context.l10n.navAuthors,
         values: metadata.authors!
             .map((author) => ItemLinkValue(label: author.name, onTap: () => context.push('/author/${author.id}')))
             .toList(),
       ),
     if (metadata?.narrators != null && metadata!.narrators!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Narrators',
+        label: context.l10n.fieldNarrator,
         values: metadata.narrators!
             .map(
               (narrator) => ItemLinkValue(
@@ -55,10 +56,11 @@ List<ItemMetadataRowData> buildItemMetadataRows(
             )
             .toList(),
       ),
-    if (hasText(metadata?.publishedYear)) ItemMetadataRowData(label: 'Published', value: metadata!.publishedYear!),
+    if (hasText(metadata?.publishedYear))
+      ItemMetadataRowData(label: context.l10n.fieldPublishedYear, value: metadata!.publishedYear!),
     if (hasText(metadata?.publisher))
       ItemMetadataRowData(
-        label: 'Publisher',
+        label: context.l10n.fieldPublisher,
         values: [
           ItemLinkValue(
             label: metadata!.publisher!,
@@ -68,7 +70,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (metadata?.genres != null && metadata!.genres!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Genres',
+        label: context.l10n.fieldGenres,
         values: metadata.genres!
             .map(
               (genre) => ItemLinkValue(
@@ -80,7 +82,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (tags != null && tags.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Tags',
+        label: context.l10n.fieldTags,
         values: tags
             .map(
               (tag) => ItemLinkValue(
@@ -92,7 +94,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (hasText(metadata?.language))
       ItemMetadataRowData(
-        label: 'Language',
+        label: context.l10n.fieldLanguage,
         values: [
           ItemLinkValue(
             label: metadata!.language!,
@@ -101,8 +103,9 @@ List<ItemMetadataRowData> buildItemMetadataRows(
           ),
         ],
       ),
-    if (duration != null) ItemMetadataRowData(label: 'Duration', value: formatDurationLong(duration)),
-    if (sizeBytes != null && sizeBytes > 0) ItemMetadataRowData(label: 'Size', value: formatBytes(sizeBytes)),
+    if (duration != null) ItemMetadataRowData(label: context.l10n.fieldDuration, value: formatDurationLong(duration)),
+    if (sizeBytes != null && sizeBytes > 0)
+      ItemMetadataRowData(label: context.l10n.fieldSize, value: formatBytes(sizeBytes)),
   ];
 }
 
@@ -157,7 +160,7 @@ Widget buildItemActionButtons({
               onPressed: onRead,
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
               icon: const Icon(Icons.menu_book_rounded),
-              label: const Text('Read'),
+              label: Text(context.l10n.actionRead),
             ),
           if (hasBook && hasAudio && !prominentPlayback) const SizedBox(height: 8),
           if (hasAudio)
@@ -219,7 +222,7 @@ Widget buildItemActionButtons({
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 ),
                 icon: const Icon(Icons.menu_book_rounded),
-                label: const Text('Read'),
+                label: Text(context.l10n.actionRead),
               ),
             smallActions,
           ],
@@ -299,7 +302,9 @@ Widget _buildSmallActionButtons(
         icon: isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded,
         variant: YaabsaActionButtonVariant.filledTonal,
         shape: YaabsaActionButtonShape.rounded,
-        tooltip: queueEnabled ? (isQueued ? 'Remove from queue' : 'Add to queue') : 'Currently playing',
+        tooltip: queueEnabled
+            ? (isQueued ? context.l10n.actionRemoveFromQueue : context.l10n.actionAddToQueue)
+            : context.l10n.statusCurrentlyPlaying,
         onPressed: queueEnabled ? onQueueToggle : null,
       ),
     if (showMoreActions && onMoreActionSelected != null)

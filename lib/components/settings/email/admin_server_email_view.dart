@@ -15,6 +15,7 @@ import 'package:yaabsa/components/settings/email/admin_email_settings_validation
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerEmailView extends ConsumerStatefulWidget {
   const AdminServerEmailView({super.key});
@@ -164,15 +165,18 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   bool _validateSettings({required bool showErrors}) {
-    final hostError = AdminEmailSettingsValidation.validateHost(_hostController.text);
-    final portError = AdminEmailSettingsValidation.validatePort(_portController.text);
+    final l10n = context.l10n;
+    final hostError = AdminEmailSettingsValidation.validateHost(_hostController.text, l10n);
+    final portError = AdminEmailSettingsValidation.validatePort(_portController.text, l10n);
     final fromAddressError = AdminEmailSettingsValidation.validateOptionalEmail(
       _fromAddressController.text,
-      fieldLabel: 'From address',
+      fieldLabel: l10n.fieldFromAddress,
+      l10n: l10n,
     );
     final testAddressError = AdminEmailSettingsValidation.validateOptionalEmail(
       _testAddressController.text,
-      fieldLabel: 'Test address',
+      fieldLabel: l10n.fieldTestAddress,
+      l10n: l10n,
     );
 
     if (showErrors) {
@@ -198,23 +202,26 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   void _handleSettingsFieldChanged() {
+    final l10n = context.l10n;
     setState(() {
       if (_hostError != null) {
-        _hostError = AdminEmailSettingsValidation.validateHost(_hostController.text);
+        _hostError = AdminEmailSettingsValidation.validateHost(_hostController.text, l10n);
       }
       if (_portError != null) {
-        _portError = AdminEmailSettingsValidation.validatePort(_portController.text);
+        _portError = AdminEmailSettingsValidation.validatePort(_portController.text, l10n);
       }
       if (_fromAddressError != null) {
         _fromAddressError = AdminEmailSettingsValidation.validateOptionalEmail(
           _fromAddressController.text,
-          fieldLabel: 'From address',
+          fieldLabel: l10n.fieldFromAddress,
+          l10n: l10n,
         );
       }
       if (_testAddressError != null) {
         _testAddressError = AdminEmailSettingsValidation.validateOptionalEmail(
           _testAddressController.text,
-          fieldLabel: 'Test address',
+          fieldLabel: l10n.fieldTestAddress,
+          l10n: l10n,
         );
       }
       _errorMessage = null;
@@ -222,6 +229,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   Future<void> _loadEmailData({required bool showLoading}) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (!mounted) {
@@ -230,7 +238,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
 
       setState(() {
         _isLoading = false;
-        _errorMessage = 'No active API client.';
+        _errorMessage = l10n.errorNoActiveApiClient;
       });
       return;
     }
@@ -283,7 +291,10 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to load e-mail settings.');
+        _errorMessage = listManagementErrorMessage(
+          error,
+          fallback: l10n.errorOperationFailed(l10n.operationLoadEmailSettings, error.toString()),
+        );
         _isLoading = false;
       });
     }
@@ -303,6 +314,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   Future<bool> _saveEmailSettings({bool showSuccessMessage = true}) async {
+    final l10n = context.l10n;
     if (_isSavingSettings || _isLoading) {
       return false;
     }
@@ -315,7 +327,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
     if (api == null) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'No active API client.';
+          _errorMessage = l10n.errorNoActiveApiClient;
         });
       }
       return false;
@@ -361,7 +373,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       }
 
       if (showSuccessMessage) {
-        _showMessage('E-Mail settings saved.');
+        _showMessage(l10n.statusEmailSettingsSaved);
       }
 
       return true;
@@ -371,7 +383,10 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to save e-mail settings.');
+        _errorMessage = listManagementErrorMessage(
+          error,
+          fallback: l10n.errorOperationFailed(l10n.operationSaveEmailSettings, error.toString()),
+        );
       });
       return false;
     } finally {
@@ -384,6 +399,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   Future<void> _sendTestEmail() async {
+    final l10n = context.l10n;
     if (_isSendingTest || _isLoading || _isSavingSettings) {
       return;
     }
@@ -403,7 +419,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
     if (api == null) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'No active API client.';
+          _errorMessage = l10n.errorNoActiveApiClient;
         });
       }
       return;
@@ -422,10 +438,10 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       }
 
       if (success) {
-        _showMessage('Test e-mail sent.');
+        _showMessage(l10n.statusTestEmailSent);
       } else {
         setState(() {
-          _errorMessage = 'Failed to send test e-mail.';
+          _errorMessage = l10n.errorEmailTestSendFailed;
         });
       }
     } catch (error) {
@@ -434,7 +450,10 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to send test e-mail.');
+        _errorMessage = listManagementErrorMessage(
+          error,
+          fallback: l10n.errorOperationFailed(l10n.operationSendTestEmail, error.toString()),
+        );
       });
     } finally {
       if (mounted) {
@@ -448,8 +467,9 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   Future<bool> _saveEreaderDevices(
     List<AdminEmailEreaderDevice> devices, {
     required String successMessage,
-    required String fallbackError,
+    required String operation,
   }) async {
+    final l10n = context.l10n;
     if (_isSavingDevices) {
       return false;
     }
@@ -458,7 +478,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
     if (api == null) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'No active API client.';
+          _errorMessage = l10n.errorNoActiveApiClient;
         });
       }
       return false;
@@ -492,7 +512,10 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: fallbackError);
+        _errorMessage = listManagementErrorMessage(
+          error,
+          fallback: l10n.errorOperationFailed(operation, error.toString()),
+        );
       });
       return false;
     } finally {
@@ -505,6 +528,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   Future<void> _addDevice() async {
+    final l10n = context.l10n;
     if (_isSavingDevices || _isLoading) {
       return;
     }
@@ -518,12 +542,13 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
     final nextDevices = <AdminEmailEreaderDevice>[..._devices, created];
     await _saveEreaderDevices(
       nextDevices,
-      successMessage: 'E-Mail device added.',
-      fallbackError: 'Failed to add e-mail device.',
+      successMessage: l10n.statusEreaderDeviceAdded,
+      operation: l10n.operationAddEreaderDevice,
     );
   }
 
   Future<void> _editDevice(AdminEmailEreaderDevice device) async {
+    final l10n = context.l10n;
     final rowId = _deviceRowId(device);
     _setBusyDevice(rowId, true);
 
@@ -549,8 +574,8 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
 
       await _saveEreaderDevices(
         nextDevices,
-        successMessage: 'E-Mail device updated.',
-        fallbackError: 'Failed to update e-mail device.',
+        successMessage: l10n.statusEreaderDeviceUpdated,
+        operation: l10n.operationUpdateEreaderDevice,
       );
     } finally {
       if (mounted) {
@@ -560,14 +585,15 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   Future<void> _deleteDevice(AdminEmailEreaderDevice device) async {
+    final l10n = context.l10n;
     final rowId = _deviceRowId(device);
     _setBusyDevice(rowId, true);
 
     try {
       final confirmed = await showListManagementDeleteDialog(
         context: context,
-        title: 'Delete E-Mail Device',
-        message: 'Delete ${device.name}? This removes it from send-to-device destinations.',
+        title: l10n.titleDeleteEreaderDevice,
+        message: l10n.promptDeleteEreaderDevice(device.name),
       );
 
       if (!confirmed || !mounted) {
@@ -578,8 +604,8 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
 
       await _saveEreaderDevices(
         nextDevices,
-        successMessage: 'E-Mail device deleted.',
-        fallbackError: 'Failed to delete e-mail device.',
+        successMessage: l10n.statusEreaderDeviceDeleted,
+        operation: l10n.operationDeleteEreaderDevice,
       );
     } finally {
       if (mounted) {
@@ -605,7 +631,10 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: () => unawaited(_loadEmailData(showLoading: true)), child: const Text('Retry')),
+            TextButton(
+              onPressed: () => unawaited(_loadEmailData(showLoading: true)),
+              child: Text(context.l10n.actionRetry),
+            ),
           ],
         ),
       ),
@@ -613,16 +642,17 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
   }
 
   Widget _buildDevicesToolbar({required bool compact}) {
+    final l10n = context.l10n;
     final addButton = FilledButton.icon(
       onPressed: _isLoading || _isSavingDevices ? null : () => unawaited(_addDevice()),
       icon: const Icon(Icons.add_rounded),
-      label: const Text('Add Device'),
+      label: Text(l10n.actionAdd),
     );
 
     final refreshButton = OutlinedButton.icon(
       onPressed: _isLoading ? null : () => unawaited(_loadEmailData(showLoading: true)),
       icon: const Icon(Icons.refresh_rounded),
-      label: const Text('Refresh'),
+      label: Text(l10n.actionRefresh),
     );
 
     if (compact) {
@@ -634,22 +664,17 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage e-mail settings.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.promptSignInForAdminAccess));
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -750,7 +775,10 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          l10n.errorOperationFailed(l10n.operationLoadUser, error.toString()),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

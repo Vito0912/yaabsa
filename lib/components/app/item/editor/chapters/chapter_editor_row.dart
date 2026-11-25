@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_draft.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ChapterEditorRow extends StatefulWidget {
   const ChapterEditorRow({
@@ -72,12 +73,13 @@ class _ChapterEditorRowState extends State<ChapterEditorRow> {
   Widget build(BuildContext context) {
     final row = widget.entry;
     final colorScheme = Theme.of(context).colorScheme;
+    final rowError = row.error;
     final checkbox = SizedBox(
       width: 48,
       child: Checkbox(
         value: row.selected,
         onChanged: widget.enabled ? (value) => widget.draft.select(row, value ?? false) : null,
-        semanticLabel: 'Select chapter ${row.position + 1}',
+        semanticLabel: context.l10n.a11ySelectChapter(row.position + 1),
       ),
     );
     final startField = StyledTextField(
@@ -87,16 +89,16 @@ class _ChapterEditorRowState extends State<ChapterEditorRow> {
       textInputAction: TextInputAction.next,
       onEditingComplete: () {},
       onSubmitted: (_) => _titleFocus.requestFocus(),
-      label: widget.mobile ? 'Start' : 'Chapter ${row.position + 1}',
+      label: widget.mobile ? context.l10n.fieldStartTime : context.l10n.fieldChapterNumber(row.position + 1),
     );
     Widget? statusIcon;
-    if (row.error != null) {
+    if (rowError != null) {
       statusIcon = Tooltip(
-        message: row.error!,
+        message: _chapterEditorErrorMessage(context.l10n, rowError),
         child: Icon(Icons.error_outline_rounded, color: colorScheme.error, size: 20),
       );
     } else if (row.isDirty) {
-      statusIcon = const Tooltip(message: 'Edited', child: Icon(Icons.circle, size: 8));
+      statusIcon = Tooltip(message: context.l10n.statusEdited, child: const Icon(Icons.circle, size: 8));
     }
 
     final titleField = StyledTextField(
@@ -107,8 +109,8 @@ class _ChapterEditorRowState extends State<ChapterEditorRow> {
       textInputAction: TextInputAction.next,
       onEditingComplete: () {},
       onSubmitted: (_) => widget.onNextTitle(),
-      label: 'Title',
-      hintText: 'Chapter title',
+      label: context.l10n.fieldTitle,
+      hintText: context.l10n.hintChapterTitle,
       suffixIcon: statusIcon,
     );
     final actions = Row(
@@ -116,24 +118,24 @@ class _ChapterEditorRowState extends State<ChapterEditorRow> {
       children: [
         IconButton(
           onPressed: widget.enabled && row.error == null ? widget.onPreview : null,
-          tooltip: widget.isPreviewing ? 'Stop preview' : 'Preview up to 20 seconds. Pauses playback.',
+          tooltip: widget.isPreviewing ? context.l10n.actionStopPreview : context.l10n.tooltipChapterPreview,
           icon: Icon(widget.isPreviewing ? Icons.stop_rounded : Icons.play_arrow_rounded, size: 20),
         ),
         YaabsaContextMenuButton<String>(
           enabled: widget.enabled,
-          tooltip: 'Chapter actions',
+          tooltip: context.l10n.tooltipChapterActions,
           onSelected: (action) {
             FocusManager.instance.primaryFocus?.unfocus();
             if (action == 'insert') {
-              widget.draft.insertAfter(row);
+              widget.draft.insertAfter(row, title: context.l10n.fieldChapterNumber(row.position + 2));
             } else if (action == 'remove') {
               widget.draft.remove(row);
             }
           },
           itemBuilder: (context) {
-            return const [
-              PopupMenuItem(value: 'insert', child: Text('Insert chapter below')),
-              PopupMenuItem(value: 'remove', child: Text('Remove chapter')),
+            return [
+              PopupMenuItem(value: 'insert', child: Text(context.l10n.actionInsertChapterBelow)),
+              PopupMenuItem(value: 'remove', child: Text(context.l10n.actionRemoveChapter)),
             ];
           },
           icon: const Icon(Icons.more_vert_rounded, size: 20),
@@ -177,4 +179,15 @@ class _ChapterEditorRowState extends State<ChapterEditorRow> {
       ),
     );
   }
+}
+
+String _chapterEditorErrorMessage(AppLocalizations l10n, ChapterEditorError error) {
+  return switch (error) {
+    ChapterEditorError.bookDurationUnavailable => l10n.errorBookDurationUnavailable,
+    ChapterEditorError.emptyTitle => l10n.errorEnterTitle,
+    ChapterEditorError.invalidStartFormat => l10n.hintChapterTimeFormat,
+    ChapterEditorError.firstChapterMustStartAtZero => l10n.errorFirstChapterMustStartAtZero,
+    ChapterEditorError.startOutsideBook => l10n.errorChapterStartOutsideBook,
+    ChapterEditorError.startsNotAscending => l10n.errorChapterStartsNotAscending,
+  };
 }

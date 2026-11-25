@@ -3,7 +3,7 @@ part of 'bg_audio_handler.dart';
 extension BGAudioHandlerCasting on BGAudioHandler {
   Future<void> castToDevice(CastDevice device) async {
     if (_castConnecting) {
-      throw StateError('A cast connection is already being prepared');
+      throw StateError(currentAppLocalizations().errorCastConnectionBusy);
     }
 
     _castConnecting = true;
@@ -19,7 +19,7 @@ extension BGAudioHandlerCasting on BGAudioHandler {
   Future<void> _castToDeviceInternal(CastDevice device) async {
     final media = _currentMediaItem;
     if (isReaderNarration || media == null || media.tracks.isEmpty) {
-      throw StateError('There is no audio available to cast');
+      throw StateError(currentAppLocalizations().errorCastNoAudio);
     }
 
     final startPosition = position;
@@ -43,13 +43,13 @@ extension BGAudioHandlerCasting on BGAudioHandler {
         autoPlay: wasPlaying,
       );
       if (!identical(_currentMediaItem, media) || _isDisposing) {
-        throw StateError('Playback changed while preparing the cast');
+        throw StateError(currentAppLocalizations().errorCastPlaybackChanged);
       }
 
       await casting.connect(device);
       await _castDeactivation;
       if (!identical(_currentMediaItem, media) || _isDisposing) {
-        throw StateError('Playback changed while connecting');
+        throw StateError(currentAppLocalizations().errorCastPlaybackChanged);
       }
 
       handedToService = true;
@@ -62,7 +62,7 @@ extension BGAudioHandlerCasting on BGAudioHandler {
         autoPlay: wasPlaying,
       );
       if (!identical(_currentMediaItem, media) || _isDisposing) {
-        throw StateError('Playback changed while connecting');
+        throw StateError(currentAppLocalizations().errorCastPlaybackChanged);
       }
 
       activateCastControl(contentId: media.id, trackIndex: trackIndex);
@@ -251,7 +251,7 @@ extension BGAudioHandlerCasting on BGAudioHandler {
       );
       if (!identical(_currentMediaItem, media) || !casting.hasConnectedSession || _isDisposing) {
         await transcoded.release?.call();
-        throw StateError('Cast playback was cancelled');
+        throw StateError(currentAppLocalizations().errorCastCancelled);
       }
 
       await casting.load(transcoded);

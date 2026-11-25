@@ -2,12 +2,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaabsa/components/common/app_update_notifier.dart';
 import 'package:yaabsa/util/app_update_checker.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('shows only release information, View release, and Later', (tester) async {
     late BuildContext dialogContext;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Builder(
           builder: (context) {
             dialogContext = context;

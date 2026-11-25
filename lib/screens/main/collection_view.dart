@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
@@ -26,7 +27,7 @@ class CollectionView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     final libraryId = selectedLibrary.id;
@@ -73,9 +74,9 @@ class CollectionView extends HookConsumerWidget {
             .toList(growable: false);
 
         return ManagedMultiBookView(
-          createLabel: 'New collection',
-          emptyTitle: 'No collections yet.',
-          emptyMessage: 'Create one to group books you want to revisit together.',
+          createLabel: context.l10n.actionCreateCollection,
+          emptyTitle: context.l10n.statusNoManagedLists,
+          emptyMessage: context.l10n.promptCreateManagedList,
           emptyIcon: Icons.collections_bookmark_outlined,
           onCreate: canCreateCollections
               ? () => _createCollection(context: context, ref: ref, libraryId: libraryId)
@@ -108,7 +109,7 @@ class CollectionView extends HookConsumerWidget {
 
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Error loading collections',
+          title: context.l10n.errorUnableToLoadContent,
           onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
         );
       },
@@ -136,19 +137,19 @@ Future<void> _showCollectionActionsSheet({
             if (canEditCollections)
               ListTile(
                 leading: const Icon(Icons.menu_book_rounded),
-                title: const Text('Edit books'),
+                title: Text(context.l10n.actionEditBooks),
                 onTap: () => Navigator.of(sheetContext).pop(_CollectionAction.editBooks),
               ),
             if (canEditCollections)
               ListTile(
                 leading: const Icon(Icons.edit_outlined),
-                title: const Text('Edit details'),
+                title: Text(context.l10n.actionEditDetails),
                 onTap: () => Navigator.of(sheetContext).pop(_CollectionAction.edit),
               ),
             if (canDeleteCollections)
               ListTile(
                 leading: const Icon(Icons.delete_outline_rounded),
-                title: const Text('Delete collection'),
+                title: Text(context.l10n.actionDelete),
                 onTap: () => Navigator.of(sheetContext).pop(_CollectionAction.delete),
               ),
           ],
@@ -181,9 +182,9 @@ Future<void> _createCollection({
 }) async {
   await createManagedListEntity(
     context: context,
-    formTitle: 'Create collection',
-    booksTitle: 'Edit books',
-    createLabel: 'Create',
+    formTitle: context.l10n.actionCreateCollection,
+    booksTitle: context.l10n.actionEditBooks,
+    createLabel: context.l10n.actionCreate,
     selectionRequired: true,
     onCreate: ({required name, description, required bookIds}) async {
       final created = await ref
@@ -198,8 +199,8 @@ Future<void> _createCollection({
         extra: MultiBookEntryData.fromCollection(created),
       );
     },
-    successMessage: 'Collection created.',
-    errorFallback: 'Could not create collection.',
+    successMessage: context.l10n.statusNamedEntityCreated(context.l10n.fieldCollection),
+    errorFallback: context.l10n.errorNamedEntityCreateFailed(context.l10n.fieldCollection),
   );
 }
 
@@ -213,8 +214,8 @@ Future<void> _editCollectionBooks({
 
   await editManagedListBooks(
     context: context,
-    title: 'Edit books',
-    confirmLabel: 'Save books',
+    title: context.l10n.actionEditBooks,
+    confirmLabel: context.l10n.actionSaveBooks,
     selectionRequired: true,
     initialBooks: currentBooks,
     onSave: (bookIds) => ref
@@ -224,8 +225,8 @@ Future<void> _editCollectionBooks({
           currentBookIds: currentBooks.map((item) => item.id).toList(growable: false),
           desiredBookIds: bookIds,
         ),
-    successMessage: 'Collection books updated.',
-    errorFallback: 'Could not update collection books.',
+    successMessage: context.l10n.statusNamedBooksUpdated(context.l10n.fieldCollection),
+    errorFallback: context.l10n.errorNamedBooksUpdateFailed(context.l10n.fieldCollection),
   );
 }
 
@@ -237,14 +238,14 @@ Future<void> _editCollection({
 }) async {
   await editManagedListDetails(
     context: context,
-    title: 'Edit collection',
+    title: context.l10n.editNamedEntity(context.l10n.fieldCollection),
     initialName: collection.name,
     initialDescription: collection.description,
     onSave: ({required name, description}) => ref
         .read(collectionsProvider(libraryId).notifier)
         .updateCollection(collection.id, name: name, description: description),
-    successMessage: 'Collection updated.',
-    errorFallback: 'Could not update collection.',
+    successMessage: context.l10n.statusNamedEntityUpdated(context.l10n.fieldCollection),
+    errorFallback: context.l10n.errorNamedEntityUpdateFailed(context.l10n.fieldCollection),
   );
 }
 
@@ -256,11 +257,11 @@ Future<void> _deleteCollection({
 }) async {
   await deleteManagedListEntity(
     context: context,
-    title: 'Delete collection?',
-    message: '"${collection.name}" will be permanently removed.',
+    title: context.l10n.headingDeleteManagedList,
+    message: context.l10n.deleteNamedEntityMessage(collection.name),
     onDelete: () => ref.read(collectionsProvider(libraryId).notifier).deleteCollection(collection.id),
-    successMessage: 'Collection deleted.',
-    errorFallback: 'Could not delete collection.',
+    successMessage: context.l10n.statusNamedEntityDeleted(context.l10n.fieldCollection),
+    errorFallback: context.l10n.errorNamedEntityDeleteFailed(context.l10n.fieldCollection),
   );
 }
 

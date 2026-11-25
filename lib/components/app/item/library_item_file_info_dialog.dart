@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemFileInfoDialog extends ConsumerStatefulWidget {
   const LibraryItemFileInfoDialog({super.key, required this.itemId, required this.audioFile});
@@ -57,7 +59,7 @@ class _LibraryItemFileInfoDialogState extends ConsumerState<LibraryItemFileInfoD
     } catch (error) {
       if (mounted && !_cancelToken.isCancelled) {
         setState(() {
-          _error = listManagementErrorMessage(error, fallback: 'Could not load FFprobe data.');
+          _error = listManagementErrorMessage(error, fallback: context.l10n.errorLoadFfprobeDataFailed);
         });
       }
     } finally {
@@ -72,20 +74,36 @@ class _LibraryItemFileInfoDialogState extends ConsumerState<LibraryItemFileInfoD
   @override
   Widget build(BuildContext context) {
     final audio = widget.audioFile;
+    final l10n = context.l10n;
+    final locale = l10n.localeName;
     final details = <(String, String)>[
-      ('Path', audio.metadata.path),
-      ('Size', formatBytes(audio.metadata.size)),
-      if (audio.duration != null) ('Duration', formatDurationShort(Duration(seconds: audio.duration!.round()))),
-      if (audio.format != null) ('Format', audio.format!),
-      if (audio.codec != null) ('Codec', audio.codec!),
-      if (audio.channels != null) ('Channels', '${audio.channels} ${audio.channelLayout ?? ''}'.trim()),
-      if (audio.bitRate != null) ('Bitrate', '${(audio.bitRate! / 1000).toStringAsFixed(1)} kbps'),
-      if (audio.timeBase != null) ('Time base', audio.timeBase!),
-      if (audio.language != null) ('Language', audio.language!),
-      ('Chapters', '${audio.chapters?.length ?? 0}'),
-      if (audio.embeddedCoverArt != null) ('Embedded cover', audio.embeddedCoverArt!),
-      ('Added', DateTime.fromMillisecondsSinceEpoch(audio.addedAt).toLocal().toString()),
-      ('Modified', DateTime.fromMillisecondsSinceEpoch(audio.metadata.mtimeMs).toLocal().toString()),
+      (l10n.fieldFilePath, audio.metadata.path),
+      (l10n.fieldSize, formatBytes(audio.metadata.size, localizations: l10n)),
+      if (audio.duration != null) (l10n.fieldDuration, formatDurationShort(Duration(seconds: audio.duration!.round()))),
+      if (audio.format != null) (l10n.fieldFormat, audio.format!),
+      if (audio.codec != null) (l10n.fieldCodec, audio.codec!),
+      if (audio.channels != null)
+        (
+          l10n.fieldChannels,
+          '${NumberFormat.decimalPattern(locale).format(audio.channels)} ${audio.channelLayout ?? ''}'.trim(),
+        ),
+      if (audio.bitRate != null)
+        (
+          l10n.fieldBitrate,
+          '${NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 1).format(audio.bitRate! / 1000)} kbps',
+        ),
+      if (audio.timeBase != null) (l10n.fieldTimeBase, audio.timeBase!),
+      if (audio.language != null) (l10n.fieldLanguage, audio.language!),
+      (l10n.navChapters, NumberFormat.decimalPattern(locale).format(audio.chapters?.length ?? 0)),
+      if (audio.embeddedCoverArt != null) (l10n.fieldEmbeddedCover, audio.embeddedCoverArt!),
+      (
+        l10n.dateAdded,
+        DateFormat.yMd(locale).add_Hm().format(DateTime.fromMillisecondsSinceEpoch(audio.addedAt).toLocal()),
+      ),
+      (
+        l10n.dateModified,
+        DateFormat.yMd(locale).add_Hm().format(DateTime.fromMillisecondsSinceEpoch(audio.metadata.mtimeMs).toLocal()),
+      ),
     ];
     final probe = _probe;
 
@@ -111,14 +129,14 @@ class _LibraryItemFileInfoDialogState extends ConsumerState<LibraryItemFileInfoD
                 ),
               if (audio.metaTags != null) ...[
                 const SizedBox(height: 8),
-                Text('Metadata tags', style: Theme.of(context).textTheme.titleSmall),
+                Text(l10n.headingMetadataTags, style: Theme.of(context).textTheme.titleSmall),
                 SelectableText(const JsonEncoder.withIndent('  ').convert(audio.metaTags!.toJson())),
               ],
               const SizedBox(height: 12),
               if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               if (_loading) const YaabsaLinearProgressIndicator(),
               if (probe != null) ...[
-                Text('FFprobe data', style: Theme.of(context).textTheme.titleSmall),
+                Text(l10n.headingFfprobeData, style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 SelectableText(probe),
               ],
@@ -127,13 +145,13 @@ class _LibraryItemFileInfoDialogState extends ConsumerState<LibraryItemFileInfoD
         ),
       ),
       actions: [
-        if (probe == null) TextButton(onPressed: _loading ? null : _loadProbe, child: const Text('Load FFprobe data')),
+        if (probe == null) TextButton(onPressed: _loading ? null : _loadProbe, child: Text(l10n.actionLoadFfprobeData)),
         if (probe != null)
           TextButton(
             onPressed: () => Clipboard.setData(ClipboardData(text: probe)),
-            child: const Text('Copy FFprobe data'),
+            child: Text(l10n.actionCopyFfprobeData),
           ),
-        FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
+        FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.actionClose)),
       ],
     );
   }

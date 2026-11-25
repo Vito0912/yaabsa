@@ -29,6 +29,7 @@ import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/empty_state_card.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/player_utils.dart';
 
 class LibraryUploadPanel extends ConsumerStatefulWidget {
@@ -426,7 +427,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     if (createdItems.isEmpty) {
       setState(() {
-        _panelMessage = 'No supported files were found in the selected input.';
+        _panelMessage = currentAppLocalizations().uploadUnsupportedFiles;
       });
       return;
     }
@@ -541,10 +542,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   }
 
   String _itemIdentityLabel(UploadItemDraft item) {
-    final title = item.title.trim().isEmpty ? 'Untitled' : item.title.trim();
-    final author = item.author.trim().isEmpty ? '-' : item.author.trim();
-    final series = item.series.trim().isEmpty ? '-' : item.series.trim();
-    return '$title | $author | $series';
+    final title = item.title.trim().isEmpty ? currentAppLocalizations().statusUnknown : item.title.trim();
+    final author = item.author.trim().isEmpty ? currentAppLocalizations().statusUnknown : item.author.trim();
+    final series = item.series.trim().isEmpty ? currentAppLocalizations().statusUnknown : item.series.trim();
+    return currentAppLocalizations().uploadItemIdentity(title, author, series);
   }
 
   Future<bool> _confirmPathConflicts(List<String> conflicts) async {
@@ -585,8 +586,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
         if (!silentNoResults) {
           _updateItem(
             itemId,
-            (current) =>
-                current.copyWith(status: UploadItemStatus.ready, message: 'No metadata result found for this item.'),
+            (current) => current.copyWith(
+              status: UploadItemStatus.ready,
+              message: currentAppLocalizations().uploadNoMetadataResult,
+            ),
           );
         }
         return;
@@ -629,7 +632,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       if (!silentNoResults) {
         _updateItem(
           itemId,
-          (current) => current.copyWith(status: UploadItemStatus.ready, message: 'Metadata lookup failed.'),
+          (current) => current.copyWith(
+            status: UploadItemStatus.ready,
+            message: currentAppLocalizations().uploadMetadataLookupFailed,
+          ),
         );
       }
     }
@@ -709,7 +715,11 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   Future<UploadItemStatus> _uploadSingleItem(UploadItemDraft item, LibraryFolder folder) async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _updateItem(item.id, (current) => current.copyWith(status: UploadItemStatus.failed, message: 'No API session.'));
+      _updateItem(
+        item.id,
+        (current) =>
+            current.copyWith(status: UploadItemStatus.failed, message: currentAppLocalizations().uploadNoApiSession),
+      );
       return UploadItemStatus.failed;
     }
 
@@ -731,7 +741,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
           uploadSpeedBytesPerSecond: 0,
           uploadedBytes: 0,
           totalBytes: 0,
-          message: attempt == 1 ? 'Uploading...' : 'Retrying upload ($attempt/$maxAttempts)...',
+          message: attempt == 1
+              ? currentAppLocalizations().uploading
+              : currentAppLocalizations().uploadRetryStarted(attempt, maxAttempts),
         ),
       );
 
@@ -776,7 +788,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                 uploadSpeedBytesPerSecond: update.uploadSpeedBytesPerSecond,
                 uploadedBytes: update.uploadedBytes,
                 totalBytes: update.totalBytes,
-                message: update.isComplete ? 'Upload complete. Waiting for server processing...' : null,
+                message: update.isComplete ? currentAppLocalizations().uploadWaitingForServer : null,
               ),
             );
           },
@@ -792,7 +804,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
         if (CancelToken.isCancel(error)) {
           _updateItem(
             item.id,
-            (current) => current.copyWith(status: UploadItemStatus.canceled, message: 'Upload canceled.'),
+            (current) =>
+                current.copyWith(status: UploadItemStatus.canceled, message: currentAppLocalizations().uploadCanceled),
           );
           return UploadItemStatus.canceled;
         }
@@ -804,10 +817,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
         if (!canRetry) {
           _updateItem(
             item.id,
-            (current) => current.copyWith(
-              status: UploadItemStatus.failed,
-              message: 'Upload failed: ${error.message ?? 'Unknown network error'}',
-            ),
+            (current) =>
+                current.copyWith(status: UploadItemStatus.failed, message: currentAppLocalizations().uploadFailed),
           );
           return UploadItemStatus.failed;
         }
@@ -823,8 +834,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
           item.id,
           (current) => current.copyWith(
             message: isNetworkInterruption
-                ? 'Network interruption detected. Retrying ($attempt/$maxAttempts)...'
-                : 'Upload issue detected. Retrying ($attempt/$maxAttempts)...',
+                ? currentAppLocalizations().uploadRetryNetwork(attempt, maxAttempts)
+                : currentAppLocalizations().uploadRetryIssue(attempt, maxAttempts),
           ),
         );
 
@@ -832,7 +843,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       } catch (error) {
         _updateItem(
           item.id,
-          (current) => current.copyWith(status: UploadItemStatus.failed, message: 'Upload failed: $error'),
+          (current) =>
+              current.copyWith(status: UploadItemStatus.failed, message: currentAppLocalizations().uploadFailed),
         );
         return UploadItemStatus.failed;
       } finally {
@@ -852,7 +864,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     final folder = _selectedFolder;
     if (folder == null) {
       setState(() {
-        _panelMessage = 'Select a library folder before starting upload.';
+        _panelMessage = currentAppLocalizations().uploadSelectLibraryFolder;
       });
       return;
     }
@@ -860,7 +872,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _panelMessage = 'No active authenticated API session.';
+        _panelMessage = currentAppLocalizations().uploadNoActiveSession;
       });
       return;
     }
@@ -872,7 +884,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     if (candidates.isEmpty) {
       setState(() {
-        _panelMessage = 'Nothing queued for upload.';
+        _panelMessage = currentAppLocalizations().uploadNothingQueued;
       });
       return;
     }
@@ -885,7 +897,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       if (destination != null) {
         for (final file in item.uploadFiles) {
           if (destination.existingFileNames.contains(file.fileName)) {
-            conflicts.add('${file.fileName} (a file with this name already exists in this book)');
+            conflicts.add(currentAppLocalizations().uploadExistingFileConflict(file.fileName));
           }
         }
         continue;
@@ -899,7 +911,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
           uploadSpeedBytesPerSecond: 0,
           uploadedBytes: 0,
           totalBytes: 0,
-          message: 'Checking destination path...',
+          message: currentAppLocalizations().uploadCheckingDestination,
         ),
       );
 
@@ -911,8 +923,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
           final existingTitle = response.data?.libraryItemTitle;
           conflicts.add(
             existingTitle == null
-                ? '$identityLabel (destination path exists)'
-                : '$identityLabel (destination exists as "$existingTitle")',
+                ? currentAppLocalizations().uploadExistingDestination(identityLabel)
+                : currentAppLocalizations().uploadExistingDestinationAs(identityLabel, existingTitle),
           );
         }
       } catch (error, stackTrace) {
@@ -921,7 +933,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
           tag: 'LibraryUploadPanel',
           level: InfoLevel.warning,
         );
-        conflicts.add('$identityLabel (path check failed)');
+        conflicts.add(currentAppLocalizations().uploadPathCheckFailed(identityLabel));
       }
 
       _updateItem(
@@ -942,7 +954,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       if (!continueUpload) {
         _setUploading(false);
         setState(() {
-          _panelMessage = 'Upload canceled after path conflict review.';
+          _panelMessage = currentAppLocalizations().uploadCanceledAfterConflictReview;
         });
         return;
       }
@@ -983,7 +995,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
             );
           }
         } catch (error) {
-          scanMessage = 'Files uploaded, but the book scan failed. Please rescan this book.';
+          scanMessage = currentAppLocalizations().uploadFilesUploadedScanFailed;
           logger('Item scan after upload failed: $error', tag: 'LibraryUploadPanel', level: InfoLevel.warning);
         }
       }
@@ -1001,7 +1013,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     _setUploading(false);
     setState(() {
-      _panelMessage = scanMessage ?? 'Upload finished. Success: $uploaded, failed/canceled: $failed.';
+      _panelMessage = scanMessage ?? currentAppLocalizations().uploadFinishedSummary(uploaded, failed);
     });
 
     if (completedSuccessfully) {
@@ -1102,7 +1114,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                         Row(
                           children: [
                             IconButton(
-                              tooltip: 'Back',
+                              tooltip: currentAppLocalizations().actionBack,
                               onPressed: widget.onClose,
                               icon: const Icon(Icons.arrow_back_rounded),
                             ),
@@ -1110,8 +1122,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                             Expanded(
                               child: Text(
                                 widget.itemDestination == null
-                                    ? 'Upload to ${widget.selectedLibrary.name}'
-                                    : 'Add files to ${widget.itemDestination!.itemTitle}',
+                                    ? currentAppLocalizations().uploadTargetLibrary(widget.selectedLibrary.name)
+                                    : currentAppLocalizations().uploadAddFilesToItem(widget.itemDestination!.itemTitle),
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                               ),
                             ),
@@ -1232,7 +1244,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                           YaabsaEmptyStateCard(
                             key: const ValueKey<String>('uploadQueueEmptyState'),
                             icon: Icons.drive_folder_upload_outlined,
-                            title: 'Your queue is empty',
+                            title: currentAppLocalizations().uploadQueueEmpty,
                             centered: true,
                             compact: true,
                           ),

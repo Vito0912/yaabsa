@@ -41,6 +41,7 @@ import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum _PlayerAppBarMenuAction { queue, stop, addBookmark, carMode, playHistory, cast, equalizer, restartSession }
 
@@ -218,66 +219,67 @@ class _PlayerState extends ConsumerState<Player> {
   }
 
   List<PopupMenuEntry<_PlayerAppBarMenuAction>> _buildOverflowMenuItems({
+    required BuildContext context,
     required bool isMobile,
     required bool castSupported,
   }) {
     final items = <PopupMenuEntry<_PlayerAppBarMenuAction>>[];
 
     items.add(
-      const PopupMenuItem<_PlayerAppBarMenuAction>(
+      PopupMenuItem<_PlayerAppBarMenuAction>(
         value: _PlayerAppBarMenuAction.queue,
-        child: _PlayerAppBarMenuItem(icon: Icons.queue_music_rounded, label: 'Queue'),
+        child: _PlayerAppBarMenuItem(icon: Icons.queue_music_rounded, label: context.l10n.headingQueue),
       ),
     );
 
     items.add(
-      const PopupMenuItem<_PlayerAppBarMenuAction>(
+      PopupMenuItem<_PlayerAppBarMenuAction>(
         value: _PlayerAppBarMenuAction.stop,
-        child: _PlayerAppBarMenuItem(icon: Icons.stop_circle_outlined, label: 'Stop playback'),
+        child: _PlayerAppBarMenuItem(icon: Icons.stop_circle_outlined, label: context.l10n.playbackStop),
       ),
     );
 
     items.add(
-      const PopupMenuItem<_PlayerAppBarMenuAction>(
+      PopupMenuItem<_PlayerAppBarMenuAction>(
         value: _PlayerAppBarMenuAction.addBookmark,
-        child: _PlayerAppBarMenuItem(icon: Icons.bookmarks_outlined, label: 'Bookmarks'),
+        child: _PlayerAppBarMenuItem(icon: Icons.bookmarks_outlined, label: context.l10n.navBookmarks),
       ),
     );
 
     items.addAll(<PopupMenuEntry<_PlayerAppBarMenuAction>>[
-      const PopupMenuItem<_PlayerAppBarMenuAction>(
+      PopupMenuItem<_PlayerAppBarMenuAction>(
         value: _PlayerAppBarMenuAction.carMode,
-        child: _PlayerAppBarMenuItem(icon: Icons.directions_car_filled_outlined, label: 'Car Mode'),
+        child: _PlayerAppBarMenuItem(icon: Icons.directions_car_filled_outlined, label: context.l10n.navCarMode),
       ),
-      const PopupMenuItem<_PlayerAppBarMenuAction>(
+      PopupMenuItem<_PlayerAppBarMenuAction>(
         value: _PlayerAppBarMenuAction.playHistory,
-        child: _PlayerAppBarMenuItem(icon: Icons.history, label: 'Play History'),
+        child: _PlayerAppBarMenuItem(icon: Icons.history, label: context.l10n.navPlayHistory),
       ),
     ]);
 
     if (isMobile && castSupported) {
       items.add(
-        const PopupMenuItem<_PlayerAppBarMenuAction>(
+        PopupMenuItem<_PlayerAppBarMenuAction>(
           value: _PlayerAppBarMenuAction.cast,
-          child: _PlayerAppBarMenuItem(icon: Icons.cast, label: 'Cast'),
+          child: _PlayerAppBarMenuItem(icon: Icons.cast, label: context.l10n.castDevices),
         ),
       );
     }
 
     if (defaultTargetPlatform == TargetPlatform.android && !audioHandler.casting.hasConnectedSession) {
       items.add(
-        const PopupMenuItem<_PlayerAppBarMenuAction>(
+        PopupMenuItem<_PlayerAppBarMenuAction>(
           value: _PlayerAppBarMenuAction.equalizer,
-          child: _PlayerAppBarMenuItem(icon: Icons.equalizer_rounded, label: 'Equalizer'),
+          child: _PlayerAppBarMenuItem(icon: Icons.equalizer_rounded, label: context.l10n.navEqualizer),
         ),
       );
     }
 
     if (kDebugMode) {
       items.add(
-        const PopupMenuItem<_PlayerAppBarMenuAction>(
+        PopupMenuItem<_PlayerAppBarMenuAction>(
           value: _PlayerAppBarMenuAction.restartSession,
-          child: _PlayerAppBarMenuItem(icon: Icons.restart_alt, label: 'Restart listening session'),
+          child: _PlayerAppBarMenuItem(icon: Icons.restart_alt, label: context.l10n.actionRestartListeningSession),
         ),
       );
     }
@@ -398,7 +400,7 @@ class _PlayerState extends ConsumerState<Player> {
 
       if (free == null) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('No free grid space available for ${type.label}.')));
+            .showSnackBar(SnackBar(content: Text(context.l10n.errorPlayerLayoutNoFreeSpace(type.label(context.l10n)))));
         return;
       }
 
@@ -466,7 +468,7 @@ class _PlayerState extends ConsumerState<Player> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Layout config copied to clipboard.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusPlayerLayoutConfigCopied)));
   }
 
   void _showComponentSettings(BuildContext context, PlayerLayoutScreenSize screenSize, PlayerComponentType type) {
@@ -714,7 +716,7 @@ class _PlayerState extends ConsumerState<Player> {
 
     final appBar = isEditMode
         ? AppBar(
-            title: Text('Edit ${activeScreenSize.label} Layout'),
+            title: Text(context.l10n.playerLayoutEditTitle(activeScreenSize.label(context.l10n))),
             leading: IconButton(
               icon: const Icon(Icons.close_rounded),
               onPressed: () {
@@ -722,12 +724,12 @@ class _PlayerState extends ConsumerState<Player> {
                   _isEditMode = false;
                 });
               },
-              tooltip: 'Exit edit mode',
+              tooltip: context.l10n.actionClose,
             ),
             actions: <Widget>[
               YaabsaContextMenuButton<PlayerComponentType>(
                 enabled: hiddenComponents.isNotEmpty,
-                tooltip: 'Add component',
+                tooltip: context.l10n.actionAdd,
                 icon: const Icon(Icons.add_box_rounded),
                 onSelected: (PlayerComponentType type) {
                   _setComponentVisibility(context, activeScreenSize, type, true);
@@ -745,7 +747,7 @@ class _PlayerState extends ConsumerState<Player> {
                             children: <Widget>[
                               Icon(_iconForComponent(type), size: 18),
                               const SizedBox(width: 10),
-                              Text(type.label),
+                              Text(type.label(context.l10n)),
                             ],
                           ),
                         ),
@@ -755,7 +757,9 @@ class _PlayerState extends ConsumerState<Player> {
               ),
               IconButton(
                 icon: Icon(_allowOverlapUnlocked ? Icons.lock_open_rounded : Icons.lock_rounded),
-                tooltip: _allowOverlapUnlocked ? 'Unlocked overlap mode' : 'Locked mode (prevent overlap)',
+                tooltip: _allowOverlapUnlocked
+                    ? context.l10n.statusPlayerOverlapUnlocked
+                    : context.l10n.statusPlayerOverlapLocked,
                 onPressed: () {
                   setState(() {
                     _allowOverlapUnlocked = !_allowOverlapUnlocked;
@@ -764,21 +768,21 @@ class _PlayerState extends ConsumerState<Player> {
               ),
               IconButton(
                 icon: const Icon(Icons.bug_report_rounded),
-                tooltip: 'Copy layout config',
+                tooltip: context.l10n.actionCopy,
                 onPressed: () {
                   _copyLayoutConfigToClipboard(context);
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.restart_alt_rounded),
-                tooltip: 'Reset active screen layout',
+                tooltip: context.l10n.actionReset,
                 onPressed: () {
                   _resetProfileForScreen(activeScreenSize);
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.done_rounded),
-                tooltip: 'Done editing',
+                tooltip: context.l10n.actionDone,
                 onPressed: () {
                   setState(() {
                     _isEditMode = false;
@@ -788,12 +792,14 @@ class _PlayerState extends ConsumerState<Player> {
             ],
           )
         : AppBar(
-            title: PlayerCastStatus(fallbackTitle: isCustomMode ? 'Custom player' : 'Now playing'),
+            title: PlayerCastStatus(
+              fallbackTitle: isCustomMode ? context.l10n.statusCustomPlayer : context.l10n.playbackNowPlaying,
+            ),
             leading: isMobile
                 ? IconButton(
                     icon: const Icon(Icons.keyboard_arrow_down_rounded),
                     onPressed: _closePlayerIfOpen,
-                    tooltip: 'Minimize player',
+                    tooltip: context.l10n.actionMinimizePlayer,
                   )
                 : null,
             flexibleSpace: headerDragSurface,
@@ -812,23 +818,23 @@ class _PlayerState extends ConsumerState<Player> {
                       _isEditMode = true;
                     });
                   },
-                  tooltip: 'Enter layout edit mode',
+                  tooltip: context.l10n.actionEditPlayerLayout,
                 ),
               IconButton(
                 icon: const Icon(Icons.tune_rounded),
                 onPressed: () => _showQuickSettings(context),
-                tooltip: 'Quick Settings',
+                tooltip: context.l10n.headingQuickSettings,
               ),
               if (!isMobile && castSupported) const CastButton(),
               if (isCustomMode) const StopButton(),
               YaabsaContextMenuButton<_PlayerAppBarMenuAction>(
-                tooltip: 'More options',
+                tooltip: context.l10n.actionMoreActions,
                 icon: const Icon(Icons.more_vert),
                 onSelected: (_PlayerAppBarMenuAction action) async {
                   await _handleAppBarMenuAction(context, action);
                 },
                 itemBuilder: (BuildContext context) {
-                  return _buildOverflowMenuItems(isMobile: isMobile, castSupported: castSupported);
+                  return _buildOverflowMenuItems(context: context, isMobile: isMobile, castSupported: castSupported);
                 },
               ),
             ],
@@ -981,7 +987,7 @@ class _PlayerTransitionLoadingView extends StatelessWidget {
             child: SizedBox(width: 28, height: 28, child: YaabsaCircularProgressIndicator(strokeWidth: 2.6)),
           ),
           const SizedBox(height: 10),
-          Text('Loading next item...', style: Theme.of(context).textTheme.bodyMedium),
+          Text(context.l10n.statusLoadingNextItem, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
@@ -1069,18 +1075,24 @@ class _QueueBottomSheet extends StatelessWidget {
             children: <Widget>[
               Row(
                 children: [
-                  Expanded(child: Text('Queue', style: Theme.of(context).textTheme.titleLarge)),
+                  Expanded(child: Text(context.l10n.headingQueue, style: Theme.of(context).textTheme.titleLarge)),
                   IconButton(
-                    tooltip: 'Clear queue',
+                    tooltip: context.l10n.actionClearQueue,
                     onPressed: () async {
                       final shouldClear = await showDialog<bool>(
                         context: context,
                         builder: (dialogContext) => AlertDialog(
-                          title: const Text('Clear queue?'),
-                          content: const Text('Remove all queued, auto-queued, and scheduled items?'),
+                          title: Text(dialogContext.l10n.confirmClearQueue),
+                          content: Text(dialogContext.l10n.confirmClearPlaybackQueue),
                           actions: [
-                            TextButton(onPressed: () => dialogContext.pop(false), child: const Text('Cancel')),
-                            FilledButton(onPressed: () => dialogContext.pop(true), child: const Text('Clear queue')),
+                            TextButton(
+                              onPressed: () => dialogContext.pop(false),
+                              child: Text(dialogContext.l10n.actionCancel),
+                            ),
+                            FilledButton(
+                              onPressed: () => dialogContext.pop(true),
+                              child: Text(dialogContext.l10n.actionClearQueue),
+                            ),
                           ],
                         ),
                       );
@@ -1159,21 +1171,21 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('Quick Player Settings', style: Theme.of(context).textTheme.titleLarge),
+              Text(context.l10n.headingQuickSettings, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
-              Text('Layout', style: Theme.of(context).textTheme.titleSmall),
+              Text(context.l10n.headingLayout, style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 8),
               SegmentedButton<PlayerLayoutMode>(
-                segments: const <ButtonSegment<PlayerLayoutMode>>[
+                segments: <ButtonSegment<PlayerLayoutMode>>[
                   ButtonSegment<PlayerLayoutMode>(
                     value: PlayerLayoutMode.adaptive,
                     icon: Icon(Icons.queue_music_rounded),
-                    label: Text('Adaptive'),
+                    label: Text(context.l10n.optionAdaptive),
                   ),
                   ButtonSegment<PlayerLayoutMode>(
                     value: PlayerLayoutMode.custom,
                     icon: Icon(Icons.dashboard_customize_rounded),
-                    label: Text('Custom'),
+                    label: Text(context.l10n.optionCustom),
                   ),
                 ],
                 selected: <PlayerLayoutMode>{layoutMode},
@@ -1190,7 +1202,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                       .map((candidate) {
                         return ChoiceChip(
                           selected: candidate == preset,
-                          label: Text(candidate.label),
+                          label: Text(candidate.label(context.l10n)),
                           onSelected: (selected) {
                             if (selected) {
                               settingsManager.setGlobalSetting<String>(
@@ -1205,7 +1217,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Cover size',
+                  context.l10n.fieldCoverSize,
                   style: Theme.of(context).textTheme.titleSmall
                       ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
@@ -1217,7 +1229,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                       .map((candidate) {
                         return ChoiceChip(
                           selected: candidate == coverSize,
-                          label: Text(candidate.label),
+                          label: Text(candidate.label(context.l10n)),
                           onSelected: (selected) {
                             if (selected) {
                               settingsManager.setGlobalSetting<String>(SettingKeys.playerCoverSize, candidate.name);
@@ -1231,14 +1243,14 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
               const SizedBox(height: 8),
               SettingsSwitchPresentation(
                 contentPadding: EdgeInsets.zero,
-                label: 'Immersive player colors',
+                label: context.l10n.fieldImmersivePlayerColors,
                 value: immersiveColors,
                 onChanged: (value) {
                   settingsManager.setGlobalSetting<bool>(SettingKeys.playerImmersiveColors, value);
                 },
               ),
               Text(
-                'Timeline mode',
+                context.l10n.fieldTimelineMode,
                 style: Theme.of(context).textTheme.titleSmall
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),

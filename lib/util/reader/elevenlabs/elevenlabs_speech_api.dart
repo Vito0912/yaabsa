@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/util/reader/reader_speech_engine.dart';
 import 'package:yaabsa/util/reader/elevenlabs/elevenlabs_speech_errors.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 export 'elevenlabs_speech_errors.dart' show ElevenLabsSpeechException;
 
@@ -46,11 +47,11 @@ class ElevenLabsSpeechApi {
     try {
       key = (await readApiKey())?.trim() ?? '';
     } catch (_) {
-      throw const ElevenLabsSpeechException('Could not access secure storage. Unlock your keyring and try again');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorSecureStorageUnavailable);
     }
 
     if (key.isEmpty) {
-      throw const ElevenLabsSpeechException('Add your ElevenLabs API key in Read aloud settings');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsApiKeyMissing);
     }
 
     return key;
@@ -91,7 +92,7 @@ class ElevenLabsSpeechApi {
     final response = await _request('/v1/models', apiKey: key, permission: 'models_read', cancelToken: cancelToken);
 
     if (response.data is! List) {
-      throw const ElevenLabsSpeechException('ElevenLabs returned an invalid model list');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsModelListInvalid);
     }
 
     return (response.data as List)
@@ -137,7 +138,7 @@ class ElevenLabsSpeechApi {
       final data = response.data;
 
       if (data is! Map || data['voices'] is! List) {
-        throw const ElevenLabsSpeechException('ElevenLabs returned an invalid voice list');
+        throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsVoiceListInvalid);
       }
 
       for (final voice in (data['voices'] as List).whereType<Map>()) {
@@ -157,7 +158,7 @@ class ElevenLabsSpeechApi {
       pageToken = jsonStringFromDynamic(data['next_page_token']);
 
       if (pageToken == null || pageToken.isEmpty || !seenTokens.add(pageToken)) {
-        throw const ElevenLabsSpeechException('ElevenLabs returned invalid voice pagination');
+        throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsVoicePageInvalid);
       }
     } while (true);
 
@@ -172,16 +173,16 @@ class ElevenLabsSpeechApi {
     required CancelToken cancelToken,
   }) {
     if (!isAllowedElevenLabsModel(model)) {
-      throw const ElevenLabsSpeechException('Choose a v2 or v4 ElevenLabs model');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsModelRequired);
     }
     if (request.voice.trim().isEmpty) {
-      throw const ElevenLabsSpeechException('Choose an ElevenLabs voice or enter its voice ID in Read aloud settings');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsVoiceRequired);
     }
 
     final language = request.language.trim().replaceAll('_', '-').split('-').first.toLowerCase();
 
     if (language.isNotEmpty && !RegExp(r'^[a-z]{2,3}$').hasMatch(language)) {
-      throw const ElevenLabsSpeechException('Enter a valid preferred language code in Read aloud settings');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorReaderLanguageCodeInvalid);
     }
 
     return _request(

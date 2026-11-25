@@ -7,6 +7,7 @@ import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/inputs/rich_text_quill_field.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminAuthenticationSettingsPanel extends StatelessWidget {
   const AdminAuthenticationSettingsPanel({
@@ -156,7 +157,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$label copied.')));
+      ..showSnackBar(SnackBar(content: Text(context.l10n.statusCopiedValue(label))));
   }
 
   Widget _buildCallbackUrlRow(BuildContext context, {required String label, required String value}) {
@@ -173,7 +174,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               child: SelectableText(value.trim().isEmpty ? '-' : value, style: Theme.of(context).textTheme.bodyMedium),
             ),
             IconButton(
-              tooltip: 'Copy URL',
+              tooltip: context.l10n.actionCopy,
               onPressed: canCopy ? () => _copyToClipboard(context, label: label, value: value) : null,
               icon: const Icon(Icons.copy_rounded),
             ),
@@ -185,25 +186,27 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ExpressiveExpandableCard(
           margin: EdgeInsets.zero,
-          title: 'Custom Login Message',
+          title: l10n.headingCustomLoginMessage,
           icon: Icons.message_outlined,
           initiallyExpanded: true,
           children: [
             YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              title: const Text('Show custom login message'),
+              title: Text(l10n.settingShowCustomLoginMessage),
               value: showCustomLoginMessage,
               onChanged: _canEditFields ? onShowCustomLoginMessageChanged : null,
             ),
             if (showCustomLoginMessage) ...[
               const SizedBox(height: 8),
               RichTextQuillField(
-                label: 'Login Message',
+                label: l10n.fieldLoginMessage,
                 controller: customLoginMessageController,
                 enabled: _canEditFields,
                 editorHeight: 100,
@@ -215,13 +218,13 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
         const SizedBox(height: 10),
         ExpressiveExpandableCard(
           margin: EdgeInsets.zero,
-          title: 'Auth',
+          title: l10n.navAuthentication,
           icon: Icons.security_rounded,
           initiallyExpanded: false,
           children: [
             YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              title: const Text('Enable local authentication'),
+              title: Text(l10n.settingEnableLocalAuthentication),
               value: enableLocalAuth,
               onChanged: _canEditFields && (!enableLocalAuth || canDisableLocalAuth) ? onEnableLocalAuthChanged : null,
             ),
@@ -229,7 +232,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text(
-                  'OpenID must be configured before local authentication can be disabled.',
+                  l10n.errorConfigureOpenIdBeforeDisablingLocalAuthentication,
                   style: Theme.of(context).textTheme.bodySmall
                       ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
@@ -237,7 +240,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
             const SizedBox(height: 8),
             YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              title: const Text('Enable OpenID authentication'),
+              title: Text(l10n.settingEnableOpenIdAuthentication),
               value: enableOpenIdAuth,
               onChanged: _canEditFields ? onEnableOpenIdAuthChanged : null,
             ),
@@ -247,7 +250,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
                 builder: (context, constraints) {
                   final stacked = constraints.maxWidth < 760;
                   final issuerField = StyledTextField(
-                    label: 'Issuer URL',
+                    label: l10n.fieldIssuerUrl,
                     controller: issuerUrlController,
                     enabled: _canEditFields,
                     errorText: issuerUrlError,
@@ -259,7 +262,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
                     icon: isAutoPopulatingOpenId
                         ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.auto_fix_high_rounded),
-                    label: const Text('Auto-populate'),
+                    label: Text(l10n.actionAutoPopulateOpenIdConfiguration),
                   );
 
                   if (stacked) {
@@ -281,7 +284,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Authorize URL',
+                label: l10n.fieldAuthorizationUrl,
                 controller: authorizationUrlController,
                 enabled: _canEditFields,
                 errorText: authorizationUrlError,
@@ -289,7 +292,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Token URL',
+                label: l10n.fieldTokenUrl,
                 controller: tokenUrlController,
                 enabled: _canEditFields,
                 errorText: tokenUrlError,
@@ -297,7 +300,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Userinfo URL',
+                label: l10n.fieldUserInfoUrl,
                 controller: userInfoUrlController,
                 enabled: _canEditFields,
                 errorText: userInfoUrlError,
@@ -305,7 +308,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'JWKS URL',
+                label: l10n.fieldJwksUrl,
                 controller: jwksUrlController,
                 enabled: _canEditFields,
                 errorText: jwksUrlError,
@@ -313,14 +316,14 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Logout URL',
+                label: l10n.fieldLogoutUrl,
                 controller: logoutUrlController,
                 enabled: _canEditFields,
                 onChanged: onFieldChanged,
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Client ID',
+                label: l10n.fieldClientId,
                 controller: clientIdController,
                 enabled: _canEditFields,
                 errorText: clientIdError,
@@ -328,14 +331,14 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Client Secret',
+                label: l10n.fieldClientSecret,
                 controller: clientSecretController,
                 enabled: _canEditFields,
                 errorText: clientSecretError,
                 obscureText: obscureClientSecret,
                 onChanged: onFieldChanged,
                 suffixIcon: IconButton(
-                  tooltip: obscureClientSecret ? 'Show secret' : 'Hide secret',
+                  tooltip: obscureClientSecret ? l10n.actionShowSecret : l10n.actionHideSecret,
                   onPressed: _canEditFields ? () => onObscureClientSecretChanged(!obscureClientSecret) : null,
                   icon: Icon(obscureClientSecret ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                 ),
@@ -343,7 +346,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               const SizedBox(height: 8),
               if (signingAlgorithmOptions.isNotEmpty)
                 YaabsaDropdownField<String>(
-                  label: 'Signing Algorithm',
+                  label: l10n.fieldSigningAlgorithm,
                   value: signingAlgorithmOptions.contains(selectedSigningAlgorithm)
                       ? selectedSigningAlgorithm
                       : signingAlgorithmOptions.first,
@@ -359,7 +362,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
                 )
               else
                 StyledTextField(
-                  label: 'Signing Algorithm',
+                  label: l10n.fieldSigningAlgorithm,
                   controller: signingAlgorithmController,
                   enabled: _canEditFields,
                   errorText: signingAlgorithmError,
@@ -368,17 +371,17 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               if (signingAlgorithmOptions.isNotEmpty) _buildErrorText(context, signingAlgorithmError),
               const SizedBox(height: 8),
               StringChipListInput(
-                label: 'Mobile Redirect URIs',
+                label: l10n.fieldMobileRedirectUris,
                 values: mobileRedirectUris,
                 enabled: _canEditFields,
                 hintText: 'audiobookshelf://oauth',
-                helperText: 'Add one URI per entry. Use * only as a single standalone entry.',
+                helperText: l10n.hintMobileRedirectUris,
                 onChanged: onMobileRedirectUrisChanged,
               ),
               _buildErrorText(context, redirectUrisError),
               const SizedBox(height: 8),
               YaabsaDropdownField<String>(
-                label: 'Web Redirect Subfolder',
+                label: l10n.fieldWebRedirectSubfolder,
                 value: const <String>['/', '/audiobookshelf'].contains(selectedWebRedirectSubfolder)
                     ? selectedWebRedirectSubfolder
                     : '/',
@@ -395,46 +398,46 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               _buildErrorText(context, subfolderError),
               const SizedBox(height: 8),
-              _buildCallbackUrlRow(context, label: 'Web Callback URL', value: webCallbackUrl),
+              _buildCallbackUrlRow(context, label: l10n.fieldWebCallbackUrl, value: webCallbackUrl),
               const SizedBox(height: 8),
-              _buildCallbackUrlRow(context, label: 'Mobile Callback URL', value: mobileCallbackUrl),
+              _buildCallbackUrlRow(context, label: l10n.fieldMobileCallbackUrl, value: mobileCallbackUrl),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'OpenID Button Text',
+                label: l10n.fieldOpenIdButtonText,
                 controller: buttonTextController,
                 enabled: _canEditFields,
                 onChanged: onFieldChanged,
               ),
               const SizedBox(height: 8),
               YaabsaDropdownField<String>(
-                label: 'Match Existing Users By',
+                label: l10n.fieldExistingUserMatchMethod,
                 value: const <String>['', 'email', 'username'].contains(matchExistingBy) ? matchExistingBy : '',
                 enabled: _canEditFields,
                 onChanged: (next) => onMatchExistingByChanged(next ?? ''),
-                items: const [
-                  DropdownMenuItem<String>(value: '', child: Text('Do not match')),
-                  DropdownMenuItem<String>(value: 'email', child: Text('Match by email')),
-                  DropdownMenuItem<String>(value: 'username', child: Text('Match by username')),
+                items: [
+                  DropdownMenuItem<String>(value: '', child: Text(l10n.optionDoNotMatchExistingUsers)),
+                  DropdownMenuItem<String>(value: 'email', child: Text(l10n.optionMatchExistingUsersByEmail)),
+                  DropdownMenuItem<String>(value: 'username', child: Text(l10n.optionMatchExistingUsersByUsername)),
                 ],
               ),
               const SizedBox(height: 8),
               YaabsaSwitchTile.adaptive(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                title: const Text('Auto-launch OpenID login'),
-                subtitle: const Text('Automatically redirect users to OpenID sign-in on the login page.'),
+                title: Text(l10n.settingAutoLaunchOpenIdLogin),
+                subtitle: Text(l10n.settingAutoLaunchOpenIdLoginDescription),
                 value: authOpenIdAutoLaunch,
                 onChanged: _canEditFields ? onAuthOpenIdAutoLaunchChanged : null,
               ),
               YaabsaSwitchTile.adaptive(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                title: const Text('Auto-register OpenID users'),
-                subtitle: const Text('Create local users automatically when OpenID users sign in for the first time.'),
+                title: Text(l10n.settingAutoRegisterOpenIdUsers),
+                subtitle: Text(l10n.settingAutoRegisterOpenIdUsersDescription),
                 value: authOpenIdAutoRegister,
                 onChanged: _canEditFields ? onAuthOpenIdAutoRegisterChanged : null,
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Group Claim',
+                label: l10n.fieldGroupClaim,
                 controller: groupClaimController,
                 enabled: _canEditFields,
                 hintText: 'groups',
@@ -443,7 +446,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               StyledTextField(
-                label: 'Advanced Permission Claim',
+                label: l10n.fieldAdvancedPermissionClaim,
                 controller: advancedPermsClaimController,
                 enabled: _canEditFields,
                 hintText: 'abspermissions',

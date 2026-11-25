@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -561,7 +562,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                           width: _sleepTimerPinHitboxSize,
                           height: _sleepTimerPinHitboxSize,
                           child: Tooltip(
-                            message: 'Return to sleep timer start',
+                            message: context.l10n.playerSleepTimerStart,
                             child: MouseRegion(
                               cursor: SystemMouseCursors.click,
                               onEnter: (_) => _setSleepTimerPinHovered(true),

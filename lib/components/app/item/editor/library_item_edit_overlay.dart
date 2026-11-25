@@ -26,6 +26,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 enum LibraryItemEditorTab { details, chapters, match, embedding, encoder }
@@ -62,7 +63,6 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
   final Set<String> _metadataLoadingItemIds = <String>{};
   final Set<String> _refreshingItemIds = <String>{};
   final Set<String> _encoderSeededItemIds = <String>{};
-  final Map<String, String?> _encoderCurrentEncodingHintsByItemId = <String, String?>{};
 
   var _isEmbedding = false;
   var _isEncoding = false;
@@ -158,18 +158,18 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     return tabs;
   }
 
-  String _tabTitle(LibraryItemEditorTab tab) {
+  String _tabTitle(LibraryItemEditorTab tab, AppLocalizations l10n) {
     switch (tab) {
       case LibraryItemEditorTab.details:
-        return 'Details';
+        return l10n.navDetails;
       case LibraryItemEditorTab.chapters:
-        return 'Chapters';
+        return l10n.navChapters;
       case LibraryItemEditorTab.match:
-        return 'Match';
+        return l10n.navMatch;
       case LibraryItemEditorTab.embedding:
-        return 'Embedding';
+        return l10n.navEmbedding;
       case LibraryItemEditorTab.encoder:
-        return 'Encoder';
+        return l10n.navEncoder;
     }
   }
 
@@ -182,8 +182,6 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
         .map((file) => (file.codec ?? '').trim().toLowerCase())
         .where((value) => value.isNotEmpty)
         .toSet();
-    _encoderCurrentEncodingHintsByItemId[itemId] = describeCurrentEncoding(audioFiles);
-
     if (codecs.first == 'aac' || codecs.first == 'opus') {
       _encoderCodec = 'copy';
     } else {
@@ -222,7 +220,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     if (api == null) {
       if (mounted) {
         setState(() {
-          _toolErrorMessage = 'No server connection available.';
+          _toolErrorMessage = currentAppLocalizations().errorConnectionUnavailable;
         });
       }
       return;
@@ -259,7 +257,8 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to load metadata object: ${_extractApiMessage(error)}';
+        final l10n = currentAppLocalizations();
+        _toolErrorMessage = l10n.errorOperationFailed(l10n.operationLoadMetadata, _extractApiMessage(error));
       });
     } finally {
       if (mounted) {
@@ -278,7 +277,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _toolErrorMessage = 'No server connection available.';
+        _toolErrorMessage = currentAppLocalizations().errorConnectionUnavailable;
       });
       return;
     }
@@ -300,7 +299,8 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to start embedding: ${_extractApiMessage(error)}';
+        final l10n = currentAppLocalizations();
+        _toolErrorMessage = l10n.errorOperationFailed(l10n.operationStartEmbedding, _extractApiMessage(error));
       });
     } finally {
       if (mounted) {
@@ -319,7 +319,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _toolErrorMessage = 'No server connection available.';
+        _toolErrorMessage = currentAppLocalizations().errorConnectionUnavailable;
       });
       return;
     }
@@ -346,7 +346,8 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to start M4B encoding: ${_extractApiMessage(error)}';
+        final l10n = currentAppLocalizations();
+        _toolErrorMessage = l10n.errorOperationFailed(l10n.operationStartEncoding, _extractApiMessage(error));
       });
     } finally {
       if (mounted) {
@@ -365,7 +366,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _toolErrorMessage = 'No server connection available.';
+        _toolErrorMessage = currentAppLocalizations().errorConnectionUnavailable;
       });
       return;
     }
@@ -383,7 +384,8 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to cancel encoding: ${_extractApiMessage(error)}';
+        final l10n = currentAppLocalizations();
+        _toolErrorMessage = l10n.errorOperationFailed(l10n.operationCancelEncoding, _extractApiMessage(error));
       });
     } finally {
       if (mounted) {
@@ -409,7 +411,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
 
       final statusCode = error.response?.statusCode;
       if (statusCode != null) {
-        return 'Request failed ($statusCode).';
+        return currentAppLocalizations().errorRequestFailed(statusCode);
       }
 
       final dioMessage = error.message;
@@ -491,7 +493,6 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       setState(() {
         _cachedItems[itemId] = freshItem;
         _encoderSeededItemIds.remove(itemId);
-        _encoderCurrentEncodingHintsByItemId.remove(itemId);
       });
 
       await processLibraryItemUpdate(container: ref.container, item: freshItem, source: 'editor.open.refresh');
@@ -519,7 +520,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No server connection available.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorConnectionUnavailable)));
       }
       return;
     }
@@ -543,7 +544,6 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       if (updatedItem != null) {
         _cachedItems[widget.currentItemId] = updatedItem;
         _encoderSeededItemIds.remove(widget.currentItemId);
-        _encoderCurrentEncodingHintsByItemId.remove(widget.currentItemId);
         await processLibraryItemUpdate(container: ref.container, item: updatedItem, source: 'editor.save');
       } else {
         unawaited(invalidateCachedLibraryItemEntries(container: ref.container, itemId: widget.currentItemId));
@@ -554,7 +554,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved item details.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusSaved)));
     } catch (error, stackTrace) {
       logger(
         'Could not save item details. itemId=${widget.currentItemId}, error=$error',
@@ -572,7 +572,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       final rawError = error.toString().trim();
-      final fallback = rawError.isEmpty ? 'Could not save item details.' : 'Could not save item details: $rawError';
+      final l10n = context.l10n;
+      final details = rawError.isEmpty ? l10n.statusUnknown : rawError;
+      final fallback = l10n.errorOperationFailed(l10n.operationSaveItemDetails, details);
       final message = listManagementErrorMessage(error, fallback: fallback);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
@@ -682,14 +684,17 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
     }
 
+    final encoderAudioFiles = activeItem == null
+        ? const <AudioFile>[]
+        : (activeItem.media?.bookMedia?.audioFiles ?? const <AudioFile>[])
+              .where((file) => file.exclude != true)
+              .toList(growable: false);
     if (activeItem != null && availableTabs.contains(LibraryItemEditorTab.encoder)) {
-      final audioFiles = (activeItem.media?.bookMedia?.audioFiles ?? const <AudioFile>[])
-          .where((file) => file.exclude != true)
-          .toList(growable: false);
+      final audioFiles = encoderAudioFiles;
       _seedEncoderDefaultsIfNeeded(itemId: activeItem.id, audioFiles: audioFiles);
     }
 
-    final currentEncodingHint = activeItem == null ? null : _encoderCurrentEncodingHintsByItemId[activeItem.id];
+    final currentEncodingHint = describeCurrentEncoding(encoderAudioFiles, context.l10n);
 
     return Positioned.fill(
       child: PopScope(
@@ -743,9 +748,10 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
                                       ),
                                     ),
                               child: LibraryItemEditorShell(
-                                itemTitle: activeItem?.media?.title ?? 'Item',
+                                itemTitle: activeItem?.media?.title ?? context.l10n.unknownMediaItem,
                                 destinations: [
-                                  for (final tab in availableTabs) (label: _tabTitle(tab), icon: _tabIcon(tab)),
+                                  for (final tab in availableTabs)
+                                    (label: _tabTitle(tab, context.l10n), icon: _tabIcon(tab)),
                                 ],
                                 selectedIndex: availableTabs.indexOf(selectedTab),
                                 onSelectDestination: (index) {

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/admin_server_sessions_view.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerSessionsSettings extends StatelessWidget {
   const AdminServerSessionsSettings({super.key});
@@ -26,13 +27,13 @@ class AdminServerSessionsSettings extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Back',
+                tooltip: context.l10n.actionBack,
                 onPressed: () => _handleBack(context),
                 icon: const Icon(Icons.arrow_back_rounded),
               ),
               Expanded(
                 child: Text(
-                  'Listening Sessions',
+                  context.l10n.headingListeningSessions,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),

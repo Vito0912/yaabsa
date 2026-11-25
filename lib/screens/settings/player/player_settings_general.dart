@@ -16,7 +16,9 @@ import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/audio_handler/playback_keep_alive_level.dart';
+import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerSettingsGeneral extends ConsumerWidget {
   const PlayerSettingsGeneral({super.key});
@@ -25,6 +27,8 @@ class PlayerSettingsGeneral extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    const skipIntervalValues = [5, 10, 15, 20, 30, 45, 60];
     final autoQueueSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.autoQueue)).asData?.value;
     final autoQueueDefault = defaultSettings[SettingKeys.autoQueue] as bool? ?? true;
     final autoQueueEnabled = SettingsParser.decodeValue<bool>(autoQueueSetting, autoQueueDefault);
@@ -85,50 +89,50 @@ class PlayerSettingsGeneral extends ConsumerWidget {
     }
 
     return SettingsPageScaffold(
-      title: 'Player - General',
+      title: l10n.settingsCategoryGeneral,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
         SettingsNavigationSection(
-          title: 'Timeline',
+          title: l10n.settingsCategoryTimeline,
           topPadding: 0,
           settings: [
             SettingDropdown<String>(
-              label: 'Timeline mode',
-              description: 'Choose whether the seek bar tracks a chapter, the full audiobook, or both',
+              label: l10n.fieldTimelineMode,
+              description: l10n.settingTimelineModeDescription,
               values: PlayerSeekBarMode.values.map((mode) => mode.name).toList(),
               valueLabels: PlayerSeekBarMode.values.map((mode) => mode.label).toList(),
-              valueDescriptions: const [
-                'Track currently playing chapter',
-                'Track full audiobook timeline',
-                'Track chapter and full audiobook timeline',
+              valueDescriptions: [
+                l10n.optionChapterTimelineDescription,
+                l10n.optionFullAudiobookTimelineDescription,
+                l10n.optionCombinedTimelineDescription,
               ],
               settingKey: SettingKeys.playerSeekBarMode,
             ),
             SettingDropdown<String>(
-              label: 'Timeline markers',
-              description: 'Choose whether the full timeline displays chapter markers, bookmark markers, both, or none',
+              label: l10n.settingTimelineMarkers,
+              description: l10n.settingTimelineMarkersDescription,
               values: SeekBarMarkerMode.values.map((mode) => mode.name).toList(),
               valueLabels: SeekBarMarkerMode.values.map((mode) => mode.label).toList(),
-              valueDescriptions: const [
-                'Display chapter tick marks',
-                'Display bookmark markers',
-                'Display chapters and bookmarks',
-                'Hide all timeline markers',
+              valueDescriptions: [
+                l10n.optionChapterMarkersDescription,
+                l10n.optionBookmarkMarkersDescription,
+                l10n.optionChapterAndBookmarkMarkersDescription,
+                l10n.optionNoTimelineMarkersDescription,
               ],
               settingKey: SettingKeys.playerSeekBarMarkerMode,
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'On-screen controls',
+          title: l10n.settingsCategoryOnScreenControls,
           settings: [
             SettingDropdown<String>.remote(
-              label: 'Full player transport buttons',
-              description: 'Choose whether the full player shows timed jumps, item/chapter skips, or both',
+              label: l10n.settingFullPlayerTransportButtons,
+              description: l10n.settingTransportModeDescription(l10n.playerTypeFull),
               values: PlayerTransportMode.values.map((mode) => mode.name).toList(growable: false),
-              valueLabels: PlayerTransportMode.values.map((mode) => mode.label).toList(growable: false),
+              valueLabels: PlayerTransportMode.values.map((mode) => mode.label(context.l10n)).toList(growable: false),
               value: resolveTransport(rawFullTransport).name,
               onValueChanged: (value) {
                 ref
@@ -136,17 +140,20 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                     .setGlobalSetting<String>(SettingKeys.fullPlayerTransportMode, value);
               },
             ),
-            const PlayerActionSettingsEditor(
-              title: 'Full player actions',
-              description: 'Actions available in the full player',
+            PlayerActionSettingsEditor(
+              title: l10n.settingFullPlayerActions,
+              description: l10n.settingFullPlayerActionsDescription,
               settingKey: SettingKeys.fullPlayerActions,
               fallback: defaultFullPlayerActions,
             ),
             SettingDropdown<String>.remote(
-              label: 'Left quick action',
-              description: 'Action shown at the lower left of the Minimalistic player',
+              label: l10n.settingLeftQuickAction,
+              description: l10n.settingLeftQuickActionDescription,
               values: <String>['none', ...PlayerActionType.values.map((action) => action.name)],
-              valueLabels: <String>['None', ...PlayerActionType.values.map((action) => action.label)],
+              valueLabels: <String>[
+                context.l10n.optionNone,
+                ...PlayerActionType.values.map((action) => action.label(context.l10n)),
+              ],
               value: mobileLeftAction?.name ?? 'none',
               onValueChanged: (value) async {
                 final settings = ref.read(settingsManagerProvider.notifier);
@@ -160,10 +167,13 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               },
             ),
             SettingDropdown<String>.remote(
-              label: 'Right quick action',
-              description: 'Action shown at the lower right of the Minimalistic player',
+              label: l10n.settingRightQuickAction,
+              description: l10n.settingRightQuickActionDescription,
               values: <String>['none', ...PlayerActionType.values.map((action) => action.name)],
-              valueLabels: <String>['None', ...PlayerActionType.values.map((action) => action.label)],
+              valueLabels: <String>[
+                context.l10n.optionNone,
+                ...PlayerActionType.values.map((action) => action.label(context.l10n)),
+              ],
               value: mobileRightAction?.name ?? 'none',
               onValueChanged: (value) async {
                 final settings = ref.read(settingsManagerProvider.notifier);
@@ -177,10 +187,10 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               },
             ),
             SettingDropdown<String>.remote(
-              label: 'Mini player transport buttons',
-              description: 'Choose whether the mini player shows timed jumps, item/chapter skips, or both',
+              label: l10n.settingMiniPlayerTransportButtons,
+              description: l10n.settingTransportModeDescription(l10n.playerTypeMini),
               values: PlayerTransportMode.values.map((mode) => mode.name).toList(growable: false),
-              valueLabels: PlayerTransportMode.values.map((mode) => mode.label).toList(growable: false),
+              valueLabels: PlayerTransportMode.values.map((mode) => mode.label(context.l10n)).toList(growable: false),
               value: resolveTransport(rawMiniTransport).name,
               onValueChanged: (value) {
                 ref
@@ -188,53 +198,57 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                     .setGlobalSetting<String>(SettingKeys.miniPlayerTransportMode, value);
               },
             ),
-            const PlayerActionSettingsEditor(
-              title: 'Mini player actions',
-              description: 'Actions available from the mini-player menu',
+            PlayerActionSettingsEditor(
+              title: l10n.settingMiniPlayerActions,
+              description: l10n.settingMiniPlayerActionsDescription,
               settingKey: SettingKeys.miniPlayerActions,
               fallback: defaultMiniPlayerActions,
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Skip Intervals',
+          title: l10n.settingsCategorySkipIntervals,
           settings: [
             SettingSlider<int>(
-              label: 'Fast forward interval',
-              description: 'How many seconds to skip when jumping forward',
-              values: const [5, 10, 15, 20, 30, 45, 60],
-              valueLabels: const ['5 s', '10 s', '15 s', '20 s', '30 s', '45 s', '60 s'],
+              label: l10n.fieldFastForwardInterval,
+              description: l10n.settingFastForwardIntervalDescription,
+              values: skipIntervalValues,
+              valueLabels: skipIntervalValues
+                  .map((seconds) => Duration(seconds: seconds).toCompactRemainingString(localizations: l10n))
+                  .toList(growable: false),
               settingKey: SettingKeys.fastForwardInterval,
             ),
             SettingSlider<int>(
-              label: 'Rewind interval',
-              description: 'How many seconds to skip when rewinding',
-              values: const [5, 10, 15, 20, 30, 45, 60],
-              valueLabels: const ['5 s', '10 s', '15 s', '20 s', '30 s', '45 s', '60 s'],
+              label: l10n.fieldRewindInterval,
+              description: l10n.settingRewindIntervalDescription,
+              values: skipIntervalValues,
+              valueLabels: skipIntervalValues
+                  .map((seconds) => Duration(seconds: seconds).toCompactRemainingString(localizations: l10n))
+                  .toList(growable: false),
               settingKey: SettingKeys.rewindInterval,
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Playback Behavior',
+          title: l10n.settingsCategoryPlaybackBehavior,
           settings: [
-            const SettingSwitchTile(
-              label: 'Remember playback speed per book',
-              subtitle: 'Each book remembers its own speed and new books start with your last used speed',
+            SettingSwitchTile(
+              label: l10n.settingRememberPlaybackSpeedPerBook,
+              subtitle: l10n.settingRememberPlaybackSpeedPerBookDescription,
               settingKey: SettingKeys.playbackSpeedPerBook,
             ),
-            const SettingSwitchTile(
-              label: 'Start from local progress',
-              subtitle: 'Start playback without waiting for server progress',
+            SettingSwitchTile(
+              label: l10n.settingStartPlaybackFromLocalProgress,
+              subtitle: l10n.settingStartPlaybackFromLocalProgressDescription,
               settingKey: SettingKeys.startPlaybackFromLocalProgress,
             ),
-            const SettingSwitchTile(
-              label: 'Restart listening session at midnight',
+            SettingSwitchTile(
+              label: l10n.settingRestartListeningSessionAtMidnight,
               settingKey: SettingKeys.restartListeningSessionAtMidnight,
             ),
             SettingSwitchTile(
-              label: 'Seek with media skip controls',
-              subtitle: 'Make external next/previous media controls seek by the configured skip intervals',
+              label: l10n.settingSeekWithMediaSkipControls,
+              subtitle: l10n.settingSeekWithMediaSkipControlsDescription,
               settingKey: SettingKeys.desktopSkipControlsSeek,
               onBeforeChanged: (context, enabled) async {
                 if (!enabled) return true;
@@ -242,15 +256,11 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                 return await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Seek with media skip controls?'),
-                        content: const Text(
-                          'This changes how Yaabsa handles external media controls, such as Bluetooth headset buttons and media keyboard hotkeys. '
-                          'Next and previous will seek by the configured intervals instead of skipping chapters or queue items.\n\n'
-                          'Buttons inside Yaabsa keep their normal skip behavior. This setting affects only Yaabsa.',
-                        ),
+                        title: Text(l10n.confirmSeekWithMediaSkipControlsTitle),
+                        content: Text(l10n.confirmSeekWithMediaSkipControls),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Enable')),
+                          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.actionCancel)),
+                          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.actionEnable)),
                         ],
                       ),
                     ) ??
@@ -259,38 +269,38 @@ class PlayerSettingsGeneral extends ConsumerWidget {
             ),
             if (!kIsWeb && defaultTargetPlatform != TargetPlatform.fuchsia)
               SettingDropdown<String>(
-                label: 'Prevent word clipping',
-                description: 'Add quiet background noise to help connected audio devices stay active',
+                label: l10n.settingPreventWordClipping,
+                description: l10n.settingPreventWordClippingDescription,
                 values: PlaybackKeepAliveLevel.values.map((level) => level.name).toList(),
                 valueLabels: PlaybackKeepAliveLevel.values.map((level) => level.label).toList(),
                 settingKey: SettingKeys.preventWordClipping,
               ),
             if (isAndroid)
-              const SettingSwitchTile(
-                label: 'Skip silence',
-                subtitle: 'Automatically skip silent gaps during playback',
+              SettingSwitchTile(
+                label: l10n.settingSkipSilence,
+                subtitle: l10n.settingSkipSilenceDescription,
                 settingKey: SettingKeys.skipSilence,
               ),
-            const SettingSwitchTile(
-              label: 'Auto queue',
-              subtitle: 'Automatically queue upcoming books when playback starts from library, series, playlist, or collection views',
+            SettingSwitchTile(
+              label: l10n.settingAutoQueue,
+              subtitle: l10n.settingAutoQueueDescription,
               settingKey: SettingKeys.autoQueue,
             ),
             SettingSwitchTile(
-              label: 'Auto queue everywhere',
-              subtitle: 'Auto queue books from the first linked series even when starting playback outside a series view, including via car, Bluetooth, or voice',
-              disabledReason: 'Enable Auto queue to use this option',
+              label: l10n.settingAutoQueueEverywhere,
+              subtitle: l10n.settingAutoQueueEverywhereDescription,
+              disabledReason: l10n.permissionEnableSettingToChangeOption(l10n.settingAutoQueue),
               settingKey: SettingKeys.autoQueueIncludeSeriesOutsideContext,
               enabled: autoQueueEnabled,
             ),
             SettingDropdown<String>(
-              label: 'Show Loop & Shuffle controls',
+              label: l10n.settingShowPlayerLoopShuffle,
               values: const ['off', 'music_only', 'on'],
-              valueLabels: const ['Off', 'Music Only', 'On'],
-              valueDescriptions: const [
-                'Never show loop and shuffle controls',
-                'Only show loop and shuffle for music libraries',
-                'Always show loop and shuffle controls',
+              valueLabels: [l10n.statusOff, l10n.optionMusicOnly, l10n.statusOn],
+              valueDescriptions: [
+                l10n.optionLoopShuffleHiddenDescription,
+                l10n.optionLoopShuffleMusicOnlyDescription,
+                l10n.optionLoopShuffleAlwaysDescription,
               ],
               settingKey: SettingKeys.showPlayerLoopShuffle,
             ),
@@ -298,21 +308,21 @@ class PlayerSettingsGeneral extends ConsumerWidget {
         ),
         if (isAndroid)
           SettingsNavigationSection(
-            title: 'Auto Resume',
+            title: l10n.settingsCategoryAutoResume,
             settings: [
               // To my knowledge, we currently cannot detect wired changes without having a foreground service, so currently just bluetooth.
               // In a dev version I also had worked out a automatic resume for wired headphones, but this needed to have the app running.
               // As such feature is likley used by users who had the app not open for some hours, it would not work in most cases, so I decided to not add the overhead and just go with bluethoot
               // So if anyone comes across this, that is the reason for why only bluethoot currently, but happy to add wired too.
               SettingSwitchTile(
-                label: 'Auto-resume on Bluetooth',
-                subtitle: 'Automatically resume playback when connecting a Bluetooth audio device',
+                label: l10n.settingAutoResumeOnBluetooth,
+                subtitle: l10n.settingAutoResumeOnBluetoothDescription,
                 settingKey: SettingKeys.autoResumeOnBluetoothConnection,
               ),
               SettingSwitchTile(
-                label: 'Only selected Bluetooth devices',
-                subtitle: 'Choose which paired Bluetooth audio devices can resume playback',
-                disabledReason: 'Enable Auto-resume on Bluetooth to choose devices',
+                label: l10n.settingOnlySelectedBluetoothDevices,
+                subtitle: l10n.settingOnlySelectedBluetoothDevicesDescription,
+                disabledReason: l10n.permissionEnableSettingToChangeOption(l10n.settingAutoResumeOnBluetooth),
                 settingKey: SettingKeys.restrictAutoResumeToSelectedBluetoothDevices,
                 enabled: autoResumeEnabled,
                 onChanged: (enabled) {
@@ -324,12 +334,12 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               if (autoResumeEnabled && restrictAutoResumeToSelectedDevices)
                 bluetoothAudioDevices!.when(
                   data: (devices) => SettingMultiSelectDropdown<String>(
-                    label: 'Bluetooth audio devices',
-                    description: 'Only selected paired Bluetooth audio devices will resume playback when connected.',
+                    label: l10n.fieldBluetoothAudioDevices,
+                    description: l10n.settingOnlySelectedBluetoothDevicesDescription,
                     values: devices.map((device) => device.address).toList(growable: false),
                     valueLabels: devices.map((device) => device.name).toList(growable: false),
                     selectedValues: selectedBluetoothDeviceAddresses,
-                    emptyValueLabel: 'No paired Bluetooth audio devices found',
+                    emptyValueLabel: l10n.statusNoBluetoothAudioDevices,
                     onValueChanged: (addresses) {
                       unawaited(
                         ref
@@ -341,38 +351,35 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                       );
                     },
                   ),
-                  loading: () => const SettingMultiSelectDropdown<String>(
-                    label: 'Bluetooth audio devices',
+                  loading: () => SettingMultiSelectDropdown<String>(
+                    label: l10n.fieldBluetoothAudioDevices,
                     values: [],
                     valueLabels: [],
                     selectedValues: [],
-                    emptyValueLabel: 'Loading paired Bluetooth audio devices',
+                    emptyValueLabel: l10n.statusLoadingBluetoothAudioDevices,
                     isLoading: true,
                     onValueChanged: _ignoreBluetoothAudioDeviceSelection,
                   ),
-                  error: (error, stackTrace) => const SettingMultiSelectDropdown<String>(
-                    label: 'Bluetooth audio devices',
+                  error: (error, stackTrace) => SettingMultiSelectDropdown<String>(
+                    label: l10n.fieldBluetoothAudioDevices,
                     values: [],
                     valueLabels: [],
                     selectedValues: [],
-                    emptyValueLabel: 'Bluetooth permission is required to list audio devices',
+                    emptyValueLabel: l10n.errorBluetoothPermissionRequired,
                     onValueChanged: _ignoreBluetoothAudioDeviceSelection,
                   ),
                 ),
             ],
           ),
         SettingsNavigationSection(
-          title: 'Player appearance',
+          title: l10n.settingsCategoryPlayerAppearance,
           settings: [
             SettingDropdown<String>.remote(
-              label: 'Full player layout',
-              description: 'Selects how the full player arranges its components',
+              label: l10n.settingFullPlayerLayout,
+              description: l10n.settingFullPlayerLayoutDescription,
               values: PlayerLayoutMode.values.map((mode) => mode.name).toList(growable: false),
-              valueLabels: const <String>['Adaptive', 'Custom'],
-              valueDescriptions: const <String>[
-                'Adapts the selected preset to the available screen space',
-                'Uses the saved component grid',
-              ],
+              valueLabels: <String>[l10n.optionAdaptive, l10n.optionCustom],
+              valueDescriptions: <String>[l10n.optionAdaptiveLayoutDescription, l10n.optionCustomLayoutDescription],
               value: layoutMode.name,
               onValueChanged: (value) {
                 ref
@@ -384,13 +391,15 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               },
             ),
             SettingDropdown<String>.remote(
-              label: 'Adaptive preset',
-              description: 'Selects the controls shown by the adaptive player',
+              label: l10n.settingAdaptivePreset,
+              description: l10n.settingAdaptivePresetDescription,
               values: PlayerAdaptivePreset.values.map((preset) => preset.name).toList(growable: false),
-              valueLabels: PlayerAdaptivePreset.values.map((preset) => preset.label).toList(growable: false),
-              valueDescriptions: const <String>[
-                'Shows configured actions in a bottom action bar on mobile',
-                'Shows two quick actions',
+              valueLabels: PlayerAdaptivePreset.values
+                  .map((preset) => preset.label(context.l10n))
+                  .toList(growable: false),
+              valueDescriptions: <String>[
+                l10n.optionAdaptivePresetFullDescription,
+                l10n.optionAdaptivePresetMinimalisticDescription,
               ],
               value: adaptivePreset.name,
               onValueChanged: (value) {
@@ -401,14 +410,14 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               enabled: layoutMode == PlayerLayoutMode.adaptive,
             ),
             SettingDropdown<String>.remote(
-              label: 'Cover size',
-              description: 'Sets the artwork size in the adaptive player',
+              label: l10n.fieldCoverSize,
+              description: l10n.settingCoverSizeDescription,
               values: PlayerCoverSize.values.map((size) => size.name).toList(growable: false),
-              valueLabels: PlayerCoverSize.values.map((size) => size.label).toList(growable: false),
-              valueDescriptions: const <String>[
-                'Uses the size associated with the selected preset',
-                'Uses the smaller artwork size',
-                'Uses the larger artwork size',
+              valueLabels: PlayerCoverSize.values.map((size) => size.label(context.l10n)).toList(growable: false),
+              valueDescriptions: <String>[
+                l10n.optionCoverSizeAutomaticDescription,
+                l10n.optionCoverSizeCompactDescription,
+                l10n.optionCoverSizeLargeDescription,
               ],
               value: coverSize.name,
               onValueChanged: (value) {
@@ -416,23 +425,23 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               },
               enabled: layoutMode == PlayerLayoutMode.adaptive,
             ),
-            const SettingSwitchTile(
-              label: 'Immersive player colors',
-              subtitle: 'Uses artwork colors for players',
+            SettingSwitchTile(
+              label: l10n.fieldImmersivePlayerColors,
+              subtitle: l10n.settingImmersivePlayerColorsDescription,
               settingKey: SettingKeys.playerImmersiveColors,
             ),
           ],
         ),
         if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS))
           SettingsNavigationSection(
-            title: 'Audio interruptions',
-            settings: const [
+            title: l10n.settingsCategoryAudioInterruptions,
+            settings: [
               SettingDropdown<String>(
-                label: 'During interruptions',
-                description: 'Interrupts may be caused by phone calls, notifications and etc.',
+                label: l10n.settingInterruptionBehavior,
+                description: l10n.settingInterruptionBehaviorDescription,
                 values: ['pause', 'duck'],
-                valueLabels: ['Pause', 'Lower volume'],
-                valueDescriptions: ['Pause playback', 'Lower playback volume'],
+                valueLabels: [l10n.playbackPause, l10n.playbackLowerVolume],
+                valueDescriptions: [l10n.optionPausePlayback, l10n.optionLowerPlaybackVolumeDescription],
                 settingKey: SettingKeys.audioAnnouncementMode,
               ),
             ],

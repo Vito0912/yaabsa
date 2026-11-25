@@ -1,22 +1,23 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/ui/components/feedback/feedback_panel.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ConnectionIssueView extends StatelessWidget {
   const ConnectionIssueView({
     super.key,
     required this.icon,
-    required this.title,
-    required this.message,
+    this.title,
+    this.message,
     this.details,
     this.onRetry,
     this.secondaryActionLabel,
     this.onSecondaryAction,
     this.showDownloadsShortcut = true,
     this.showBackAction = false,
-    this.backActionLabel = 'Back',
+    this.backActionLabel,
     this.onBackAction,
-    this.retryLabel = 'Retry',
+    this.retryLabel,
   });
 
   factory ConnectionIssueView.offline({
@@ -30,8 +31,8 @@ class ConnectionIssueView extends StatelessWidget {
     return ConnectionIssueView(
       key: key,
       icon: Icons.cloud_off_rounded,
-      title: 'No server connection available',
-      message: message ?? 'This section requires an active server connection. Reconnect and try again.',
+      title: currentAppLocalizations().errorConnectionUnavailable,
+      message: message ?? currentAppLocalizations().errorSectionRequiresServerConnection,
       onRetry: onRetry,
       secondaryActionLabel: secondaryActionLabel,
       onSecondaryAction: onSecondaryAction,
@@ -43,13 +44,13 @@ class ConnectionIssueView extends StatelessWidget {
     Key? key,
     required Object error,
     Future<void> Function()? onRetry,
-    String title = 'Unable to load content',
-    String message = 'Please try again. If the issue persists, check your server connection.',
+    String? title,
+    String? message,
     String? secondaryActionLabel,
     Future<void> Function()? onSecondaryAction,
     bool showDownloadsShortcut = true,
     bool? showBackAction,
-    String backActionLabel = 'Back',
+    String? backActionLabel,
     Future<void> Function()? onBackAction,
   }) {
     final resolvedShowBackAction = showBackAction ?? _looksLikeNotFoundError(error);
@@ -76,20 +77,21 @@ class ConnectionIssueView extends StatelessWidget {
   }
 
   final IconData icon;
-  final String title;
-  final String message;
+  final String? title;
+  final String? message;
   final String? details;
   final Future<void> Function()? onRetry;
   final String? secondaryActionLabel;
   final Future<void> Function()? onSecondaryAction;
   final bool showDownloadsShortcut;
   final bool showBackAction;
-  final String backActionLabel;
+  final String? backActionLabel;
   final Future<void> Function()? onBackAction;
-  final String retryLabel;
+  final String? retryLabel;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final effectiveBackAction = showBackAction
         ? (onBackAction ??
               () async {
@@ -108,12 +110,12 @@ class ConnectionIssueView extends StatelessWidget {
                 context.go('/?tab=downloads&intent=downloads');
               }
             : null);
-    final effectiveSecondaryLabel = secondaryActionLabel ?? (showDownloadsShortcut ? 'Open Downloads' : null);
+    final effectiveSecondaryLabel = secondaryActionLabel ?? (showDownloadsShortcut ? l10n.actionOpenDownloads : null);
 
     return YaabsaFeedbackPanel(
       icon: icon,
-      title: title,
-      message: message,
+      title: title ?? l10n.errorUnableToLoadContent,
+      message: message ?? l10n.errorRetryCheckConnection,
       details: details,
       action: onRetry != null || effectiveSecondaryAction != null
           ? Wrap(
@@ -127,7 +129,7 @@ class ConnectionIssueView extends StatelessWidget {
                       await effectiveBackAction();
                     },
                     icon: const Icon(Icons.arrow_back_rounded),
-                    label: Text(backActionLabel),
+                    label: Text(backActionLabel ?? l10n.actionBack),
                   ),
                 if (onRetry != null)
                   FilledButton.icon(
@@ -135,7 +137,7 @@ class ConnectionIssueView extends StatelessWidget {
                       await onRetry!();
                     },
                     icon: const Icon(Icons.refresh_rounded),
-                    label: Text(retryLabel),
+                    label: Text(retryLabel ?? l10n.actionRetry),
                   ),
                 if (effectiveSecondaryAction != null &&
                     effectiveSecondaryLabel != null &&

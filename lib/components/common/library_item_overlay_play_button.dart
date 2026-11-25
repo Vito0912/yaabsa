@@ -12,6 +12,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/ui/components/buttons/media_play_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemOverlayPlayButton extends ConsumerWidget {
   static const double size = 36;
@@ -127,8 +128,7 @@ class LibraryItemOverlayPlayButton extends ConsumerWidget {
       }
 
       if (!isPdf) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Only PDF reading is currently supported on Linux')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPdfReadingLinuxOnly)));
         return;
       }
     }

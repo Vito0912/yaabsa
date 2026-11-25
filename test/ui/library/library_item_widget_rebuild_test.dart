@@ -13,6 +13,7 @@ import 'package:yaabsa/provider/common/stored_downloads_provider.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart' as globals;
 import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('playback state updates do not rebuild a library card title', (tester) async {
@@ -37,7 +38,11 @@ void main() {
           itemDownloadStatusesProvider.overrideWith((ref) => const Stream.empty()),
           downloadAvailabilityProvider.overrideWith((ref) => const Stream.empty()),
         ],
-        child: MaterialApp(home: Scaffold(body: LibraryItemWidget(item, api, showProgress: false))),
+        child: MaterialApp(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: LibraryItemWidget(item, api, showProgress: false)),
+        ),
       ),
     );
     await tester.pump();

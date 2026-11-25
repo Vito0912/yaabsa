@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/feedback/empty_state_card.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AppStartupView extends StatelessWidget {
   const AppStartupView({super.key, this.error});
@@ -22,13 +23,13 @@ class AppStartupView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (startupError == null) ...[
-                    const YaabsaLoadingIndicator(semanticLabel: 'Starting audio service'),
+                    YaabsaLoadingIndicator(semanticLabel: context.l10n.startupAudioServiceStatus),
                     const SizedBox(height: 16),
-                    const Text('Starting audio service…'),
+                    Text(context.l10n.startupAudioServiceStatus),
                   ] else ...[
-                    const YaabsaEmptyStateCard(
-                      title: 'Unable to start YAABSA',
-                      subtitle: 'The audio service could not start. Close and restart the app',
+                    YaabsaEmptyStateCard(
+                      title: context.l10n.startupUnableToStartTitle,
+                      subtitle: context.l10n.startupAudioServiceError,
                       icon: Icons.error_outline_rounded,
                       centered: true,
                     ),

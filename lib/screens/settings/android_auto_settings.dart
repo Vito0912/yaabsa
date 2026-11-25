@@ -11,6 +11,7 @@ import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settin
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/aaos_service.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -31,36 +32,38 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
   }
 
   Widget _buildAndroidAutoSettings(String userId, String integrationLabel) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SettingsNavigationSection(
-          title: 'General',
+          title: l10n.settingsCategoryGeneral,
           topPadding: 0,
           settings: [
             SettingSwitchTile(
               userId: userId,
-              label: 'Group Large Lists By First Letter',
-              subtitle: 'Group entries alphabetically for faster rotary browsing in long $integrationLabel lists',
+              label: l10n.settingGroupListsByFirstLetter,
+              subtitle: l10n.settingGroupListsByFirstLetterDescription(integrationLabel),
               settingKey: SettingKeys.androidAutoGroupByLetters,
               defaultValue: true,
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Library Browse Settings',
+          title: l10n.headingBrowseSettings,
           topPadding: 20,
           items: [
             SettingsNavigationItem(
               icon: Icons.library_books_outlined,
-              title: 'Library',
-              subtitle: 'Configure sorting for audiobook library browsing in $integrationLabel',
+              title: l10n.navLibrary,
+              subtitle: l10n.settingBrowseSortDescription(l10n.mediaTypeAudiobook, integrationLabel),
               onTap: () => context.push(AndroidAutoLibrarySettings.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.podcasts_outlined,
-              title: 'Podcast Library',
-              subtitle: 'Configure sorting for podcast library browsing in $integrationLabel',
+              title: l10n.navPodcastLibrary,
+              subtitle: l10n.settingBrowseSortDescription(l10n.mediaTypePodcast, integrationLabel),
               onTap: () => context.push(AndroidAutoPodcastLibrarySettings.routeName),
             ),
           ],
@@ -73,7 +76,7 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
     final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-    final integrationLabel = isIOS ? 'CarPlay' : 'Android Auto';
+    final integrationLabel = isIOS ? context.l10n.settingsCarPlay : context.l10n.settingsAndroidAuto;
 
     return StreamBuilder<AaosTelemetryState>(
       stream: AaosService.instance.stream,
@@ -83,16 +86,18 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
         final isAaos = aaosState.isAutomotiveDevice;
 
         return SettingsPageScaffold(
-          title: isAaos ? 'AAOS Settings' : '$integrationLabel Settings',
+          title: isAaos
+              ? context.l10n.settingsAndroidAutomotive
+              : context.l10n.headingIntegrationSettings(integrationLabel),
           embedded: true,
           showEmbeddedBackButton: true,
           children: [
             currentUser.when(
               data: (user) {
                 if (user == null) {
-                  return const Padding(
+                  return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                    child: Text('Sign in to configure car browse settings'),
+                    child: Text(context.l10n.promptSignInToManageSettings),
                   );
                 }
 
@@ -102,8 +107,10 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
                 padding: EdgeInsets.all(16),
                 child: Center(child: YaabsaCircularProgressIndicator()),
               ),
-              error: (error, _) =>
-                  Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString())),
+              ),
             ),
           ],
         );

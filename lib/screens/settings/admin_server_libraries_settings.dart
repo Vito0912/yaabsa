@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/libraries/admin_server_libraries_view.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerLibrariesSettings extends StatelessWidget {
   const AdminServerLibrariesSettings({super.key});
@@ -26,13 +27,13 @@ class AdminServerLibrariesSettings extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Back',
+                tooltip: context.l10n.actionBack,
                 onPressed: () => _handleBack(context),
                 icon: const Icon(Icons.arrow_back_rounded),
               ),
               Expanded(
                 child: Text(
-                  'Libraries',
+                  context.l10n.navLibraries,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),

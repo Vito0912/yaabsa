@@ -7,6 +7,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/app_update_checker.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 final AppUpdateCoordinator _appUpdateCoordinator = AppUpdateCoordinator();
 
@@ -96,17 +97,17 @@ Future<void> showAppUpdateDialog(BuildContext context, {required AppUpdateCandid
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('New Yaabsa release'),
-        content: Text('Version ${candidate.latestVersion} is available. You are using ${candidate.currentVersion}.'),
+        title: Text(dialogContext.l10n.appUpdateAvailableTitle),
+        content: Text(dialogContext.l10n.appUpdateAvailableMessage(candidate.latestVersion, candidate.currentVersion)),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               unawaited(_openRelease(candidate.releaseUri));
             },
-            child: const Text('View release'),
+            child: Text(dialogContext.l10n.actionViewRelease),
           ),
-          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Later')),
+          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(dialogContext.l10n.actionLater)),
         ],
       );
     },

@@ -3,6 +3,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/util/device_capabilities.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class ShakeSettingsSection extends StatefulWidget {
@@ -23,7 +24,8 @@ class _ShakeSettingsSectionState extends State<ShakeSettingsSection> {
 
   @override
   Widget build(BuildContext context) {
-    const shakeUnsupportedReason = 'Shake actions require a device with motion sensors';
+    final l10n = context.l10n;
+    final shakeUnsupportedReason = l10n.permissionMotionSensorsRequired;
     final supportsShakeActions = DeviceCapabilities.supportsShakeActions;
 
     return FutureBuilder<bool>(
@@ -37,41 +39,41 @@ class _ShakeSettingsSectionState extends State<ShakeSettingsSection> {
         if (!supportsShakeActions) {
           vibrationDisabledReason = shakeUnsupportedReason;
         } else if (!vibrationCheckFinished) {
-          vibrationDisabledReason = 'Checking vibration support';
+          vibrationDisabledReason = l10n.statusCheckingVibrationSupport;
         } else if (!supportsVibration) {
-          vibrationDisabledReason = 'This device does not support vibration feedback';
+          vibrationDisabledReason = l10n.statusVibrationUnavailable;
         }
 
         return SettingsNavigationSection(
-          title: 'Shake Controls',
+          title: l10n.settingsCategoryShakeControls,
           topPadding: 0,
           settings: [
             SettingSwitchTile(
-              label: 'Shake to reset sleep timer',
-              subtitle: 'Shake to reset an active sleep timer back to its full duration',
+              label: l10n.settingShakeToResetSleepTimer,
+              subtitle: l10n.settingShakeToResetSleepTimerDescription,
               settingKey: SettingKeys.shakeToResetSleepTimer,
               enabled: supportsShakeActions,
               disabledReason: shakeUnsupportedReason,
             ),
             SettingSwitchTile(
-              label: 'Shake to rewind',
-              subtitle: 'Shake while playing to rewind by the configured rewind interval',
+              label: l10n.settingShakeToRewind,
+              subtitle: l10n.settingShakeToRewindDescription,
               settingKey: SettingKeys.shakeToRewind,
               enabled: supportsShakeActions,
               disabledReason: shakeUnsupportedReason,
             ),
             SettingSlider<double>(
-              label: 'Shake sensitivity',
-              description: 'Lower values trigger more easily, higher values require a stronger shake',
+              label: l10n.settingShakeSensitivity,
+              description: l10n.settingShakeSensitivityDescription,
               values: List.generate(25, (index) => (index + 11) / 10),
-              valueLabels: List.generate(25, (index) => '${((index + 11) / 10).toStringAsFixed(1)} g'),
+              valueLabels: List.generate(25, (index) => l10n.settingShakeSensitivityValue((index + 11) / 10)),
               settingKey: SettingKeys.shakeSensitivity,
               enabled: supportsShakeActions,
               disabledReason: shakeUnsupportedReason,
             ),
             SettingSwitchTile(
-              label: 'Shake vibration feedback',
-              subtitle: 'Vibrate when a shake action is triggered',
+              label: l10n.settingShakeVibrationFeedback,
+              subtitle: l10n.settingShakeVibrationFeedbackDescription,
               settingKey: SettingKeys.shakeVibrate,
               enabled: vibrationEnabled,
               disabledReason: vibrationDisabledReason,

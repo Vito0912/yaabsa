@@ -4,6 +4,7 @@ import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/buttons/media_play_button.dart';
@@ -72,7 +73,7 @@ class PodcastEpisodeTile extends StatelessWidget {
 
     final duration = episode.audioFile?.duration ?? episode.duration;
     final durationLabel = duration == null ? null : formatDurationShort(Duration(seconds: duration.round()));
-    final publishedLabel = podcastFormatEpisodeDate(episode);
+    final publishedLabel = podcastFormatEpisodeDate(episode, localeName: Localizations.localeOf(context).toString());
     final descriptionPreview = podcastEpisodeDescriptionPreview(episode);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -89,7 +90,9 @@ class PodcastEpisodeTile extends StatelessWidget {
       isSelected: isSelected,
     );
     final showProgressRing = progressValue > 0 && !isFinished;
-    final playTooltip = isCurrentEpisode && isPlayingCurrentEpisode ? 'Pause' : (isFinished ? 'Replay' : 'Play');
+    final playTooltip = isCurrentEpisode && isPlayingCurrentEpisode
+        ? context.l10n.playbackPause
+        : (isFinished ? context.l10n.actionReplay : context.l10n.playbackPlay);
     const playButtonTouchSize = 48.0;
     const playButtonVisualSize = 40.0;
     Widget secondaryActionButton(Widget child) {
@@ -142,7 +145,7 @@ class PodcastEpisodeTile extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            podcastEpisodeTitle(episode),
+                            podcastEpisodeTitle(episode) ?? context.l10n.untitledEpisode,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -196,15 +199,18 @@ class PodcastEpisodeTile extends StatelessWidget {
                           variant: YaabsaActionButtonVariant.filledTonal,
                           shape: YaabsaActionButtonShape.rounded,
                           tooltip: isCurrentEpisode
-                              ? 'Currently playing'
-                              : (isQueued ? 'Remove from queue' : 'Add to queue'),
+                              ? context.l10n.statusCurrentlyPlaying
+                              : (isQueued ? context.l10n.actionRemoveFromQueue : context.l10n.actionAddToQueue),
                           onPressed: isCurrentEpisode ? null : onQueueToggle,
                         ),
                       ),
                       if (canDownload && !context.isMobile) ...[
                         secondaryActionButton(
                           isDownloaded && !isDownloading
-                              ? YaabsaDeleteIconButton(tooltip: 'Delete download', onPressed: onDeletePressed)
+                              ? YaabsaDeleteIconButton(
+                                  tooltip: context.l10n.actionDeleteDownload,
+                                  onPressed: onDeletePressed,
+                                )
                               : YaabsaActionIconButton(
                                   icon: isDownloading ? null : Icons.download_rounded,
                                   iconWidget: isDownloading
@@ -218,7 +224,7 @@ class PodcastEpisodeTile extends StatelessWidget {
                                   shape: YaabsaActionButtonShape.rounded,
                                   enabled: !isDownloading,
                                   onPressed: onDownloadPressed,
-                                  tooltip: isDownloading ? 'Downloading' : 'Download',
+                                  tooltip: isDownloading ? context.l10n.statusDownloading : context.l10n.actionDownload,
                                 ),
                         ),
                       ],

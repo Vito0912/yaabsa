@@ -11,6 +11,7 @@ import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class _AutocompleteTextEditingController extends TextEditingController {
   void refreshOptions() {
@@ -53,6 +54,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final libraries = ref.watch(userLibrariesProvider).value ?? const [];
     final selectedAllLibraries = _type.supportsAllLibraries && _libraryId == allLibrariesSourceId;
     final selectedLibraryId = selectedAllLibraries
@@ -135,7 +137,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
         (_type != MediaSourceType.listeningThreshold || validThreshold);
 
     return AlertDialog(
-      title: const Text('Add source'),
+      title: Text(l10n.headingAddSource),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
@@ -143,11 +145,11 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
             mainAxisSize: MainAxisSize.min,
             children: [
               YaabsaDropdownField<String>(
-                label: 'Library',
+                label: l10n.fieldLibrary,
                 value: selectedLibraryId,
                 items: [
                   if (_type.supportsAllLibraries)
-                    const DropdownMenuItem(value: allLibrariesSourceId, child: Text('All')),
+                    DropdownMenuItem(value: allLibrariesSourceId, child: Text(l10n.filterAll)),
                   for (final library in libraries) DropdownMenuItem(value: library.id, child: Text(library.name)),
                 ],
                 onChanged: (value) => setState(() {
@@ -160,7 +162,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
               ),
               const SizedBox(height: 16),
               YaabsaDropdownField<MediaSourceType>(
-                label: 'Source type',
+                label: l10n.fieldSourceType,
                 value: _type,
                 items: [
                   for (final type in availableSourceTypes) DropdownMenuItem(value: type, child: Text(type.label)),
@@ -182,11 +184,11 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
               const SizedBox(height: 16),
               if (_type == MediaSourceType.listeningThreshold) ...[
                 YaabsaDropdownField<ListeningDownloadTrigger>(
-                  label: 'Download when',
+                  label: l10n.fieldDownloadTrigger,
                   value: _listeningTrigger,
-                  items: const [
-                    DropdownMenuItem(value: ListeningDownloadTrigger.minutes, child: Text('Listening time')),
-                    DropdownMenuItem(value: ListeningDownloadTrigger.progress, child: Text('Book progress')),
+                  items: [
+                    DropdownMenuItem(value: ListeningDownloadTrigger.minutes, child: Text(l10n.fieldListeningTime)),
+                    DropdownMenuItem(value: ListeningDownloadTrigger.progress, child: Text(l10n.fieldBookProgress)),
                   ],
                   onChanged: (value) {
                     if (value == null) {
@@ -202,21 +204,21 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                 const SizedBox(height: 16),
                 StyledTextField(
                   label: _listeningTrigger == ListeningDownloadTrigger.minutes
-                      ? 'Minutes listened'
-                      : 'Book progress (%)',
+                      ? l10n.fieldMinutesListened
+                      : l10n.fieldBookProgress,
                   controller: _thresholdController,
                   keyboardType: TextInputType.number,
-                  errorText: validThreshold ? null : 'Enter a whole number from 1 to $maximumThreshold',
+                  errorText: validThreshold ? null : l10n.errorWholeNumberRange(1, maximumThreshold),
                   onChanged: (_) {
                     setState(() {});
                   },
                 ),
                 if (_listeningTrigger == ListeningDownloadTrigger.minutes)
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
                       padding: EdgeInsets.only(top: 8),
-                      child: Text('Counts only playback on this device.'),
+                      child: Text(l10n.smartDownloadCurrentDeviceListeningDescription),
                     ),
                   ),
                 const SizedBox(height: 16),
@@ -228,7 +230,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                       _listIndexKey = null;
                     });
                   },
-                  child: const Text('Could not load all sources. Retry'),
+                  child: Text(l10n.errorLoadSmartDownloadSources),
                 ),
               if (_type.requiresSearch)
                 RawAutocomplete<({String id, String name})>(
@@ -249,7 +251,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                   }),
                   fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
                     return StyledTextField(
-                      label: 'Search sources',
+                      label: l10n.searchSources,
                       controller: controller,
                       focusNode: focusNode,
                       prefixIcon: const Icon(Icons.search_rounded),
@@ -300,18 +302,15 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                 ),
               if (searchAsync?.isLoading ?? false) const YaabsaLinearProgressIndicator(),
               if (searchAsync?.hasError ?? false)
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 6),
-                    child: Text('Source search failed. Try a different search term.'),
-                  ),
+                  child: Padding(padding: const EdgeInsets.only(top: 6), child: Text(l10n.errorSearchSources)),
                 ),
               const SizedBox(height: 16),
               if (_type.requiresSearch)
                 SettingsSwitchPresentation(
                   contentPadding: EdgeInsets.zero,
-                  label: 'Descending/feed direction',
+                  label: l10n.settingSortDescending,
                   value: _descending,
                   onChanged: (value) => setState(() => _descending = value),
                 ),
@@ -320,7 +319,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
         ),
       ),
       actions: [
-        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => context.pop(), child: Text(l10n.actionCancel)),
         FilledButton(
           onPressed: canAddSource
               ? () {
@@ -330,11 +329,13 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                     sourceId = '$libraryId::${_listeningTrigger.name}';
                   }
 
-                  final libraryName = selectedAllLibraries ? 'All' : selectedLibrary?.name ?? libraryId;
+                  final libraryName = selectedAllLibraries ? l10n.filterAll : selectedLibrary?.name ?? libraryId;
                   var displayName = _type.requiresSearch ? _selectedSourceName : '${_type.label} ($libraryName)';
                   if (_type == MediaSourceType.listeningThreshold) {
-                    final unit = _listeningTrigger == ListeningDownloadTrigger.progress ? '%' : ' min';
-                    displayName = '$displayName · ${threshold ?? 30}$unit';
+                    final thresholdLabel = _listeningTrigger == ListeningDownloadTrigger.progress
+                        ? l10n.smartDownloadProgressThreshold(threshold ?? 30)
+                        : l10n.durationMinutes(threshold ?? 30);
+                    displayName = '$displayName · $thresholdLabel';
                   }
 
                   context.pop(
@@ -350,7 +351,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                   );
                 }
               : null,
-          child: const Text('Add'),
+          child: Text(l10n.actionAdd),
         ),
       ],
     );

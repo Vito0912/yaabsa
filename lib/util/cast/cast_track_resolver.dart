@@ -7,6 +7,7 @@ import 'package:yaabsa/util/cast/cast_backend.dart';
 import 'package:yaabsa/util/globals.dart' show appName;
 import 'package:yaabsa/util/player_utils.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<CastMedia> resolveCastMedia({
   required InternalMedia media,
@@ -21,7 +22,7 @@ Future<CastMedia> resolveCastMedia({
   bool forceTranscode = false,
 }) async {
   if (trackIndex < 0 || trackIndex >= media.tracks.length) {
-    throw StateError('Unable to determine the current track');
+    throw StateError(currentAppLocalizations().errorCastTrackUnknown);
   }
 
   final track = media.tracks[trackIndex];
@@ -60,7 +61,7 @@ Future<CastMedia> resolveCastMedia({
   }
 
   if (api == null) {
-    throw StateError('Casting this item requires an active server connection');
+    throw StateError(currentAppLocalizations().errorCastServerConnectionRequired);
   }
 
   final deviceInfo = await PlayerUtils.getDeviceInfo();
@@ -77,7 +78,7 @@ Future<CastMedia> resolveCastMedia({
     playRequest: request,
   )).data;
   if (session == null) {
-    throw StateError('Unable to prepare a server stream for this item');
+    throw StateError(currentAppLocalizations().errorCastStreamUnavailable);
   }
 
   var released = false;
@@ -97,7 +98,7 @@ Future<CastMedia> resolveCastMedia({
   try {
     final selected = _selectTrack(session, media, trackIndex, position);
     if (selected == null) {
-      throw StateError('The server did not provide a playable track');
+      throw StateError(currentAppLocalizations().errorCastTrackUnavailable);
     }
 
     return _sessionMedia(
@@ -144,7 +145,7 @@ CastMedia _sessionMedia({
     selected.toInternalTrack(api.basePathOverride, session.id, localIndex: trackIndex).url ?? '',
   );
   if (uri == null || !isCastHttpUri(uri)) {
-    throw StateError('The server did not provide a playable URL');
+    throw StateError(currentAppLocalizations().errorCastPlayableUrlUnavailable);
   }
 
   final offset = Duration(milliseconds: (selected.startOffset * 1000).round());

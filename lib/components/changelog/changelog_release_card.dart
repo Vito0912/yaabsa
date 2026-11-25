@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/changelog/changelog_entry_text.dart';
 import 'package:yaabsa/util/changelog.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ChangelogReleaseCard extends StatelessWidget {
   const ChangelogReleaseCard({super.key, required this.release, this.initiallyExpanded = false, this.onSponsor});
@@ -24,7 +25,7 @@ class ChangelogReleaseCard extends StatelessWidget {
         childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         shape: const Border(),
         collapsedShape: const Border(),
-        title: Text('Version ${release.version}', style: theme.textTheme.titleMedium),
+        title: Text(context.l10n.changelogVersion(release.version), style: theme.textTheme.titleMedium),
         children: [
           for (final section in release.sections)
             if (section.entries.isNotEmpty)
@@ -56,7 +57,7 @@ class ChangelogReleaseCard extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: onSponsor,
                   icon: const Icon(Icons.favorite_outline),
-                  label: const Text('Sponsors'),
+                  label: Text(context.l10n.changelogSponsors),
                 ),
               ),
             ),

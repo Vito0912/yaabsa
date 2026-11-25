@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 typedef PlayerPlacementVisiblePredicate = bool Function(PlayerComponentPlacement placement);
 typedef PlayerPlacementWidgetBuilder = Widget Function(PlayerComponentPlacement placement);
@@ -40,7 +41,7 @@ class PlayerGridCanvas extends StatelessWidget {
 
     if (placements.isEmpty) {
       return Center(
-        child: Text('No components are visible for this layout.', style: Theme.of(context).textTheme.bodyLarge),
+        child: Text(context.l10n.statusNoPlayerComponentsVisible, style: Theme.of(context).textTheme.bodyLarge),
       );
     }
 
@@ -347,7 +348,7 @@ class _EditableGridTileState extends State<_EditableGridTile> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    widget.placement.type.label,
+                    widget.placement.type.label(context.l10n),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelSmall,
@@ -355,7 +356,7 @@ class _EditableGridTileState extends State<_EditableGridTile> {
                 ),
               ),
               YaabsaContextMenuButton<_TileComponentAction>(
-                tooltip: 'Component actions',
+                tooltip: context.l10n.actionMoreActions,
                 onSelected: (_TileComponentAction action) {
                   switch (action) {
                     case _TileComponentAction.settings:
@@ -365,13 +366,13 @@ class _EditableGridTileState extends State<_EditableGridTile> {
                   }
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<_TileComponentAction>>[
-                  const PopupMenuItem<_TileComponentAction>(
+                  PopupMenuItem<_TileComponentAction>(
                     value: _TileComponentAction.settings,
-                    child: Text('Settings'),
+                    child: Text(context.l10n.navSettings),
                   ),
-                  const PopupMenuItem<_TileComponentAction>(
+                  PopupMenuItem<_TileComponentAction>(
                     value: _TileComponentAction.hide,
-                    child: Text('Remove from layout'),
+                    child: Text(context.l10n.actionRemove),
                   ),
                 ],
                 icon: const Icon(Icons.more_horiz_rounded, size: 18),
@@ -436,14 +437,42 @@ class _EditorToolbar extends StatelessWidget {
           spacing: 1,
           runSpacing: 1,
           children: <Widget>[
-            _TinyToolButton(icon: Icons.arrow_back_rounded, tooltip: 'Move left', onPressed: onMoveLeft),
-            _TinyToolButton(icon: Icons.arrow_upward_rounded, tooltip: 'Move up', onPressed: onMoveUp),
-            _TinyToolButton(icon: Icons.arrow_downward_rounded, tooltip: 'Move down', onPressed: onMoveDown),
-            _TinyToolButton(icon: Icons.arrow_forward_rounded, tooltip: 'Move right', onPressed: onMoveRight),
-            _TinyToolButton(icon: Icons.width_normal_rounded, tooltip: 'Narrower', onPressed: onNarrower),
-            _TinyToolButton(icon: Icons.width_wide_rounded, tooltip: 'Wider', onPressed: onWider),
-            _TinyToolButton(icon: Icons.vertical_align_top_rounded, tooltip: 'Shorter', onPressed: onShorter),
-            _TinyToolButton(icon: Icons.vertical_align_bottom_rounded, tooltip: 'Taller', onPressed: onTaller),
+            _TinyToolButton(
+              icon: Icons.arrow_back_rounded,
+              tooltip: context.l10n.actionMoveDirection(context.l10n.directionLeft),
+              onPressed: onMoveLeft,
+            ),
+            _TinyToolButton(
+              icon: Icons.arrow_upward_rounded,
+              tooltip: context.l10n.actionMoveDirection(context.l10n.directionUp),
+              onPressed: onMoveUp,
+            ),
+            _TinyToolButton(
+              icon: Icons.arrow_downward_rounded,
+              tooltip: context.l10n.actionMoveDirection(context.l10n.directionDown),
+              onPressed: onMoveDown,
+            ),
+            _TinyToolButton(
+              icon: Icons.arrow_forward_rounded,
+              tooltip: context.l10n.actionMoveDirection(context.l10n.directionRight),
+              onPressed: onMoveRight,
+            ),
+            _TinyToolButton(
+              icon: Icons.width_normal_rounded,
+              tooltip: context.l10n.actionNarrower,
+              onPressed: onNarrower,
+            ),
+            _TinyToolButton(icon: Icons.width_wide_rounded, tooltip: context.l10n.actionWider, onPressed: onWider),
+            _TinyToolButton(
+              icon: Icons.vertical_align_top_rounded,
+              tooltip: context.l10n.actionShorter,
+              onPressed: onShorter,
+            ),
+            _TinyToolButton(
+              icon: Icons.vertical_align_bottom_rounded,
+              tooltip: context.l10n.actionTaller,
+              onPressed: onTaller,
+            ),
           ],
         ),
       ),

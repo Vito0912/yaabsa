@@ -1,3 +1,4 @@
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -44,11 +45,11 @@ class SeriesView extends HookConsumerWidget {
     ref.watch(userSettingsWatcherProvider);
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Series are available only for book libraries.'));
+      return Center(child: Text(context.l10n.errorBookLibrariesOnly));
     }
 
     final libraryId = selectedLibrary.id;
@@ -138,7 +139,11 @@ class SeriesView extends HookConsumerWidget {
                   child: Column(
                     children: [
                       _SeriesToolbar(
-                        filterLabel: LibraryFilterToolbar.resolveActiveFilterLabel(state.filter, filterDataAsync.value),
+                        filterLabel: LibraryFilterToolbar.resolveActiveFilterLabel(
+                          context.l10n,
+                          state.filter,
+                          filterDataAsync.value,
+                        ),
                         sortLabel: buildLibrarySeriesSortLabel(activeSort: state.sort, activeDesc: state.desc),
                         isFilterLoading: filterDataAsync.isLoading,
                         isBusy: state.isLoadingNextPage,
@@ -154,9 +159,9 @@ class SeriesView extends HookConsumerWidget {
                                   controller: scrollController,
                                   physics: const AlwaysScrollableScrollPhysics(),
                                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                                  children: const [
-                                    SizedBox(height: 80),
-                                    Center(child: Text('No series found in this library.')),
+                                  children: [
+                                    const SizedBox(height: 80),
+                                    Center(child: Text(context.l10n.statusNoSeriesInLibrary)),
                                   ],
                                 ),
                               )
@@ -229,7 +234,7 @@ class SeriesView extends HookConsumerWidget {
 
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Error loading series',
+          title: context.l10n.errorLoadingNamedContent(context.l10n.navSeries),
           onRetry: () async {
             ref.invalidate(currentSeriesProvider);
             await ref.read(currentSeriesProvider.future);
@@ -302,7 +307,7 @@ class _SeriesToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filterButtonLabel = filterLabel == null ? 'Filter' : _truncateLabel(filterLabel!);
+    final filterButtonLabel = filterLabel == null ? context.l10n.actionFilter : _truncateLabel(filterLabel!);
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Align(
@@ -322,7 +327,7 @@ class _SeriesToolbar extends StatelessWidget {
             ),
             YaabsaSortButton(
               label: sortLabel,
-              tooltip: 'Sort: $sortLabel',
+              tooltip: context.l10n.actionSortBy(sortLabel),
               onPressed: onSortPressed,
               iconOnly: context.isMobile,
               isLoading: isBusy,

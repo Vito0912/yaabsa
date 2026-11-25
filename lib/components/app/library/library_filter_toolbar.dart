@@ -10,6 +10,7 @@ import 'package:yaabsa/ui/components/buttons/sort_button.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryFilterToolbar extends StatelessWidget {
   const LibraryFilterToolbar({
@@ -41,7 +42,7 @@ class LibraryFilterToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeFilterLabel = resolveActiveFilterLabel(activeFilter, filterDataAsync.value);
+    final activeFilterLabel = resolveActiveFilterLabel(context.l10n, activeFilter, filterDataAsync.value);
     final activeSortLabel = buildLibrarySortLabel(
       libraryMediaType: libraryMediaType,
       activeFilter: activeFilter,
@@ -49,7 +50,7 @@ class LibraryFilterToolbar extends StatelessWidget {
       activeDesc: activeSortDesc,
     );
 
-    final filterButtonLabel = activeFilterLabel == null ? 'Filter' : _truncateLabel(activeFilterLabel);
+    final filterButtonLabel = activeFilterLabel == null ? context.l10n.actionFilter : _truncateLabel(activeFilterLabel);
     final sortButtonLabel = _truncateLabel(activeSortLabel);
     final hasActiveFilter = activeFilter?.isNotEmpty ?? false;
     final colorScheme = Theme.of(context).colorScheme;
@@ -59,7 +60,7 @@ class LibraryFilterToolbar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 10, 12, 8),
         child: Row(
           children: [
-            IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+            IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: context.l10n.actionBack),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -72,7 +73,7 @@ class LibraryFilterToolbar extends StatelessWidget {
             const SizedBox(width: 4),
             YaabsaSortButton(
               label: activeSortLabel,
-              tooltip: 'Sort: $activeSortLabel',
+              tooltip: context.l10n.actionSortBy(activeSortLabel),
               onPressed: () => _openSortSheet(context),
               iconOnly: context.isMobile,
             ),
@@ -94,7 +95,7 @@ class LibraryFilterToolbar extends StatelessWidget {
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: _maxButtonWidth),
               child: Tooltip(
-                message: activeFilterLabel ?? 'Filter library',
+                message: activeFilterLabel ?? context.l10n.actionFilter,
                 child: YaabsaButton.small(
                   onPressed: () => _openFilterSheet(context),
                   variant: YaabsaButtonVariant.outlined,
@@ -180,17 +181,21 @@ class LibraryFilterToolbar extends StatelessWidget {
     await onSortSelected(result);
   }
 
-  static String? resolveActiveFilterLabel(String? filter, LibraryFilterData? filterData) {
+  static String? resolveActiveFilterLabel(
+    AppLocalizations localizations,
+    String? filter,
+    LibraryFilterData? filterData,
+  ) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
 
     if (filter == 'issues') {
-      return 'Special: Issues';
+      return localizations.statusSpecialFilter(localizations.navIssues);
     }
 
     if (filter == 'feed-open') {
-      return 'Special: Feed Open';
+      return localizations.statusSpecialFilter(localizations.filterOpenFeeds);
     }
 
     final parsed = parseGroupedLibraryFilterQuery(filter);
@@ -198,17 +203,68 @@ class LibraryFilterToolbar extends StatelessWidget {
       return filter;
     }
 
-    final valueLabel = switch (parsed.group) {
-      LibraryFilterGroup.authors => _resolveNamedValue(parsed.value, filterData?.authors),
-      LibraryFilterGroup.series when parsed.value == 'no-series' => 'No series',
-      LibraryFilterGroup.series => _resolveNamedValue(parsed.value, filterData?.series),
-      LibraryFilterGroup.progress => _humanizeValue(parsed.value),
-      LibraryFilterGroup.missing => _humanizeValue(parsed.value),
-      LibraryFilterGroup.tracks => _humanizeValue(parsed.value),
-      _ => parsed.value,
+    final groupLabel = switch (parsed.group) {
+      LibraryFilterGroup.genres => localizations.fieldGenres,
+      LibraryFilterGroup.tags => localizations.fieldTags,
+      LibraryFilterGroup.series => localizations.fieldSeries,
+      LibraryFilterGroup.authors => localizations.fieldAuthors,
+      LibraryFilterGroup.progress => localizations.fieldProgress,
+      LibraryFilterGroup.narrators => localizations.fieldNarrators,
+      LibraryFilterGroup.missing => localizations.headingMissingMetadata,
+      LibraryFilterGroup.languages => localizations.headingLanguages,
+      LibraryFilterGroup.tracks => localizations.fieldTracks,
     };
 
-    return '${parsed.group.displayName}: $valueLabel';
+    final valueLabel = switch (parsed.group) {
+      LibraryFilterGroup.genres ||
+      LibraryFilterGroup.tags ||
+      LibraryFilterGroup.languages ||
+      LibraryFilterGroup.narrators => parsed.value,
+      LibraryFilterGroup.authors => _resolveNamedValue(parsed.value, filterData?.authors),
+      LibraryFilterGroup.series when parsed.value == 'no-series' => localizations.statusNoSeriesFilterOption,
+      LibraryFilterGroup.series => _resolveNamedValue(parsed.value, filterData?.series),
+      LibraryFilterGroup.progress => _resolveProgressValue(localizations, parsed.value),
+      LibraryFilterGroup.missing => _resolveMissingValue(localizations, parsed.value),
+      LibraryFilterGroup.tracks => _resolveTracksValue(localizations, parsed.value),
+    };
+
+    return localizations.statusActiveFilter(groupLabel, valueLabel);
+  }
+
+  static String _resolveProgressValue(AppLocalizations localizations, String value) {
+    return switch (value) {
+      'finished' => localizations.statusFinished,
+      'not-started' => localizations.statusNotStarted,
+      'not-finished' => localizations.statusNotFinished,
+      'in-progress' => localizations.statusInProgress,
+      _ => _humanizeValue(value),
+    };
+  }
+
+  static String _resolveMissingValue(AppLocalizations localizations, String value) {
+    return switch (value) {
+      'asin' => localizations.fieldAsin,
+      'isbn' => localizations.fieldIsbn,
+      'subtitle' => localizations.fieldSubtitle,
+      'authors' => localizations.fieldAuthors,
+      'publishedYear' => localizations.fieldPublishedYear,
+      'series' => localizations.fieldSeries,
+      'description' => localizations.fieldDescription,
+      'genres' => localizations.fieldGenres,
+      'tags' => localizations.fieldTags,
+      'narrators' => localizations.fieldNarrators,
+      'publisher' => localizations.fieldPublisher,
+      'language' => localizations.fieldLanguage,
+      _ => _humanizeValue(value),
+    };
+  }
+
+  static String _resolveTracksValue(AppLocalizations localizations, String value) {
+    return switch (value) {
+      'single' => localizations.filterSingleTrack,
+      'multi' => localizations.filterMultipleTracks,
+      _ => _humanizeValue(value),
+    };
   }
 
   static String _resolveNamedValue(String fallbackValue, List<LibraryFilterNamedEntity>? values) {

@@ -1,6 +1,7 @@
 import 'package:yaabsa/ui/theme/theme_selection.dart';
 export 'package:yaabsa/ui/theme/theme_selection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class SettingKeys {
@@ -225,7 +226,7 @@ final defaultSettings = {
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
   SettingKeys.showLastPlayedMiniPlayerAlways: false,
   SettingKeys.keepScreenOn: _defaultEnableOnDesktop,
-  SettingKeys.language: 'en-US',
+  SettingKeys.language: 'system',
   SettingKeys.sidebarCollapsed: false,
   SettingKeys.autoQueue: true,
   SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
@@ -407,11 +408,12 @@ enum SleepTimerExpireAction {
   }
 
   String get label {
+    final l10n = currentAppLocalizations();
     switch (this) {
       case SleepTimerExpireAction.stop:
-        return 'Stop playback';
+        return l10n.sleepTimerStopPlayback;
       case SleepTimerExpireAction.pause:
-        return 'Pause playback';
+        return l10n.optionPausePlayback;
     }
   }
 }
@@ -460,13 +462,14 @@ enum PlayerSeekBarMode {
   }
 
   String get label {
+    final l10n = currentAppLocalizations();
     switch (this) {
       case PlayerSeekBarMode.chapter:
-        return 'Chapter';
+        return l10n.fieldChapter;
       case PlayerSeekBarMode.full:
-        return 'Full';
+        return l10n.playbackFullTimeline;
       case PlayerSeekBarMode.both:
-        return 'Both';
+        return l10n.optionBoth;
     }
   }
 }
@@ -525,15 +528,16 @@ enum SeekBarMarkerMode {
   }
 
   String get label {
+    final l10n = currentAppLocalizations();
     switch (this) {
       case SeekBarMarkerMode.none:
-        return 'None';
+        return l10n.optionNone;
       case SeekBarMarkerMode.chapters:
-        return 'Only chapters';
+        return l10n.seekBarMarkersChapters;
       case SeekBarMarkerMode.bookmarks:
-        return 'Only bookmarks';
+        return l10n.seekBarMarkersBookmarks;
       case SeekBarMarkerMode.both:
-        return 'Bookmarks and chapters';
+        return l10n.seekBarMarkersBoth;
     }
   }
 }
@@ -581,25 +585,38 @@ enum MediaNotificationType {
   }
 
   String get label {
+    final l10n = currentAppLocalizations();
     switch (this) {
       case MediaNotificationType.full:
-        return 'Full';
+        return l10n.playbackFullTimeline;
       case MediaNotificationType.chapter:
-        return 'Chapter';
+        return l10n.fieldChapter;
     }
   }
 }
 
 enum AndroidLiveUpdateMode {
-  off('Off'),
-  currentTime('Show current time'),
-  remainingTime('Show remaining time'),
-  sleepTimer('Show sleep timer'),
-  progressPercentage('Show progress percentage');
+  off,
+  currentTime,
+  remainingTime,
+  sleepTimer,
+  progressPercentage;
 
-  const AndroidLiveUpdateMode(this.label);
-
-  final String label;
+  String get label {
+    final l10n = currentAppLocalizations();
+    switch (this) {
+      case AndroidLiveUpdateMode.off:
+        return l10n.statusOff;
+      case AndroidLiveUpdateMode.currentTime:
+        return l10n.liveUpdateCurrentTime;
+      case AndroidLiveUpdateMode.remainingTime:
+        return l10n.liveUpdateRemainingTime;
+      case AndroidLiveUpdateMode.sleepTimer:
+        return l10n.liveUpdateSleepTimer;
+      case AndroidLiveUpdateMode.progressPercentage:
+        return l10n.liveUpdateProgressPercentage;
+    }
+  }
 
   static AndroidLiveUpdateMode fromSettingValue(String? value) {
     return values.where((mode) => mode.name == value).firstOrNull ?? off;

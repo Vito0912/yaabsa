@@ -9,6 +9,7 @@ export 'package:yaabsa/components/app/downloads/download_activity_indicator.dart
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ItemDownloadBadges extends ConsumerWidget {
   const ItemDownloadBadges({super.key, required this.itemId, this.episodeId, this.sequenceBadge});
@@ -44,7 +45,9 @@ class ItemDownloadBadges extends ConsumerWidget {
                   child: status != null
                       ? ItemDownloadIndicator(status: status, size: LibraryItemOverlayPlayButton.size - 2)
                       : Tooltip(
-                          message: availability.complete ? 'Available offline' : '${availability.count} files offline',
+                          message: availability.complete
+                              ? context.l10n.statusAvailableOffline
+                              : context.l10n.downloadOfflineFileCount(availability.count),
                           child: Icon(
                             availability.complete ? Icons.cloud_done_rounded : Icons.cloud_download_rounded,
                             size: 14,
@@ -89,11 +92,13 @@ class _ItemDownloadButtonState extends ConsumerState<ItemDownloadButton> {
     try {
       final canceled = await downloadHandler.cancelDownloadForItem(widget.itemId, episodeId: widget.episodeId);
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(canceled ? 'Download canceled.' : 'Could not cancel download.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(canceled ? context.l10n.statusDownloadCanceled : context.l10n.errorCancelDownload)),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not cancel download: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.errorCancelDownloadDetails(e.toString()))));
     } finally {
       if (mounted) setState(() => _isCanceling = false);
     }
@@ -139,7 +144,7 @@ class _ItemDownloadButtonState extends ConsumerState<ItemDownloadButton> {
 
     if (widget.isDownloaded && status == null && !partial) {
       return YaabsaDeleteIconButton(
-        tooltip: 'Delete download',
+        tooltip: context.l10n.actionDeleteDownload,
         onPressed: widget.onDeleteDownload,
         enabled: !_isCanceling,
       );
@@ -149,10 +154,10 @@ class _ItemDownloadButtonState extends ConsumerState<ItemDownloadButton> {
       icon: icon,
       iconWidget: iconWidget,
       tooltip: status != null
-          ? 'Cancel download'
+          ? context.l10n.actionCancelDownload
           : partial
-          ? '${availability.count} of ${availability.total} files offline. Manage files'
-          : (widget.isDownloaded ? 'Delete download' : 'Download'),
+          ? context.l10n.downloadedFilesPartialTooltip(availability.count, availability.total)
+          : (widget.isDownloaded ? context.l10n.actionDeleteDownload : context.l10n.actionDownload),
       variant: YaabsaActionButtonVariant.filledTonal,
       shape: YaabsaActionButtonShape.rounded,
       enabled: !_isCanceling,

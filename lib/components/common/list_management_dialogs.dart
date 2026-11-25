@@ -1,6 +1,7 @@
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ListManagementFormResult {
   const ListManagementFormResult({required this.name, this.description});
@@ -44,7 +45,10 @@ Future<bool> showListManagementDeleteDialog({
         title: Text(title),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(dialogContext.l10n.actionCancel),
+          ),
           FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(confirmLabel)),
         ],
       );
@@ -164,7 +168,7 @@ class _ListManagementFormDialogState extends State<_ListManagementFormDialog> {
                 controller: _nameController,
                 autofocus: true,
                 textInputAction: TextInputAction.next,
-                label: 'Name',
+                label: context.l10n.fieldName,
                 errorText: _showValidationErrors && !_isNameValid ? 'Name is required.' : null,
               ),
               const SizedBox(height: 12),
@@ -173,15 +177,15 @@ class _ListManagementFormDialogState extends State<_ListManagementFormDialog> {
                 minLines: 2,
                 maxLines: 4,
                 textInputAction: TextInputAction.newline,
-                label: 'Description',
-                hintText: 'Optional',
+                label: context.l10n.fieldDescription,
+                hintText: context.l10n.inputOptional,
               ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
         FilledButton(onPressed: _isNameValid ? _submit : null, child: Text(widget.confirmLabel)),
       ],
     );

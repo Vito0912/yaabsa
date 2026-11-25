@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/wear/wear_browse_button.dart';
 import 'package:yaabsa/ui/components/wear/wear_browse_scaffold.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearConfirmationScreen extends StatelessWidget {
   const WearConfirmationScreen({
@@ -33,7 +34,11 @@ class WearConfirmationScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
         child: Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14)),
       ),
-      WearBrowseButton(title: 'Cancel', icon: Icons.close, onPressed: () => Navigator.of(context).pop(false)),
+      WearBrowseButton(
+        title: context.l10n.actionCancel,
+        icon: Icons.close,
+        onPressed: () => Navigator.of(context).pop(false),
+      ),
       WearBrowseButton(
         title: confirmLabel,
         icon: icon,

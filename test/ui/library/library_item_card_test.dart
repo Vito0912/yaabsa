@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/features/library/widgets/library_item_card.dart';
 import 'package:yaabsa/ui/previews/preview_theme.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('library presentation forwards activation and long press', (tester) async {
@@ -15,6 +16,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SizedBox(
             width: 220,
@@ -47,6 +50,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: LibraryItemCard(
             cover: const SizedBox(width: 150, height: 210),
@@ -70,6 +75,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: LibraryItemCard(
             cover: const SizedBox(width: 180, height: 180),

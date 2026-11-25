@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 class JumpButton extends ConsumerWidget {
@@ -23,7 +24,9 @@ class JumpButton extends ConsumerWidget {
       iconSize: iconSize ?? 24,
       buttonSize: buttonSize,
       compact: false,
-      tooltip: rewind ? 'Rewind $durationSeconds seconds' : 'Forward $durationSeconds seconds',
+      tooltip: rewind
+          ? context.l10n.playbackRewindInterval(durationSeconds)
+          : context.l10n.playbackForwardInterval(durationSeconds),
       onPressed: () {
         rewind ? audioHandler.rewind() : audioHandler.fastForward();
       },

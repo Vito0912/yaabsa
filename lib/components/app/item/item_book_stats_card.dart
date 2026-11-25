@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
@@ -9,6 +10,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ItemBookStatsCard extends ConsumerStatefulWidget {
   const ItemBookStatsCard({
@@ -155,15 +157,15 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
       logger('Failed to load book stats: $e\n$stack', level: InfoLevel.error);
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed to load: $e';
+          _errorMessage = context.l10n.statsBookLoadError;
           _isLoading = false;
         });
       }
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  String _formatDate(BuildContext context, DateTime date) {
+    return DateFormat.yMd(context.l10n.localeName).format(date);
   }
 
   Widget _buildStatCard({
@@ -216,6 +218,10 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final progressPercent = (NumberFormat.percentPattern(
+      l10n.localeName,
+    )..maximumFractionDigits = 1).format(widget.progressValue);
     final allFinishes = <DateTime>[];
     if (widget.isItemFinished && widget.itemProgress?.finishedAt != null) {
       allFinishes.add(DateTime.fromMillisecondsSinceEpoch(widget.itemProgress!.finishedAt!));
@@ -224,7 +230,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
 
     return ExpressiveExpandableCard(
       margin: const EdgeInsets.only(top: 8),
-      title: 'Book stats',
+      title: l10n.headingBookStats,
       initiallyExpanded: false,
       onExpansionChanged: (expanded) {
         if (expanded && !_hasLoaded && !_isLoading) {
@@ -269,43 +275,45 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
                     width: cardWidth,
                     child: _buildStatCard(
                       context: context,
-                      label: 'Total Listened',
-                      value: formatDurationLong(_accumulatedListening),
+                      label: l10n.fieldTotalListening,
+                      value: formatDurationLong(_accumulatedListening, localizations: l10n),
                     ),
                   ),
                   SizedBox(
                     width: cardWidth,
                     child: _buildStatCard(
                       context: context,
-                      label: 'Times Started',
-                      value: _totalSessions?.toString() ?? 'N/A',
+                      label: l10n.fieldTimesStarted,
+                      value: _totalSessions == null
+                          ? l10n.statusNotAvailable
+                          : NumberFormat.decimalPattern(l10n.localeName).format(_totalSessions),
                     ),
                   ),
                   SizedBox(
                     width: cardWidth,
                     child: _buildStatCard(
                       context: context,
-                      label: 'Status',
-                      value: widget.isItemFinished ? 'Finished' : '${(widget.progressValue * 100).toStringAsFixed(1)}%',
+                      label: l10n.fieldStatus,
+                      value: widget.isItemFinished ? l10n.statusFinished : progressPercent,
                       subtitle: widget.isItemFinished && widget.itemProgress?.finishedAt != null
-                          ? _formatDate(DateTime.fromMillisecondsSinceEpoch(widget.itemProgress!.finishedAt!))
-                          : 'In progress',
+                          ? _formatDate(context, DateTime.fromMillisecondsSinceEpoch(widget.itemProgress!.finishedAt!))
+                          : l10n.statusInProgress,
                     ),
                   ),
                   SizedBox(
                     width: cardWidth,
                     child: _buildStatCard(
                       context: context,
-                      label: 'First Started',
-                      value: _firstStarted != null ? _formatDate(_firstStarted!) : 'N/A',
+                      label: l10n.fieldFirstStarted,
+                      value: _firstStarted != null ? _formatDate(context, _firstStarted!) : l10n.statusNotAvailable,
                     ),
                   ),
                   SizedBox(
                     width: cardWidth,
                     child: _buildStatCard(
                       context: context,
-                      label: 'Last Started',
-                      value: _lastStarted != null ? _formatDate(_lastStarted!) : 'N/A',
+                      label: l10n.fieldLastStarted,
+                      value: _lastStarted != null ? _formatDate(context, _lastStarted!) : l10n.statusNotAvailable,
                     ),
                   ),
                 ],
@@ -315,7 +323,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
           if (allFinishes.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(
-              'Finish History',
+              l10n.headingFinishHistory,
               style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
@@ -336,7 +344,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        '${allFinishes.length - index}',
+                        NumberFormat.decimalPattern(l10n.localeName).format(allFinishes.length - index),
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
@@ -348,11 +356,11 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Finished',
+                          l10n.statusFinished,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         Text(
-                          _formatDate(date),
+                          _formatDate(context, date),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
@@ -366,9 +374,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
         ] else ...[
           const SizedBox(height: 8),
           Text(
-            widget.isItemFinished
-                ? 'Finished'
-                : 'Current progress: ${(widget.progressValue * 100).toStringAsFixed(1)}%',
+            widget.isItemFinished ? l10n.statusFinished : l10n.statusCurrentProgress(progressPercent),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
           ),
         ],

@@ -6,6 +6,7 @@ import 'package:yaabsa/api/library_items/library_file.dart';
 import 'package:yaabsa/components/app/item/item_media_file_section.dart';
 import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ItemChapterRow extends StatelessWidget {
   const ItemChapterRow({
@@ -45,6 +46,7 @@ class _ChapterTableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = context.l10n;
     final style = Theme.of(context).textTheme.labelSmall
         ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 0.4);
 
@@ -52,14 +54,14 @@ class _ChapterTableHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
       child: Row(
         children: [
-          Expanded(child: Text('Chapter', style: style)),
+          Expanded(child: Text(localizations.fieldChapter, style: style)),
           SizedBox(
             width: 74,
-            child: Text('Start', style: style, textAlign: TextAlign.right),
+            child: Text(localizations.fieldTime, style: style, textAlign: TextAlign.right),
           ),
           SizedBox(
             width: 74,
-            child: Text('Length', style: style, textAlign: TextAlign.right),
+            child: Text(localizations.fieldDuration, style: style, textAlign: TextAlign.right),
           ),
         ],
       ),
@@ -87,6 +89,7 @@ class LibraryItemMediaSections extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = context.l10n;
     final ebookFiles = <String, LibraryFile>{
       for (final file in libraryFiles)
         if (file.fileType?.toLowerCase() == 'ebook') file.ino: file,
@@ -125,7 +128,7 @@ class LibraryItemMediaSections extends StatelessWidget {
           const SizedBox(height: 8),
           ExpressiveExpandableCard(
             initiallyExpanded: false,
-            title: 'Chapters (${chapters.length})',
+            title: localizations.itemSectionTitleWithCount(localizations.navChapters, chapters.length),
             children: [
               const _ChapterTableHeader(),
               ...chapters.map(
@@ -143,7 +146,7 @@ class LibraryItemMediaSections extends StatelessWidget {
           const SizedBox(height: 8),
           ItemMediaFileSection(
             itemId: itemId,
-            title: 'Audio files (${audioFiles.length})',
+            title: localizations.itemSectionTitleWithCount(localizations.fieldAudioFiles, audioFiles.length),
             files: audioLibraryFiles,
             audioFiles: audioFiles,
           ),
@@ -152,7 +155,7 @@ class LibraryItemMediaSections extends StatelessWidget {
           const SizedBox(height: 8),
           ItemMediaFileSection(
             itemId: itemId,
-            title: 'Ebook files (${ebookFiles.length})',
+            title: localizations.itemSectionTitleWithCount(localizations.fieldEbookFiles, ebookFiles.length),
             files: ebookFiles.values.toList(growable: false),
             primaryFileIno: ebookFile?.ino,
           ),
@@ -160,7 +163,7 @@ class LibraryItemMediaSections extends StatelessWidget {
         const SizedBox(height: 8),
         ItemMediaFileSection(
           itemId: itemId,
-          title: 'Library files (${libraryFiles.length})',
+          title: localizations.itemSectionTitleWithCount(localizations.fieldLibraryFiles, libraryFiles.length),
           allowUpload: true,
           files: libraryFiles,
           audioFiles: audioFiles,

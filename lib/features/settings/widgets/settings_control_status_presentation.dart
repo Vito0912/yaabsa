@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/lists/settings_control_label.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum SettingsControlLoadState { loading, error }
 
@@ -25,7 +26,7 @@ class SettingsControlStatusPresentation extends StatelessWidget {
             const SizedBox(width: 20, height: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2.5))
           else
             Semantics(
-              label: 'Unable to load $label',
+              label: context.l10n.settingsControlLoadFailed(label),
               child: Icon(Icons.error_outline_rounded, color: colorScheme.error, size: 22),
             ),
         ],

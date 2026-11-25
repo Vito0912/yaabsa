@@ -6,6 +6,7 @@ import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/api/library_items/chapter.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemEmbeddingView extends StatelessWidget {
@@ -47,11 +48,8 @@ class LibraryItemEmbeddingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (audioFiles.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('No audio tracks are available for metadata embedding.'),
-        ),
+      return Center(
+        child: Padding(padding: const EdgeInsets.all(24), child: Text(context.l10n.statusNoAudioTracksForEmbedding)),
       );
     }
 
@@ -105,7 +103,7 @@ class LibraryItemEmbeddingView extends StatelessWidget {
                 SizedBox(
                   width: panelWidth,
                   child: _ToolPanel(
-                    title: 'Metadata To Embed',
+                    title: context.l10n.headingMetadataToEmbed,
                     child: isMetadataLoading
                         ? const Center(
                             child: Padding(padding: EdgeInsets.all(18), child: YaabsaCircularProgressIndicator()),
@@ -116,7 +114,7 @@ class LibraryItemEmbeddingView extends StatelessWidget {
                 SizedBox(
                   width: panelWidth,
                   child: _ToolPanel(
-                    title: 'Chapters To Embed',
+                    title: context.l10n.headingChaptersToEmbed,
                     child: _ChapterRows(chapters: chapters),
                   ),
                 ),
@@ -157,13 +155,17 @@ class _EmbedActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controlsLocked = isRequestInFlight || isTaskRunning || isTaskQueued;
-    final startLabel = isRequestInFlight
-        ? 'Submitting...'
-        : isTaskRunning
-        ? 'Running...'
-        : isTaskQueued
-        ? 'Queued'
-        : 'Start Embed';
+    final l10n = context.l10n;
+    final String startLabel;
+    if (isRequestInFlight) {
+      startLabel = l10n.statusSubmitting;
+    } else if (isTaskRunning) {
+      startLabel = l10n.statusRunning;
+    } else if (isTaskQueued) {
+      startLabel = l10n.statusQueued;
+    } else {
+      startLabel = l10n.actionStartEmbedding;
+    }
 
     return Card(
       child: Padding(
@@ -171,24 +173,24 @@ class _EmbedActionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Embedding', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.navEmbedding, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               value: backupAudioFiles,
               onChanged: controlsLocked ? null : onBackupAudioFilesChanged,
-              title: const Text('Backup audio files before embedding'),
+              title: Text(l10n.settingBackupAudioFilesBeforeEmbedding),
             ),
             YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               value: forceEmbedChapters,
               onChanged: controlsLocked ? null : onForceEmbedChaptersChanged,
-              title: const Text('Force chapter embedding'),
+              title: Text(l10n.settingForceChapterEmbedding),
             ),
             Text(
-              'Forces chapter markers to be rewritten in the output files, even when chapters already exist.',
+              l10n.settingForceChapterEmbeddingDescription,
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
@@ -201,7 +203,7 @@ class _EmbedActionCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: isRequestInFlight ? null : onRefreshMetadataObject,
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Refresh Metadata'),
+                  label: Text(l10n.actionRefreshMetadata),
                 ),
                 FilledButton.icon(
                   onPressed: controlsLocked ? null : onStartEmbedding,
@@ -255,9 +257,9 @@ class _MetadataRows extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 10),
-        child: Text('No metadata object returned by the server.'),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Text(context.l10n.errorMetadataObjectMissing),
       );
     }
 
@@ -301,7 +303,10 @@ class _ChapterRows extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (chapters.isEmpty) {
-      return const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Text('No chapters available.'));
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Text(context.l10n.statusNoChaptersAvailable),
+      );
     }
 
     return Column(
@@ -326,7 +331,7 @@ class _ChapterRows extends StatelessWidget {
                 Text(_formatClock(chapters[i].end), style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(width: 8),
                 Text(
-                  formatDurationLong(chapterDuration(chapters[i].start, chapters[i].end)),
+                  formatDurationLong(chapterDuration(chapters[i].start, chapters[i].end), localizations: context.l10n),
                   style: Theme.of(context).textTheme.bodySmall
                       ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),

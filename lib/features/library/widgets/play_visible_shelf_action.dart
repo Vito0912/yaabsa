@@ -4,6 +4,7 @@ import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayVisibleShelfEntry {
   const PlayVisibleShelfEntry.libraryItem(this.item) : episode = null;
@@ -43,7 +44,7 @@ class PlayVisibleShelfAction extends ConsumerWidget {
           child: IconButton(
             onPressed: () => onPressed(entries),
             icon: const Icon(Icons.playlist_play_rounded, size: 18),
-            tooltip: 'Queue all items in this shelf',
+            tooltip: context.l10n.actionQueueAll,
             splashRadius: 1,
             padding: EdgeInsets.zero,
           ),

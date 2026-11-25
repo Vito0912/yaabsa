@@ -10,6 +10,7 @@ import 'package:yaabsa/ui/components/wear/wear_swipe_to_dismiss.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/ui/components/wear/wear_page_header.dart';
 import 'package:yaabsa/ui/components/wear/wear_browse_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearPairingScreen extends StatefulWidget {
   const WearPairingScreen({this.isAmbient = false, super.key});
@@ -46,11 +47,11 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
 
       if (result == WearPairingResult.noPhone) {
         setState(() {
-          _errorMessage = 'No phone connected.\nConnect your watch to your phone and try again.';
+          _errorMessage = context.l10n.wearPairingNoPhoneConnected;
         });
       } else if (result == WearPairingResult.noResponse) {
         setState(() {
-          _errorMessage = 'No response from phone.\nCheck your phone for a pairing notification.';
+          _errorMessage = context.l10n.wearPairingNoPhoneResponse;
         });
       }
       // On success the home screen switches to the player via the
@@ -83,18 +84,18 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
             ? const WearAmbientView()
             : WearScrollView(
                 children: [
-                  const WearPageHeader(title: 'Welcome', subtitle: 'Connect to your Audiobookshelf'),
+                  WearPageHeader(title: context.l10n.headingWelcome, subtitle: context.l10n.wearPairingSubtitle),
                   if (_isRequesting) ...[
                     const Center(child: YaabsaCircularProgressIndicator(strokeWidth: 2, size: 32)),
                     const SizedBox(height: 8),
                     Text(
-                      'Sign in on your phone\nto continue...',
+                      context.l10n.wearPairingSignInOnPhone,
                       style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.54)),
                       textAlign: TextAlign.center,
                     ),
                   ] else ...[
                     WearBrowseButton(
-                      title: 'Sign in on watch',
+                      title: context.l10n.actionSignIn,
                       icon: Icons.watch_outlined,
                       primary: true,
                       onPressed: () {
@@ -103,7 +104,7 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
                     ),
                     const SizedBox(height: 8),
                     WearBrowseButton(
-                      title: 'Continue on phone',
+                      title: context.l10n.actionContinue,
                       icon: Icons.phone_android_rounded,
                       onPressed: _requestCredentials,
                     ),

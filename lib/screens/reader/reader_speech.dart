@@ -19,7 +19,7 @@ extension _ReaderSpeech on _ReaderState {
 
       if (active && state != null) {
         if (state.error != null && state.error != _lastSpeechError) {
-          _showSnackBar('Speech stopped: ${state.error}');
+          _showSnackBar(context.l10n.errorReaderSpeechAudioUnavailable);
         }
 
         _lastSpeechError = state.error;
@@ -115,7 +115,7 @@ extension _ReaderSpeech on _ReaderState {
       }
 
       if (sentences.isEmpty) {
-        _showSnackBar('No readable text found');
+        _showSnackBar(context.l10n.readerNoReadableText);
         return;
       }
 
@@ -136,9 +136,9 @@ extension _ReaderSpeech on _ReaderState {
         sentences: sentences,
         cover: _api?.getLibraryItemApi().getCoverUri(item.id, item: item),
       );
-    } catch (error) {
+    } catch (_) {
       if (mounted && !_isDisposed && generation == _ttsGeneration) {
-        _showSnackBar('Unable to start speech: $error');
+        _showSnackBar(context.l10n.errorReaderSpeechProviderUnavailable);
       }
     } finally {
       if (generation == _ttsGeneration) {

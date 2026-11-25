@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_epub_annotation_sheet.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('deleting from annotation details returns the delete action', (tester) async {
@@ -9,6 +10,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(
             builder: (context) {

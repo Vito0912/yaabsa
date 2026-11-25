@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LoadingView extends ConsumerWidget {
   const LoadingView({super.key, this.showDownloadsShortcut = true, this.alwaysShowDownloadsShortcut = false});
@@ -30,7 +31,7 @@ class LoadingView extends ConsumerWidget {
                   context.go('/?tab=downloads&intent=downloads');
                 },
                 icon: const Icon(Icons.download_rounded),
-                label: const Text('Open Downloads'),
+                label: Text(context.l10n.actionOpenDownloads),
               ),
             ),
           ),

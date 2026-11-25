@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 abstract final class SettingsBackup {
   static const maxBytes = 5 * 1024 * 1024;
@@ -48,20 +49,20 @@ abstract final class SettingsBackup {
 
   static ({Map<String, String> global, Map<String, Map<String, String>> users}) decode(String source) {
     if (utf8.encode(source).length > maxBytes) {
-      throw const FormatException('The settings backup is too large.');
+      throw FormatException(currentAppLocalizations().errorSettingsBackupTooLarge);
     }
 
     final document = jsonDecode(source);
     if (document is! Map<String, dynamic> || document['format'] != 'yaabsa-settings') {
-      throw const FormatException('Choose a Yaabsa settings backup.');
+      throw FormatException(currentAppLocalizations().errorChooseSettingsBackup);
     }
     if (document['version'] != 1) {
-      throw const FormatException('This settings backup version is not supported.');
+      throw FormatException(currentAppLocalizations().errorSettingsBackupVersion);
     }
 
     final users = document['users'];
     if (users is! Map<String, dynamic> || users.keys.any((id) => id.trim().isEmpty)) {
-      throw const FormatException('The settings backup has an invalid account settings section.');
+      throw FormatException(currentAppLocalizations().errorSettingsBackupAccounts);
     }
 
     return (
@@ -74,7 +75,7 @@ abstract final class SettingsBackup {
 
   static Map<String, String> _decodeSettings(Object? source) {
     if (source is! Map<String, dynamic>) {
-      throw const FormatException('The settings backup is missing a settings section.');
+      throw FormatException(currentAppLocalizations().errorSettingsBackupMissingSection);
     }
 
     final settings = <String, String>{};
@@ -85,7 +86,7 @@ abstract final class SettingsBackup {
 
       final value = entry.value;
       if (value is! String || !_isValidValue(entry.key, value)) {
-        throw FormatException('Invalid value for setting "${entry.key}".');
+        throw FormatException(currentAppLocalizations().errorSettingsBackupInvalidValue);
       }
       settings[entry.key] = value;
     }

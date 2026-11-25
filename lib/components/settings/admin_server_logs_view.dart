@@ -12,6 +12,7 @@ import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerLogsView extends ConsumerStatefulWidget {
   const AdminServerLogsView({super.key});
@@ -72,6 +73,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
   }
 
   Future<void> _initializeForCurrentUser() async {
+    final l10n = context.l10n;
     _detachSocketListener();
 
     setState(() {
@@ -85,10 +87,10 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       final api = ref.read(absApiProvider);
       final currentUser = ref.read(currentUserProvider).value;
       if (api == null) {
-        throw StateError('No active API client.');
+        throw StateError(l10n.errorNoActiveApiClient);
       }
       if (currentUser == null) {
-        throw StateError('No active user.');
+        throw StateError(l10n.errorNoActiveUser);
       }
 
       final loggerResponse = await api.getAdminApi().getLoggerData();
@@ -96,7 +98,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
 
       final resolvedServerLogLevel = authResponse.data?.serverSettings.logLevel;
       if (resolvedServerLogLevel == null) {
-        throw StateError('Server did not return the current log level.');
+        throw StateError(l10n.errorServerLogLevelUnavailable);
       }
 
       final loadedLogs = loggerResponse.data?.currentDailyLogs ?? const <ServerLogEntry>[];
@@ -123,7 +125,8 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
         return;
       }
       setState(() {
-        _errorMessage = 'Failed to load logs: $error';
+        final details = error is StateError ? error.message.toString() : error.toString();
+        _errorMessage = l10n.errorOperationFailed(l10n.operationLoadServerLogs, details);
       });
     } finally {
       if (mounted) {
@@ -193,6 +196,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
   }
 
   Future<void> _updateServerLogLevel(LogLevel nextLogLevel) async {
+    final l10n = context.l10n;
     if (_listenerLogLevel == nextLogLevel || _isUpdatingLogLevel) {
       return;
     }
@@ -205,7 +209,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
     try {
       final api = ref.read(absApiProvider);
       if (api == null) {
-        throw StateError('No active API client.');
+        throw StateError(l10n.errorNoActiveApiClient);
       }
 
       await api.getAdminApi().updateServerSettings(
@@ -226,9 +230,10 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       final serverMessage = responseError is String ? responseError : null;
 
       setState(() {
-        _errorMessage = serverMessage == null || serverMessage.isEmpty
-            ? 'Failed to update server log level: ${error.message ?? error.runtimeType}'
-            : 'Failed to update server log level: $serverMessage';
+        final details = serverMessage == null || serverMessage.isEmpty
+            ? error.message ?? error.runtimeType.toString()
+            : serverMessage;
+        _errorMessage = l10n.errorOperationFailed(l10n.operationUpdateServerLogLevel, details);
       });
     } catch (error) {
       if (!mounted) {
@@ -236,7 +241,8 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       }
 
       setState(() {
-        _errorMessage = 'Failed to update server log level: $error';
+        final details = error is StateError ? error.message.toString() : error.toString();
+        _errorMessage = l10n.errorOperationFailed(l10n.operationUpdateServerLogLevel, details);
       });
     } finally {
       if (mounted) {
@@ -297,24 +303,19 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
           _detachSocketListener();
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to view server logs.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.promptSignInForAdminAccess));
         }
 
         if (!_isAdminType(currentUser.type)) {
           _detachSocketListener();
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -339,17 +340,18 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: YaabsaSearchField(controller: _searchController, label: 'Search logs', isDense: true),
+                    child: YaabsaSearchField(controller: _searchController, label: l10n.fieldSearchLogs, isDense: true),
                   ),
                   const SizedBox(width: 12),
                   SizedBox(
                     width: 170,
                     child: YaabsaExpressiveDropdownField<int>(
                       value: _listenerLogLevel.value,
-                      decoration: const InputDecoration(labelText: 'Server Log Level', isDense: true),
+                      decoration: InputDecoration(labelText: l10n.fieldServerLogLevel, isDense: true),
                       options: LogLevel.values
                           .map(
-                            (level) => YaabsaDropdownOption<int>(value: level.value, label: level.name.toUpperCase()),
+                            (level) =>
+                                YaabsaDropdownOption<int>(value: level.value, label: l10n.logLevelName(level.name)),
                           )
                           .toList(growable: false),
                       onChanged: _isUpdatingLogLevel
@@ -379,7 +381,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                       }
                     },
                   ),
-                  const Text('Auto-scroll'),
+                  Text(l10n.settingLogAutoScroll),
                   const Spacer(),
                   if (_isUpdatingLogLevel)
                     const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
@@ -400,7 +402,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                   child: _isLoading
                       ? const Center(child: YaabsaCircularProgressIndicator())
                       : _visibleLogText.isEmpty
-                      ? const Center(child: Text('No logs found for the current search.'))
+                      ? Center(child: Text(l10n.statusNoLogsMatchSearch))
                       : Scrollbar(
                           controller: _scrollController,
                           child: SingleChildScrollView(
@@ -429,7 +431,10 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          l10n.errorOperationFailed(l10n.operationLoadUser, error.toString()),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

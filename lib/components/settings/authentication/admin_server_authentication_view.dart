@@ -12,6 +12,7 @@ import 'package:yaabsa/components/settings/authentication/admin_authentication_s
 import 'package:yaabsa/components/settings/authentication/admin_authentication_settings_validation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerAuthenticationView extends ConsumerStatefulWidget {
   const AdminServerAuthenticationView({super.key});
@@ -80,28 +81,60 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       return false;
     }
 
+    final l10n = context.l10n;
     final normalizedRedirectUris = AdminAuthenticationSettingsValidation.normalizeRedirectUris(_mobileRedirectUris);
-    return AdminAuthenticationSettingsValidation.validateRequired(_issuerUrlController.text, label: 'Issuer URL') ==
+    return AdminAuthenticationSettingsValidation.validateRequired(
+              _issuerUrlController.text,
+              label: l10n.fieldIssuerUrl,
+              localizations: l10n,
+            ) ==
             null &&
         AdminAuthenticationSettingsValidation.validateRequired(
               _authorizationUrlController.text,
-              label: 'Authorize URL',
+              label: l10n.fieldAuthorizationUrl,
+              localizations: l10n,
             ) ==
             null &&
-        AdminAuthenticationSettingsValidation.validateRequired(_tokenUrlController.text, label: 'Token URL') == null &&
-        AdminAuthenticationSettingsValidation.validateRequired(_userInfoUrlController.text, label: 'Userinfo URL') ==
+        AdminAuthenticationSettingsValidation.validateRequired(
+              _tokenUrlController.text,
+              label: l10n.fieldTokenUrl,
+              localizations: l10n,
+            ) ==
             null &&
-        AdminAuthenticationSettingsValidation.validateRequired(_jwksUrlController.text, label: 'JWKS URL') == null &&
-        AdminAuthenticationSettingsValidation.validateRequired(_clientIdController.text, label: 'Client ID') == null &&
-        AdminAuthenticationSettingsValidation.validateRequired(_clientSecretController.text, label: 'Client Secret') ==
+        AdminAuthenticationSettingsValidation.validateRequired(
+              _userInfoUrlController.text,
+              label: l10n.fieldUserInfoUrl,
+              localizations: l10n,
+            ) ==
+            null &&
+        AdminAuthenticationSettingsValidation.validateRequired(
+              _jwksUrlController.text,
+              label: l10n.fieldJwksUrl,
+              localizations: l10n,
+            ) ==
+            null &&
+        AdminAuthenticationSettingsValidation.validateRequired(
+              _clientIdController.text,
+              label: l10n.fieldClientId,
+              localizations: l10n,
+            ) ==
+            null &&
+        AdminAuthenticationSettingsValidation.validateRequired(
+              _clientSecretController.text,
+              label: l10n.fieldClientSecret,
+              localizations: l10n,
+            ) ==
             null &&
         AdminAuthenticationSettingsValidation.validateRequired(
               _resolveSigningAlgorithmValue(),
-              label: 'Signing algorithm',
+              label: l10n.fieldSigningAlgorithm,
+              localizations: l10n,
             ) ==
             null &&
-        AdminAuthenticationSettingsValidation.validateRedirectUris(normalizedRedirectUris) == null &&
-        AdminAuthenticationSettingsValidation.validateSubfolder(_resolveSubfolderPayloadValue()) == null;
+        AdminAuthenticationSettingsValidation.validateRedirectUris(normalizedRedirectUris, localizations: l10n) ==
+            null &&
+        AdminAuthenticationSettingsValidation.validateSubfolder(_resolveSubfolderPayloadValue(), localizations: l10n) ==
+            null;
   }
 
   bool _isAdminType(String? userType) {
@@ -280,23 +313,25 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
     }
 
     if (!_canDisableLocalAuth) {
-      _showMessage('Configure OpenID first before disabling local authentication.');
+      _showMessage(context.l10n.errorConfigureOpenIdBeforeDisablingLocalAuthentication);
       return;
     }
 
     final shouldDisable = await showDialog<bool>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Disable Local Authentication?'),
-          content: const Text(
-            'If local authentication is disabled and OpenID is misconfigured or broken, access can only be restored '
-            'through a manual database edit. It is highly recommended to keep a backup admin account and local '
-            'authentication enabled.',
-          ),
+          title: Text(dialogContext.l10n.headingDisableLocalAuthentication),
+          content: Text(dialogContext.l10n.confirmDisableLocalAuthentication),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Disable Local Auth')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(dialogContext.l10n.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(dialogContext.l10n.actionDisableLocalAuthentication),
+            ),
           ],
         );
       },
@@ -314,6 +349,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
   }
 
   Future<void> _loadAuthenticationSettings({required bool showLoading}) async {
+    final localizations = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (!mounted) {
@@ -323,7 +359,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       setState(() {
         _isLoading = false;
         _hasLoadedSettings = true;
-        _errorMessage = 'No active API client.';
+        _errorMessage = localizations.errorNoActiveApiClient;
       });
       return;
     }
@@ -401,7 +437,10 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       setState(() {
         _isLoading = false;
         _hasLoadedSettings = true;
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to load authentication settings.');
+        _errorMessage = listManagementErrorMessage(
+          error,
+          fallback: localizations.errorLoadAuthenticationSettingsFailed,
+        );
       });
     }
   }
@@ -411,16 +450,21 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       return;
     }
 
+    final localizations = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rotate Authentication Code key?'),
-        content: const Text(
-          'Authentication Codes created with the previous key will stop working. Existing signed-in accounts are not affected.',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.headingRotateAuthenticationCodeKey),
+        content: Text(dialogContext.l10n.confirmRotateAuthenticationCodeKey),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Rotate key')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(dialogContext.l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(dialogContext.l10n.actionRotateAuthenticationCodeKey),
+          ),
         ],
       ),
     );
@@ -430,7 +474,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(localizations.errorNoActiveApiClient);
       return;
     }
 
@@ -447,7 +491,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
             MagicConfigKeyMarker.extractFromSanitizedHtml(settings?.authLoginCustomMessage),
           );
       if (currentMarker == null) {
-        _showMessage('Authentication Code key is no longer available. Refresh the settings and try again.');
+        _showMessage(localizations.errorAuthenticationCodeKeyUnavailable);
         return;
       }
 
@@ -464,17 +508,20 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
             MagicConfigKeyMarker.extractFromSanitizedHtml(savedSettings?.authLoginCustomMessage),
           );
       if (savedMarker == null || savedMarker.encodedKey != marker.encodedKey) {
-        throw const FormatException('Audiobookshelf did not preserve the new Authentication Code key.');
+        throw FormatException(localizations.errorAuthenticationCodeKeyRotationNotPreserved);
       }
       if (!mounted) {
         return;
       }
-      _showMessage('Authentication Code key rotated. Codes created with the previous key are invalid now.');
+      _showMessage(localizations.statusAuthenticationCodeKeyRotated);
       await _loadAuthenticationSettings(showLoading: false);
     } catch (error) {
       if (mounted) {
         setState(() {
-          _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to rotate Authentication Code key.');
+          _errorMessage = listManagementErrorMessage(
+            error,
+            fallback: localizations.errorRotateAuthenticationCodeKeyFailed,
+          );
         });
       }
     } finally {
@@ -498,6 +545,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
   }
 
   bool _validateSettings({required bool showErrors}) {
+    final l10n = context.l10n;
     String? authMethodsError;
     String? issuerUrlError;
     String? authorizationUrlError;
@@ -513,49 +561,68 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
     String? subfolderError;
 
     if (!_enableLocalAuth && !_enableOpenIdAuth) {
-      authMethodsError = 'Must have at least one authentication method enabled.';
+      authMethodsError = l10n.errorAuthenticationMethodsRequired;
     }
 
     if (_enableOpenIdAuth) {
       issuerUrlError = AdminAuthenticationSettingsValidation.validateRequired(
         _issuerUrlController.text,
-        label: 'Issuer URL',
+        label: l10n.fieldIssuerUrl,
+        localizations: l10n,
       );
       authorizationUrlError = AdminAuthenticationSettingsValidation.validateRequired(
         _authorizationUrlController.text,
-        label: 'Authorize URL',
+        label: l10n.fieldAuthorizationUrl,
+        localizations: l10n,
       );
       tokenUrlError = AdminAuthenticationSettingsValidation.validateRequired(
         _tokenUrlController.text,
-        label: 'Token URL',
+        label: l10n.fieldTokenUrl,
+        localizations: l10n,
       );
       userInfoUrlError = AdminAuthenticationSettingsValidation.validateRequired(
         _userInfoUrlController.text,
-        label: 'Userinfo URL',
+        label: l10n.fieldUserInfoUrl,
+        localizations: l10n,
       );
-      jwksUrlError = AdminAuthenticationSettingsValidation.validateRequired(_jwksUrlController.text, label: 'JWKS URL');
+      jwksUrlError = AdminAuthenticationSettingsValidation.validateRequired(
+        _jwksUrlController.text,
+        label: l10n.fieldJwksUrl,
+        localizations: l10n,
+      );
       clientIdError = AdminAuthenticationSettingsValidation.validateRequired(
         _clientIdController.text,
-        label: 'Client ID',
+        label: l10n.fieldClientId,
+        localizations: l10n,
       );
       clientSecretError = AdminAuthenticationSettingsValidation.validateRequired(
         _clientSecretController.text,
-        label: 'Client Secret',
+        label: l10n.fieldClientSecret,
+        localizations: l10n,
       );
       signingAlgorithmError = AdminAuthenticationSettingsValidation.validateRequired(
         _resolveSigningAlgorithmValue(),
-        label: 'Signing algorithm',
+        label: l10n.fieldSigningAlgorithm,
+        localizations: l10n,
       );
-      redirectUrisError = AdminAuthenticationSettingsValidation.validateRedirectUris(_mobileRedirectUris);
+      redirectUrisError = AdminAuthenticationSettingsValidation.validateRedirectUris(
+        _mobileRedirectUris,
+        localizations: l10n,
+      );
       groupClaimError = AdminAuthenticationSettingsValidation.validateClaim(
         _groupClaimController.text,
-        label: 'Group Claim',
+        label: l10n.fieldGroupClaim,
+        localizations: l10n,
       );
       advancedPermsClaimError = AdminAuthenticationSettingsValidation.validateClaim(
         _advancedPermsClaimController.text,
-        label: 'Advanced Permission Claim',
+        label: l10n.fieldAdvancedPermissionClaim,
+        localizations: l10n,
       );
-      subfolderError = AdminAuthenticationSettingsValidation.validateSubfolder(_resolveSubfolderPayloadValue());
+      subfolderError = AdminAuthenticationSettingsValidation.validateSubfolder(
+        _resolveSubfolderPayloadValue(),
+        localizations: l10n,
+      );
     }
 
     if (showErrors) {
@@ -641,6 +708,8 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       return;
     }
 
+    final localizations = context.l10n;
+
     if (!_validateSettings(showErrors: true)) {
       return;
     }
@@ -649,7 +718,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
     if (api == null) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'No active API client.';
+          _errorMessage = localizations.errorNoActiveApiClient;
         });
       }
       return;
@@ -668,9 +737,9 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       }
 
       if (response.data?.updated ?? false) {
-        _showMessage('Authentication settings saved.');
+        _showMessage(localizations.statusAuthenticationSettingsSaved);
       } else {
-        _showMessage('No updates were necessary.');
+        _showMessage(localizations.statusNoChangesWereNecessary);
       }
 
       await _loadAuthenticationSettings(showLoading: false);
@@ -680,7 +749,10 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to save authentication settings.');
+        _errorMessage = listManagementErrorMessage(
+          error,
+          fallback: localizations.errorSaveAuthenticationSettingsFailed,
+        );
       });
     } finally {
       if (mounted) {
@@ -696,12 +768,14 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       return;
     }
 
+    final localizations = context.l10n;
+
     final normalizedIssuer = AdminAuthenticationSettingsValidation.normalizeIssuerUrlForLookup(
       _issuerUrlController.text,
     );
     if (normalizedIssuer.isEmpty) {
       setState(() {
-        _issuerUrlError = 'Issuer URL is required.';
+        _issuerUrlError = localizations.validationFieldRequired(localizations.fieldIssuerUrl);
       });
       return;
     }
@@ -710,7 +784,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
     if (api == null) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'No active API client.';
+          _errorMessage = localizations.errorNoActiveApiClient;
         });
       }
       return;
@@ -772,14 +846,17 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
         _signingAlgorithmError = null;
       });
 
-      _showMessage('OpenID fields populated from issuer configuration.');
+      _showMessage(localizations.statusOpenIdFieldsPopulated);
     } catch (error) {
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to auto-populate OpenID configuration.');
+        _errorMessage = listManagementErrorMessage(
+          error,
+          fallback: localizations.errorAutoPopulateOpenIdConfigurationFailed,
+        );
       });
     } finally {
       if (mounted) {
@@ -797,16 +874,16 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Text('No active user. Sign in to manage authentication settings.'),
+            child: Text(context.l10n.statusNoActiveUserForAuthenticationSettings),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Text('This page requires an admin account.'),
+            child: Text(context.l10n.statusAdminRequiredForAuthenticationSettings),
           );
         }
 
@@ -853,13 +930,13 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                               ? null
                               : () => unawaited(_loadAuthenticationSettings(showLoading: true)),
                           icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Refresh'),
+                          label: Text(context.l10n.actionRefresh),
                         ),
                         if (_magicConfigKeyMarker != null)
                           OutlinedButton.icon(
                             onPressed: _isLoading || _isSavingSettings ? null : _rotateMagicKey,
                             icon: const Icon(Icons.key_outlined),
-                            label: const Text('Rotate Authentication Code key'),
+                            label: Text(context.l10n.actionRotateAuthenticationCodeKey),
                           ),
                       ],
                     ),
@@ -1001,7 +1078,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                               child: YaabsaCircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.save_outlined),
-                      label: const Text('Save Authentication Settings'),
+                      label: Text(context.l10n.actionSaveAuthenticationSettings),
                     );
 
                     if (stacked) {
@@ -1010,7 +1087,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                         children: [
                           if (_enableOpenIdAuth)
                             Text(
-                              'OpenID changes may require a server restart to fully apply.',
+                              context.l10n.hintOpenIdChangesMayRequireRestart,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
@@ -1025,7 +1102,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                         if (_enableOpenIdAuth)
                           Expanded(
                             child: Text(
-                              'OpenID changes may require a server restart to fully apply.',
+                              context.l10n.hintOpenIdChangesMayRequireRestart,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
@@ -1048,7 +1125,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
         child: Text(
-          'Failed to load user settings: $error',
+          context.l10n.errorLoadUserAuthenticationSettingsFailed(error.toString()),
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
       ),

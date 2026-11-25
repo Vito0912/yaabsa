@@ -5,13 +5,20 @@ import 'package:yaabsa/components/app/library/cue_badge.dart';
 import 'package:yaabsa/components/app/library/explicit_badge.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PodcastAddResultEntry {
-  const PodcastAddResultEntry({required this.id, required this.result, required this.existing});
+  const PodcastAddResultEntry({
+    required this.id,
+    required this.result,
+    required this.existing,
+    required this.untitledLabel,
+  });
 
   final String id;
   final PodcastSearchResult result;
   final LibraryPodcastTitle? existing;
+  final String untitledLabel;
 
   bool get isAlreadyInLibrary => existing != null;
 
@@ -20,7 +27,7 @@ class PodcastAddResultEntry {
   String get title {
     final trimmed = result.title?.trim();
     if (trimmed == null || trimmed.isEmpty) {
-      return 'Untitled podcast';
+      return untitledLabel;
     }
     return trimmed;
   }
@@ -94,7 +101,7 @@ class PodcastAddResultsExpressiveTable extends StatelessWidget {
                 ),
                 if (entry.trackCount != null && entry.trackCount! > 0) ...[
                   const SizedBox(height: 6),
-                  CueBadge(label: '${entry.trackCount} episode'),
+                  CueBadge(label: context.l10n.episodeCount(entry.trackCount!)),
                 ],
                 if (entry.author != null) ...[
                   const SizedBox(height: 6),
@@ -121,7 +128,7 @@ class PodcastAddResultsExpressiveTable extends StatelessWidget {
       return Opacity(
         opacity: _entryOpacity(entry),
         child: Text(
-          'Missing RSS feed URL',
+          context.l10n.statusMissingRssFeedUrl,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
@@ -153,19 +160,19 @@ class PodcastAddResultsExpressiveTable extends StatelessWidget {
       columns: [
         ExpressiveTableColumn<PodcastAddResultEntry>(
           id: 'podcast',
-          label: 'Podcast',
+          label: context.l10n.mediaTypePodcast,
           width: 360,
-          headerTooltip: 'Podcast title and metadata',
+          headerTooltip: context.l10n.hintPodcastTitleAndMetadata,
           tooltipBuilder: (entry) => entry.title,
           cellBuilder: _buildPodcastCell,
           mobileCellBuilder: _buildPodcastCell,
         ),
         ExpressiveTableColumn<PodcastAddResultEntry>(
           id: 'feed',
-          label: 'Feed',
+          label: context.l10n.fieldRssFeed,
           width: 280,
-          headerTooltip: 'RSS feed URL',
-          tooltipBuilder: (entry) => entry.feedUrl ?? 'Missing RSS feed URL',
+          headerTooltip: context.l10n.fieldRssFeedUrl,
+          tooltipBuilder: (entry) => entry.feedUrl ?? context.l10n.statusMissingRssFeedUrl,
           cellBuilder: _buildFeedCell,
           mobileCellBuilder: _buildFeedCell,
         ),
@@ -173,7 +180,7 @@ class PodcastAddResultsExpressiveTable extends StatelessWidget {
       actions: [
         ExpressiveTableAction<PodcastAddResultEntry>(
           icon: Icons.add_rounded,
-          tooltip: 'Add podcast',
+          tooltip: context.l10n.actionAddPodcast,
           tone: ExpressiveTableActionTone.primary,
           iconBuilder: (entry) {
             if (entry.isAlreadyInLibrary) {
@@ -186,22 +193,22 @@ class PodcastAddResultsExpressiveTable extends StatelessWidget {
           },
           tooltipBuilder: (entry) {
             if (entry.isAlreadyInLibrary) {
-              return 'Already in library';
+              return context.l10n.statusAlreadyInLibrary;
             }
             if (!entry.hasFeed) {
-              return 'No RSS feed URL available';
+              return context.l10n.statusMissingRssFeedUrl;
             }
             if (!enabled) {
-              return 'Search in progress';
+              return context.l10n.statusSearching;
             }
-            return 'Add podcast';
+            return context.l10n.actionAddPodcast;
           },
           isEnabled: (entry) => enabled && !entry.isAlreadyInLibrary && entry.hasFeed,
           onPressed: _handleRowTap,
         ),
       ],
-      emptyTitle: 'No podcast search results yet',
-      emptySubtitle: 'Search by title/creator or paste a RSS feed URL to start.',
+      emptyTitle: context.l10n.statusNoPodcastSearchResultsYet,
+      emptySubtitle: context.l10n.hintSearchOrPasteRssFeed,
     );
   }
 }

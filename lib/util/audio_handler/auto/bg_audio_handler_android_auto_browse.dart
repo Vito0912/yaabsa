@@ -14,8 +14,8 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
                 : playbackState.value.processingState,
             errorCode: 1,
             errorMessage: snapshot.remoteContentUnavailable
-                ? 'Unable to connect. Loading after your first sign-in can take some time. Check your server in Settings if this continues.'
-                : 'No audio available yet. The first sign-in may take a little longer. Add audiobooks, podcasts or downloads if this continues.',
+                ? currentAppLocalizations().errorAndroidAutoConnectionRequired
+                : currentAppLocalizations().errorNoContentSignedOut,
           ),
         );
         _aaosScheduleRetry(this);
@@ -38,7 +38,7 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
         id: isAutomotiveSystem
             ? _androidAutoSessionNodeId(this, _androidAutoContinueNodeId)
             : _androidAutoContinueNodeId,
-        title: 'Continue',
+        title: currentAppLocalizations().shelfContinueListening,
         artUri: _androidAutoDrawableIconUri('continue_ic'),
         categoryStyle: true,
       ),
@@ -46,12 +46,16 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
         id: isAutomotiveSystem
             ? _androidAutoSessionNodeId(this, _androidAutoLibrariesNodeId)
             : _androidAutoLibrariesNodeId,
-        title: 'Libraries',
+        title: currentAppLocalizations().navLibraries,
         artUri: _androidAutoDrawableIconUri('apps'),
         categoryStyle: true,
       ),
       if (!isAutomotiveSystem)
-        _androidAutoBrowsableItem(id: _androidAutoDownloadsNodeId, title: 'Downloads', categoryStyle: true),
+        _androidAutoBrowsableItem(
+          id: _androidAutoDownloadsNodeId,
+          title: currentAppLocalizations().navDownloads,
+          categoryStyle: true,
+        ),
     ]);
 
     return items;
@@ -315,10 +319,7 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   }
 
   String _androidAutoCountLabel(int count) {
-    if (count == 1) {
-      return '1 item';
-    }
-    return '$count items';
+    return currentAppLocalizations().itemCount(count);
   }
 
   Uri _androidAutoLibraryTabIconUri(_AndroidAutoLibraryTab tab) {

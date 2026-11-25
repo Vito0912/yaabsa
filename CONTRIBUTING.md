@@ -50,3 +50,18 @@ Please note that you need to add `http://localhost:8080` to the list of allowed 
 Building and packaging for the different platforms is done through GitHub Actions. Sadly, using fastforge was no longer possible because it had known issues that were not fixed for well over a year and, in general, it lacked some features, such as being able to run commands after pubb get, which were needed. Sadly, this means there is no easy way to build it, other than running the scripts respectivley. Always check them before running!
 
 The files used to build and package the application, found in the packaging folders, are still heavily inspired by fastforge though.
+
+## Translations
+
+Translations use Flutter's built-in `gen_l10n` with `.arb` files stored in `l10n/` (`app_en.arb` is the template) and generated code in `lib/l10n/generated/`.
+
+When adding or updating translations:
+- Include `"@@locale"` in every `.arb` file (for example `"@@locale": "en"`).
+- Add a clear `"description"` for every key explaining its meaning and UI context.
+- Define `"type"`, `"description"`, `"example"`, and `"format"` (when applicable) for every placeholder.
+- Use ICU `plural` and `select` syntax inside `.arb` files instead of building singular/plural strings in Dart.
+- Regenerate localization classes after editing `.arb` files:
+
+```bash
+flutter gen-l10n
+```

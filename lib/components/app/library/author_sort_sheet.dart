@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/request/library_author_sort.dart';
 import 'package:yaabsa/features/library/widgets/library_sort_option_sheet.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryAuthorSortSheet extends StatelessWidget {
   const LibraryAuthorSortSheet({super.key, required this.activeSort, required this.activeSortDesc});
@@ -15,7 +16,7 @@ class LibraryAuthorSortSheet extends StatelessWidget {
         LibraryAuthorSortValueX.tryParse(currentSelection.sort) ?? LibraryAuthorSortValue.authorFirstLast;
 
     return LibrarySortOptionSheet<LibraryAuthorSortValue>(
-      title: 'Sort',
+      title: context.l10n.actionSort,
       selectedValue: selectedSort,
       isDescending: currentSelection.isDescending,
       options: libraryAuthorSortOptions

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/features/library/widgets/library_sort_option_sheet.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibrarySortSheet extends StatelessWidget {
   const LibrarySortSheet({
@@ -28,7 +29,7 @@ class LibrarySortSheet extends StatelessWidget {
     final selectedSort = LibrarySortValueX.tryParse(currentSelection.sort) ?? LibrarySortValue.addedAt;
 
     return LibrarySortOptionSheet<LibrarySortValue>(
-      title: 'Sort',
+      title: context.l10n.actionSort,
       selectedValue: selectedSort,
       isDescending: currentSelection.isDescending,
       options: options

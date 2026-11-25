@@ -31,6 +31,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/globals.dart' show audioHandler, isAudioHandlerInitialized;
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/file_formats.dart';
@@ -42,7 +43,7 @@ class NoDownloadableFilesException implements Exception {
   final String itemId;
 
   @override
-  String toString() => 'No downloadable files found for item $itemId.';
+  String toString() => currentAppLocalizations().errorNoDownloadableFiles;
 }
 
 class AutomaticDownloadTasks {
@@ -573,7 +574,7 @@ class DownloadHandler {
     }
 
     if (!requestPermission) {
-      throw Exception('Notifications permission is required. Enable notifications in app settings.');
+      throw Exception(currentAppLocalizations().errorNotificationsPermissionRequired);
     }
 
     if (await _downloader.permissions.shouldShowRationale(permissionType)) {
@@ -589,9 +590,7 @@ class DownloadHandler {
       return;
     }
 
-    throw Exception(
-      'Notifications permission is required for reliable background downloads. Please enable notifications and try again.',
-    );
+    throw Exception(currentAppLocalizations().errorNotificationsPermissionRequired);
   }
 
   Future<void> downloadFile(
@@ -643,15 +642,15 @@ class DownloadHandler {
     bool requestNotificationPermission = true,
   }) async {
     if (kIsWeb || _downloader == null) {
-      throw UnsupportedError('Downloads are not supported on the Web');
+      throw UnsupportedError(currentAppLocalizations().errorDownloadsUnavailableWeb);
     }
     await _initialization;
     final User? user = _ref.read(currentUserProvider).value;
     if (user == null) {
-      throw Exception('No active user found for download request.');
+      throw Exception(currentAppLocalizations().errorUserRequired);
     }
     if (requiredUserId != null && user.id != requiredUserId) {
-      throw StateError('The active user changed before the download could be queued.');
+      throw StateError(currentAppLocalizations().errorDownloadSessionChanged);
     }
 
     if (await hasActiveTask(itemId, episodeId: episodeId)) {
@@ -674,20 +673,24 @@ class DownloadHandler {
     }
 
     if (item == null) {
-      throw Exception('Library item with ID $itemId not found.');
+      throw Exception(currentAppLocalizations().errorDownloadMediaNotFound);
     }
     if (item.hasIssue) {
-      throw StateError('${item.issueLabel}: this item’s files are unavailable on the server.');
+      final issueLabel = item.issueLabel;
+      final message = issueLabel == null || issueLabel.trim().isEmpty
+          ? currentAppLocalizations().errorDownloadMediaUnavailable
+          : currentAppLocalizations().errorDownloadMediaIssue(issueLabel);
+      throw StateError(message);
     }
 
     final resolvedItem = item;
 
     if (resolvedItem.mediaType == 'podcast' && episodeId == null) {
-      throw Exception('Episode ID must be provided for podcast items.');
+      throw Exception(currentAppLocalizations().errorPodcastEpisodeRequired);
     }
 
     if (_ref.read(currentUserProvider).value?.id != user.id) {
-      throw StateError('The active user changed while preparing the download.');
+      throw StateError(currentAppLocalizations().errorDownloadSessionChanged);
     }
 
     final effectiveDownloadType = downloadType ?? _defaultDownloadType(resolvedItem, user.id);
@@ -728,12 +731,12 @@ class DownloadHandler {
 
     final server = user.server;
     if (server == null || server.url.isEmpty) {
-      throw Exception('No server configuration available for downloads.');
+      throw Exception(currentAppLocalizations().errorServerUnavailable);
     }
 
     final authToken = user.preferredAuthToken;
     if (authToken == null || authToken.isEmpty) {
-      throw Exception('No valid authentication token available for downloads.');
+      throw Exception(currentAppLocalizations().errorAuthenticationRequired);
     }
     final requestHeaders = buildRequestHeaders(serverHeaders: server.headers, bearerToken: authToken);
 
@@ -845,29 +848,29 @@ class DownloadHandler {
       _downloader.configureNotificationForGroup(
         resolvedItem.id,
         running: TaskNotification(
-          'Downloading {displayName}',
-          '{progress} ({timeRemaining} - {networkSpeed}) - {filename}',
+          currentAppLocalizations().downloadNotificationRunningTitle('{displayName}'),
+          currentAppLocalizations().downloadNotificationSingleRunningBody(
+            '{progress}',
+            '{timeRemaining}',
+            '{networkSpeed}',
+            '{filename}',
+          ),
         ),
         complete: TaskNotification(
-          'Download Complete',
-          '{displayName} - [{filename}]\n'
-              'All files downloaded successfully.',
+          currentAppLocalizations().statusDownloadComplete,
+          currentAppLocalizations().downloadNotificationCompleteBody('{displayName}', '{filename}'),
         ),
         canceled: TaskNotification(
-          'Download Canceled',
-          '{displayName} - [{filename}]\n'
-              'The download was canceled by the user.',
+          currentAppLocalizations().statusDownloadCanceled,
+          currentAppLocalizations().downloadNotificationCanceledBody('{displayName}', '{filename}'),
         ),
         error: TaskNotification(
-          'Download Failed',
-          '{displayName} - [{filename}]\n'
-              'An error occurred during download.',
+          currentAppLocalizations().statusDownloadFailed,
+          currentAppLocalizations().downloadNotificationFailedBody('{displayName}', '{filename}'),
         ),
         paused: TaskNotification(
-          'Download Paused',
-          '{displayName} - [{filename}]\n'
-              'Progress: {progress} | Speed: {networkSpeed}\n'
-              'Paused at: {progress}',
+          currentAppLocalizations().statusDownloadPaused,
+          currentAppLocalizations().downloadNotificationPausedBody('{displayName}', '{progress}', '{networkSpeed}'),
         ),
         progressBar: true,
         tapOpensFile: false,
@@ -876,28 +879,24 @@ class DownloadHandler {
       _downloader.configureNotificationForGroup(
         resolvedItem.id,
         running: TaskNotification(
-          'Downloading {displayName}',
-          '{numFinished} out of {numTotal} | Progress: {progress}',
+          currentAppLocalizations().downloadNotificationRunningTitle('{displayName}'),
+          currentAppLocalizations().downloadNotificationBatchRunningBody('{numFinished}', '{numTotal}', '{progress}'),
         ),
         complete: TaskNotification(
-          'Download Complete',
-          '{displayName}\n'
-              'All files downloaded successfully.',
+          currentAppLocalizations().statusDownloadComplete,
+          currentAppLocalizations().downloadNotificationBatchCompleteBody('{displayName}'),
         ),
         canceled: TaskNotification(
-          'Download Canceled',
-          '{displayName}\n'
-              'The download was canceled by the user.',
+          currentAppLocalizations().statusDownloadCanceled,
+          currentAppLocalizations().downloadNotificationBatchCanceledBody('{displayName}'),
         ),
         error: TaskNotification(
-          'Download Failed',
-          '{displayName}\n'
-              'An error occurred during download.',
+          currentAppLocalizations().statusDownloadFailed,
+          currentAppLocalizations().downloadNotificationBatchFailedBody('{displayName}'),
         ),
         paused: TaskNotification(
-          'Download Paused',
-          '{displayName}\n'
-              'Progress: {progress}',
+          currentAppLocalizations().statusDownloadPaused,
+          currentAppLocalizations().downloadNotificationBatchPausedBody('{displayName}', '{progress}'),
         ),
         progressBar: true,
         tapOpensFile: false,
@@ -906,7 +905,7 @@ class DownloadHandler {
     }
 
     if (_ref.read(currentUserProvider).value?.id != user.id) {
-      throw StateError('The active user changed before the download could be queued.');
+      throw StateError(currentAppLocalizations().errorDownloadSessionChanged);
     }
 
     Episode? episode;
@@ -943,7 +942,7 @@ class DownloadHandler {
     final queuedTasks = enqueueResults.where((result) => result).length;
     if (queuedTasks == 0) {
       _downloadBatchProgress.remove(batchKey);
-      throw Exception('Could not queue download. Please check your connection and try again.');
+      throw Exception(currentAppLocalizations().errorDownloadQueueUnavailable);
     }
     if (queuedTasks != downloadTasks.length) {
       for (var index = 0; index < enqueueResults.length; index++) {
@@ -959,7 +958,7 @@ class DownloadHandler {
         level: InfoLevel.warning,
       );
       _scheduleTaskQueueRefresh();
-      throw Exception('Could not queue every file in the download. Please try again.');
+      throw Exception(currentAppLocalizations().errorDownloadQueueIncomplete);
     }
 
     _scheduleTaskQueueRefresh();
@@ -1044,7 +1043,7 @@ class DownloadHandler {
     if (current < 0) current = audio.length - 1;
     if (mode == AudioFileDownloadMode.custom) {
       if (fileCount == null || fileCount < 1) {
-        throw ArgumentError.value(fileCount, 'audioFileCount', 'Choose at least one audio file');
+        throw ArgumentError.value(fileCount, 'audioFileCount', currentAppLocalizations().errorAudioFileCountRequired);
       }
       final end = (current + fileCount).clamp(0, audio.length);
       return [...audio.sublist(current, end), ...other.where((source) => source.fileKind == 'ebook')];
@@ -1109,9 +1108,7 @@ class DownloadHandler {
     );
 
     if (preparedFileUri == null) {
-      throw Exception(
-        'Could not prepare the selected Android SAF folder for download. Please re-select the folder and try again.',
-      );
+      throw Exception(currentAppLocalizations().errorSafFolderUnavailable);
     }
 
     final taskJson = Map<String, dynamic>.from(baseTask.toJson())
@@ -1316,7 +1313,7 @@ class DownloadHandler {
   Future<DeleteStoredDownloadResult> deleteDownloadedItem(InternalDownload download, {required String userId}) async {
     final itemId = download.item?.id ?? download.episode?.libraryItemId;
     if (itemId == null) {
-      throw Exception('Cannot delete download because item metadata is unavailable.');
+      throw Exception(currentAppLocalizations().errorDownloadMediaNotFound);
     }
 
     final episodeId = download.episode?.id;

@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ReaderAnnotationTile extends StatelessWidget {
   const ReaderAnnotationTile({
@@ -31,6 +33,20 @@ class ReaderAnnotationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final parsedColor = _parseColor(color);
     final colorScheme = Theme.of(context).colorScheme;
+    final localizations = context.l10n;
+    final localizedType = switch (type) {
+      'Highlight' => localizations.readerAnnotationHighlight,
+      'Underline' => localizations.readerAnnotationUnderline,
+      _ => type,
+    };
+    final title = thickness == null
+        ? localizedType
+        : localizations.readerAnnotationTitleWithThickness(
+            localizedType,
+            localizations.readerUnderlineThicknessPixels(
+              NumberFormat.decimalPattern(Localizations.localeOf(context).toString()).format(thickness!.toInt()),
+            ),
+          );
 
     return ListTile(
       leading: Container(
@@ -46,15 +62,8 @@ class ReaderAnnotationTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
         ),
       ),
-      title: Text(
-        '$type ${thickness != null ? '(${thickness!.toInt()}px)' : ''}',
-        style: TextStyle(color: colorScheme.onSurface),
-      ),
-      subtitle: Text(
-        'CFI: ${cfi.length > 30 ? '${cfi.substring(0, 30)}...' : cfi}',
-        style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
-      ),
-      trailing: YaabsaDeleteIconButton(tooltip: 'Delete annotation', onPressed: onRemove),
+      title: Text(title, style: TextStyle(color: colorScheme.onSurface)),
+      trailing: YaabsaDeleteIconButton(tooltip: localizations.actionDeleteAnnotation, onPressed: onRemove),
     );
   }
 }

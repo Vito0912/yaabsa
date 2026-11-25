@@ -6,12 +6,14 @@ import 'package:yaabsa/components/app/item/match/quick_match_options_dialog.dart
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void> quickMatchSingleItem({
   required BuildContext context,
   required WidgetRef ref,
   required LibraryItem item,
 }) async {
+  final l10n = context.l10n;
   final metadata = item.media?.bookMedia?.metadata;
   final defaultProvider = _resolveLibraryDefaultProvider(ref: ref, libraryId: item.libraryId);
 
@@ -19,8 +21,8 @@ Future<void> quickMatchSingleItem({
     context: context,
     mediaType: 'book',
     previewItems: <LibraryItem>[item],
-    title: 'Quick match this book',
-    confirmLabel: 'Run quick match',
+    title: l10n.headingQuickMatchBook,
+    confirmLabel: l10n.actionRunQuickMatch,
     initialProvider: defaultProvider,
   );
 
@@ -31,7 +33,7 @@ Future<void> quickMatchSingleItem({
   final api = ref.read(absApiProvider);
   if (api == null) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorConnectionUnavailable)));
     }
     return;
   }
@@ -56,10 +58,10 @@ Future<void> quickMatchSingleItem({
     ref.invalidate(libraryItemProvider(item.id));
 
     final message = response.updated
-        ? 'Quick match updated this item.'
+        ? l10n.statusQuickMatchUpdated
         : (response.message?.trim().isNotEmpty ?? false)
         ? response.message!.trim()
-        : 'Quick match finished with no metadata changes.';
+        : l10n.statusQuickMatchNoChanges;
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   } catch (error) {
@@ -67,7 +69,7 @@ Future<void> quickMatchSingleItem({
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not run quick match: $error')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorQuickMatchFailed(error.toString()))));
   }
 }
 

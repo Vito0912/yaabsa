@@ -13,6 +13,7 @@ import 'package:yaabsa/components/player/common/volume_slider.dart';
 import 'package:yaabsa/screens/player/chapter_quick_picker.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/screens/player/queue_quick_picker.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class MobilePlayerActionDock extends ConsumerWidget {
   const MobilePlayerActionDock({
@@ -42,7 +43,7 @@ class MobilePlayerActionDock extends ConsumerWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Show player actions',
+              tooltip: context.l10n.actionMoreActions,
               onPressed: () => _showActionsSheet(context, ref),
               icon: const Icon(Icons.keyboard_arrow_up_rounded),
             ),
@@ -231,7 +232,7 @@ class _MobilePlayerActionsSheet extends StatelessWidget {
                               Icon(action.icon, color: enabled ? null : Theme.of(context).disabledColor),
                               const SizedBox(height: 4),
                               Text(
-                                action.label,
+                                action.label(context.l10n),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,

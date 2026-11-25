@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManualMatchResultsPane extends StatelessWidget {
   const ManualMatchResultsPane({
@@ -25,15 +26,17 @@ class ManualMatchResultsPane extends StatelessWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.manage_search_rounded),
-            title: const Text('Match candidates'),
-            subtitle: Text(results.isEmpty ? 'No results yet' : '${results.length} result(s)'),
+            title: Text(context.l10n.headingMatchCandidates),
+            subtitle: Text(
+              results.isEmpty ? context.l10n.statusNoMatchResultsYet : context.l10n.matchResultCount(results.length),
+            ),
           ),
           const Divider(height: 1),
           Expanded(
             child: searching
                 ? const Center(child: YaabsaCircularProgressIndicator())
                 : results.isEmpty
-                ? const Center(child: Text('Run a search to load metadata match results.'))
+                ? Center(child: Text(context.l10n.hintRunMetadataMatchSearch))
                 : ListView.separated(
                     itemCount: results.length,
                     separatorBuilder: (_, _) => const Divider(height: 1),
@@ -64,9 +67,9 @@ class _ManualMatchResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final identifierLabel = result.asin != null
-        ? 'ASIN: ${result.asin!}'
+        ? context.l10n.matchSearchFieldSummary(context.l10n.fieldAsin, result.asin!)
         : result.isbn != null
-        ? 'ISBN: ${result.isbn!}'
+        ? context.l10n.matchSearchFieldSummary(context.l10n.fieldIsbn, result.isbn!)
         : null;
 
     final providerBadgeColor = selected

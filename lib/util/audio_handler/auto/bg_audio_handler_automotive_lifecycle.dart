@@ -204,7 +204,7 @@ Future<void> _androidAutoPrepareBrowse(BGAudioHandler handler) async {
     if (authenticationState == _AndroidAutoAuthenticationState.initializing) {
       handler._androidAutoBrowseCache.setState(const AndroidAutoBrowseInitializing<AndroidAutoBrowseSnapshot>());
       logger('API not ready', tag: 'AAOSBrowse', level: InfoLevel.debug);
-      throw PlatformException(code: 'browse_not_ready', message: 'Loading your library');
+      throw PlatformException(code: 'browse_not_ready', message: currentAppLocalizations().statusLoadingLibrary);
     }
     if (authenticationState == _AndroidAutoAuthenticationState.authRequired) {
       handler._androidAutoBrowseCache.setState(const AndroidAutoBrowseAuthRequired<AndroidAutoBrowseSnapshot>());
@@ -332,7 +332,7 @@ Future<AndroidAutoBrowseSnapshot> _aaosLoadBrowseSnapshotOnce(BGAudioHandler han
     );
     if (authenticationState == _AndroidAutoAuthenticationState.initializing) {
       logger('API not ready', tag: 'AAOSBrowse', level: InfoLevel.debug);
-      throw PlatformException(code: 'browse_not_ready', message: 'Loading your library');
+      throw PlatformException(code: 'browse_not_ready', message: currentAppLocalizations().statusLoadingLibrary);
     }
     if (authenticationState == _AndroidAutoAuthenticationState.authRequired) {
       handler._androidAutoBrowseCache.setState(const AndroidAutoBrowseAuthRequired<AndroidAutoBrowseSnapshot>());

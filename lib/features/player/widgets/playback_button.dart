@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlaybackButton extends StatelessWidget {
   const PlaybackButton({
@@ -26,7 +27,7 @@ class PlaybackButton extends StatelessWidget {
       final progressSize = iconSize ?? (prominent ? 34 : 26);
 
       return Semantics(
-        label: 'Loading playback',
+        label: context.l10n.playbackSpeedLoading,
         liveRegion: true,
         child: RepaintBoundary(
           child: YaabsaActionIconButton(
@@ -36,7 +37,7 @@ class PlaybackButton extends StatelessWidget {
             buttonSize: size,
             compact: false,
             variant: YaabsaActionButtonVariant.filled,
-            tooltip: 'Loading playback',
+            tooltip: context.l10n.playbackSpeedLoading,
             onPressed: null,
           ),
         ),
@@ -49,7 +50,7 @@ class PlaybackButton extends StatelessWidget {
       buttonSize: buttonSize ?? (prominent ? 68 : 48),
       compact: false,
       variant: YaabsaActionButtonVariant.filled,
-      tooltip: isPlaying ? 'Pause' : 'Play',
+      tooltip: isPlaying ? context.l10n.playbackPause : context.l10n.playbackPlay,
       onPressed: onPressed,
     );
   }

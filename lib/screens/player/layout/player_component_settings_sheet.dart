@@ -1,8 +1,10 @@
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerComponentSettingsSheet extends StatefulWidget {
   const PlayerComponentSettingsSheet({
@@ -30,6 +32,11 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
   }
 
   PlayerComponentPlacement get _placement => _profile.placementFor(widget.componentType);
+
+  String _formatSettingDecimal(BuildContext context, double value) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 1).format(value);
+  }
 
   void _setProfile(PlayerLayoutProfile nextProfile) {
     setState(() {
@@ -78,11 +85,14 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('${widget.componentType.label} settings', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                context.l10n.headingNamedSettings(widget.componentType.label(context.l10n)),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 10),
               SettingsSwitchPresentation(
                 value: placement.cardStyle,
-                label: 'Use card style',
+                label: context.l10n.settingUseCardStyle,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 onChanged: (bool value) {
                   _updatePlacement(placement.copyWith(cardStyle: value));
@@ -96,13 +106,15 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Text('Scale ${scale.toStringAsFixed(2)}x'),
+                      Text(
+                        context.l10n.metadataFieldValue(context.l10n.fieldScale, context.l10n.settingScaleValue(scale)),
+                      ),
                       Slider(
                         value: scale,
                         min: 0.6,
                         max: maxScale,
                         divisions: ((maxScale - 0.6) * 20).round(),
-                        label: '${scale.toStringAsFixed(2)}x',
+                        label: context.l10n.settingScaleValue(scale),
                         onChanged: (double value) {
                           _updatePlacement(placement.copyWith(scale: value));
                         },
@@ -115,7 +127,7 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 10),
                 SettingsSwitchPresentation(
                   value: placement.showAuthor,
-                  label: 'Show author',
+                  label: context.l10n.settingShowField(context.l10n.fieldAuthor),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showAuthor: value));
@@ -123,7 +135,7 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 ),
                 SettingsSwitchPresentation(
                   value: placement.showNarrator,
-                  label: 'Show narrator',
+                  label: context.l10n.settingShowField(context.l10n.fieldNarrator),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showNarrator: value));
@@ -131,7 +143,7 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 ),
                 SettingsSwitchPresentation(
                   value: placement.showSeries,
-                  label: 'Show series',
+                  label: context.l10n.settingShowField(context.l10n.navSeries),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showSeries: value));
@@ -140,9 +152,12 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 8),
                 YaabsaExpressiveDropdownField<PlayerMetadataTextAlign>(
                   value: placement.textAlign,
-                  decoration: const InputDecoration(labelText: 'Text alignment'),
+                  decoration: InputDecoration(labelText: context.l10n.fieldTextAlignment),
                   options: PlayerMetadataTextAlign.values
-                      .map((mode) => YaabsaDropdownOption<PlayerMetadataTextAlign>(value: mode, label: mode.label))
+                      .map(
+                        (mode) =>
+                            YaabsaDropdownOption<PlayerMetadataTextAlign>(value: mode, label: mode.label(context.l10n)),
+                      )
                       .toList(growable: false),
                   onChanged: (PlayerMetadataTextAlign? mode) {
                     if (mode == null) {
@@ -152,13 +167,18 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   },
                 ),
                 const SizedBox(height: 10),
-                Text('Font scale ${placement.mediaInfoFontScale.toStringAsFixed(2)}x'),
+                Text(
+                  context.l10n.metadataFieldValue(
+                    context.l10n.fieldFontScale,
+                    context.l10n.settingScaleValue(placement.mediaInfoFontScale),
+                  ),
+                ),
                 Slider(
                   value: placement.mediaInfoFontScale.clamp(0.75, 1.6),
                   min: 0.75,
                   max: 1.6,
                   divisions: 17,
-                  label: '${placement.mediaInfoFontScale.toStringAsFixed(2)}x',
+                  label: context.l10n.settingScaleValue(placement.mediaInfoFontScale),
                   onChanged: (double value) {
                     _updatePlacement(placement.copyWith(mediaInfoFontScale: value));
                   },
@@ -168,9 +188,12 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 10),
                 YaabsaExpressiveDropdownField<PlayerCoverFitMode>(
                   value: placement.coverFitMode,
-                  decoration: const InputDecoration(labelText: 'Cover fit mode'),
+                  decoration: InputDecoration(labelText: context.l10n.fieldCoverFitMode),
                   options: PlayerCoverFitMode.values
-                      .map((mode) => YaabsaDropdownOption<PlayerCoverFitMode>(value: mode, label: mode.label))
+                      .map(
+                        (mode) =>
+                            YaabsaDropdownOption<PlayerCoverFitMode>(value: mode, label: mode.label(context.l10n)),
+                      )
                       .toList(growable: false),
                   onChanged: (PlayerCoverFitMode? mode) {
                     if (mode == null) {
@@ -184,9 +207,12 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 10),
                 YaabsaExpressiveDropdownField<PlayerSeekTimePlacement>(
                   value: placement.seekTimePlacement,
-                  decoration: const InputDecoration(labelText: 'Time labels position'),
+                  decoration: InputDecoration(labelText: context.l10n.fieldTimeLabelsPosition),
                   options: PlayerSeekTimePlacement.values
-                      .map((mode) => YaabsaDropdownOption<PlayerSeekTimePlacement>(value: mode, label: mode.label))
+                      .map(
+                        (mode) =>
+                            YaabsaDropdownOption<PlayerSeekTimePlacement>(value: mode, label: mode.label(context.l10n)),
+                      )
                       .toList(growable: false),
                   onChanged: (PlayerSeekTimePlacement? mode) {
                     if (mode == null) {
@@ -196,24 +222,34 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   },
                 ),
                 const SizedBox(height: 10),
-                Text('Seek bar height ${placement.seekTrackHeight.toStringAsFixed(1)}'),
+                Text(
+                  context.l10n.metadataFieldValue(
+                    context.l10n.fieldSeekBarHeight,
+                    _formatSettingDecimal(context, placement.seekTrackHeight),
+                  ),
+                ),
                 Slider(
                   value: placement.seekTrackHeight.clamp(4.0, 20.0),
                   min: 4.0,
                   max: 20.0,
                   divisions: 16,
-                  label: placement.seekTrackHeight.toStringAsFixed(1),
+                  label: _formatSettingDecimal(context, placement.seekTrackHeight),
                   onChanged: (double value) {
                     _updatePlacement(placement.copyWith(seekTrackHeight: value));
                   },
                 ),
-                Text('Time font size ${placement.seekTimeLabelFontSize.toStringAsFixed(1)}'),
+                Text(
+                  context.l10n.metadataFieldValue(
+                    context.l10n.fieldTimeFontSize,
+                    _formatSettingDecimal(context, placement.seekTimeLabelFontSize),
+                  ),
+                ),
                 Slider(
                   value: placement.seekTimeLabelFontSize.clamp(8.0, 22.0),
                   min: 8.0,
                   max: 22.0,
                   divisions: 14,
-                  label: placement.seekTimeLabelFontSize.toStringAsFixed(1),
+                  label: _formatSettingDecimal(context, placement.seekTimeLabelFontSize),
                   onChanged: (double value) {
                     _updatePlacement(placement.copyWith(seekTimeLabelFontSize: value));
                   },
@@ -224,9 +260,14 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 10),
                 YaabsaExpressiveDropdownField<PlayerCollectionEmptyMode>(
                   value: placement.emptyMode,
-                  decoration: const InputDecoration(labelText: 'When this component has no data'),
+                  decoration: InputDecoration(labelText: context.l10n.fieldEmptyState),
                   options: PlayerCollectionEmptyMode.values
-                      .map((mode) => YaabsaDropdownOption<PlayerCollectionEmptyMode>(value: mode, label: mode.label))
+                      .map(
+                        (mode) => YaabsaDropdownOption<PlayerCollectionEmptyMode>(
+                          value: mode,
+                          label: mode.label(context.l10n),
+                        ),
+                      )
                       .toList(growable: false),
                   onChanged: (PlayerCollectionEmptyMode? mode) {
                     if (mode == null) {
@@ -246,18 +287,18 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
-                      title: Text(utility.label),
-                      subtitle: Text(enabled ? 'Visible' : 'Hidden'),
+                      title: Text(utility.label(context.l10n)),
+                      subtitle: Text(enabled ? context.l10n.statusVisible : context.l10n.optionHidden),
                       trailing: Wrap(
                         spacing: 2,
                         children: <Widget>[
                           IconButton(
-                            tooltip: 'Move up',
+                            tooltip: context.l10n.actionMoveDirection(context.l10n.directionUp),
                             onPressed: index > 0 ? () => _moveUtility(index, -1) : null,
                             icon: const Icon(Icons.arrow_upward_rounded),
                           ),
                           IconButton(
-                            tooltip: 'Move down',
+                            tooltip: context.l10n.actionMoveDirection(context.l10n.directionDown),
                             onPressed: index < _profile.utilityOrder.length - 1 ? () => _moveUtility(index, 1) : null,
                             icon: const Icon(Icons.arrow_downward_rounded),
                           ),

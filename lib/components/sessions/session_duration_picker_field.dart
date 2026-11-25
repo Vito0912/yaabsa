@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/field_decoration.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<int?> showSessionDurationPickerDialog(
   BuildContext context, {
@@ -117,7 +118,7 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
               alignment: WrapAlignment.center,
               children: [
                 _DurationStepper(
-                  label: 'Hours',
+                  label: context.l10n.fieldHours,
                   width: stepperWidth,
                   value: _hours,
                   onDecrement: _hours > 0
@@ -134,7 +135,7 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
                   },
                 ),
                 _DurationStepper(
-                  label: 'Minutes',
+                  label: context.l10n.fieldMinutes,
                   width: stepperWidth,
                   value: _minutes,
                   padLeft: true,
@@ -150,7 +151,7 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
                   },
                 ),
                 _DurationStepper(
-                  label: 'Seconds',
+                  label: context.l10n.fieldSeconds,
                   width: stepperWidth,
                   value: _seconds,
                   padLeft: true,
@@ -171,13 +172,13 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
         FilledButton(
           onPressed: () {
             final totalSeconds = (_hours * 3600) + (_minutes * 60) + _seconds;
             Navigator.of(context).pop(totalSeconds);
           },
-          child: const Text('Set'),
+          child: Text(context.l10n.actionSet),
         ),
       ],
     );

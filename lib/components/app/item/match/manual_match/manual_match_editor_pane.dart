@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_field_editor.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManualMatchEditorPane extends StatelessWidget {
   const ManualMatchEditorPane({
@@ -47,7 +48,7 @@ class ManualMatchEditorPane extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Text(
-              'Select a match result to choose which metadata fields to apply.',
+              context.l10n.hintSelectManualMatchResult,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -60,9 +61,9 @@ class ManualMatchEditorPane extends StatelessWidget {
       margin: EdgeInsets.zero,
       child: Column(
         children: [
-          const ListTile(
-            leading: Icon(Icons.edit_note_rounded),
-            title: Text('Apply fields'),
+          ListTile(
+            leading: const Icon(Icons.edit_note_rounded),
+            title: Text(context.l10n.headingApplyMatchedFields),
             dense: true,
             contentPadding: EdgeInsets.symmetric(horizontal: 12),
           ),
@@ -70,7 +71,7 @@ class ManualMatchEditorPane extends StatelessWidget {
           CheckboxListTile(
             value: allFieldsSelected,
             onChanged: saving ? null : (value) => onToggleAll(value ?? false),
-            title: const Text('Select all available fields'),
+            title: Text(context.l10n.actionSelectAll),
             controlAffinity: ListTileControlAffinity.leading,
             dense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 12),

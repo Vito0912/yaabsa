@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SleepTimerCustomInput extends StatelessWidget {
   const SleepTimerCustomInput({
@@ -47,13 +48,12 @@ class SleepTimerCustomInput extends StatelessWidget {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: onChanged,
               onSubmitted: (_) => onSet(),
-              label: chapterMode ? 'Number of chapters' : 'Minutes',
+              label: chapterMode ? context.l10n.fieldChapterCount : context.l10n.fieldMinutes,
               hintText: chapterMode ? '1' : null,
-              suffixText: chapterMode ? 'chapters' : 'min',
             ),
           ),
           const SizedBox(width: 12),
-          YaabsaButton(onPressed: onSet, icon: const Icon(Icons.bedtime), label: const Text('Set')),
+          YaabsaButton(onPressed: onSet, icon: const Icon(Icons.bedtime), label: Text(context.l10n.actionSet)),
         ],
       ),
     );

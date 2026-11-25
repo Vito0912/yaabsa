@@ -7,6 +7,7 @@ import 'package:yaabsa/components/common/library_item_delete_dialog.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void removeLibraryItemsLocally(WidgetRef ref, Iterable<LibraryItem> removedItems) {
   for (final removedItem in removedItems) {
@@ -53,7 +54,7 @@ Future<bool> deleteAudiobookWithConfirmation({
 }) async {
   if (!isAudiobookLibraryItem(item)) {
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Only audiobooks can be deleted from this action.')));
+        .showSnackBar(SnackBar(content: Text(context.l10n.errorOnlyAudiobooksCanBeDeletedHere)));
     return false;
   }
 
@@ -79,9 +80,9 @@ Future<bool> deleteAudiobookWithConfirmation({
       }
     },
     successMessage: hardDelete
-        ? 'Deleted "${item.title}" from Audiobookshelf and file system.'
-        : 'Deleted "${item.title}" from Audiobookshelf.',
-    errorFallback: 'Could not delete audiobook.',
+        ? context.l10n.statusAudiobookDeletedFromServerAndFileSystem(item.title)
+        : context.l10n.statusAudiobookDeletedFromServer(item.title),
+    errorFallback: context.l10n.errorDeleteAudiobookFailed,
     popOnSuccess: popOnSuccess,
     onSuccess: () {
       didDelete = true;
@@ -103,9 +104,8 @@ Future<bool> deleteAudiobooksInBulkWithConfirmation({
   final deletableItems = collectUniqueDeletableAudiobooks(selectedItems);
 
   if (deletableItems.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No selected audiobooks can be deleted. Select audiobook items and try again.')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.l10n.errorNoSelectedAudiobooksCanBeDeleted)));
     return false;
   }
 
@@ -138,9 +138,9 @@ Future<bool> deleteAudiobooksInBulkWithConfirmation({
       }
     },
     successMessage: hardDelete
-        ? 'Deleted ${deleteIds.length} audiobook(s) from Audiobookshelf and file system.'
-        : 'Deleted ${deleteIds.length} audiobook(s) from Audiobookshelf.',
-    errorFallback: 'Could not delete selected audiobooks.',
+        ? context.l10n.statusSelectedAudiobooksDeletedFromServerAndFileSystem(deleteIds.length)
+        : context.l10n.statusSelectedAudiobooksDeletedFromServer(deleteIds.length),
+    errorFallback: context.l10n.errorDeleteSelectedAudiobooksFailed,
     onSuccess: () {
       didDelete = true;
       removeLibraryItemsLocally(ref, deletableItems);

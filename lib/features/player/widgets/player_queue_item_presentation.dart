@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerQueueItemPresentation extends StatelessWidget {
   const PlayerQueueItemPresentation({
@@ -46,7 +47,7 @@ class PlayerQueueItemPresentation extends StatelessWidget {
               iconSize: 24,
               buttonSize: 48,
               compact: false,
-              tooltip: 'Remove from queue',
+              tooltip: context.l10n.actionRemoveFromQueue,
               onPressed: onRemove,
             ),
           ],

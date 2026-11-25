@@ -4,6 +4,7 @@ import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
 import 'package:yaabsa/features/statistics/widgets/statistics_components.dart';
 import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class StatsSummaryGrid extends StatelessWidget {
   const StatsSummaryGrid({super.key, required this.stats, this.referenceDate});
@@ -40,28 +41,44 @@ class StatsSummaryGrid extends StatelessWidget {
       metrics: [
         StatsMetric(
           icon: Icons.headphones_rounded,
-          label: 'Total listening',
+          label: context.l10n.fieldTotalListening,
           value: formatListeningSeconds(totalTime),
           emphasized: true,
         ),
         StatsMetric(
           icon: Icons.today_rounded,
-          label: 'Today',
+          label: context.l10n.dateToday,
           value: formatListeningSeconds(stats.today),
           emphasized: true,
         ),
-        StatsMetric(icon: Icons.library_books_rounded, label: 'Items listened', value: '${items.length}'),
-        StatsMetric(icon: Icons.menu_book_rounded, label: 'Audiobooks', value: formatListeningSeconds(bookListening)),
-        StatsMetric(icon: Icons.podcasts_rounded, label: 'Podcasts', value: formatListeningSeconds(podcastListening)),
-        StatsMetric(icon: Icons.event_available_rounded, label: 'Active days', value: '$activeDays'),
+        StatsMetric(
+          icon: Icons.library_books_rounded,
+          label: context.l10n.fieldItemsListened,
+          value: formatNumber(items.length),
+        ),
+        StatsMetric(
+          icon: Icons.menu_book_rounded,
+          label: context.l10n.mediaTypeAudiobooks,
+          value: formatListeningSeconds(bookListening),
+        ),
+        StatsMetric(
+          icon: Icons.podcasts_rounded,
+          label: context.l10n.mediaTypePodcasts,
+          value: formatListeningSeconds(podcastListening),
+        ),
+        StatsMetric(
+          icon: Icons.event_available_rounded,
+          label: context.l10n.fieldActiveDays,
+          value: context.l10n.dayCount(activeDays),
+        ),
         StatsMetric(
           icon: Icons.local_fire_department_rounded,
-          label: 'Listening streak',
-          value: '$listeningStreak days',
+          label: context.l10n.fieldCurrentStreak,
+          value: context.l10n.dayCount(listeningStreak),
         ),
         StatsMetric(
           icon: Icons.av_timer_rounded,
-          label: 'Average active day',
+          label: context.l10n.fieldAverageActiveDay,
           value: formatListeningSeconds(averagePerActiveDay),
         ),
       ],

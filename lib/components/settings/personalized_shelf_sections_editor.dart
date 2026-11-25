@@ -7,6 +7,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/personalized_shelf_preferences.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PersonalizedShelfSectionsEditor extends ConsumerStatefulWidget {
   const PersonalizedShelfSectionsEditor({super.key, required this.userId, required this.mediaType});
@@ -23,8 +24,6 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
 
   String get _settingKey => PersonalizedShelfPreferencesCodec.settingKeyFor(widget.mediaType);
 
-  String get _title => '${widget.mediaType.label} libraries';
-
   Future<void> _persistPreferences(
     PersonalizedShelfPreferences preferences, {
     String? successMessage,
@@ -34,6 +33,7 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
       return;
     }
 
+    final l10n = context.l10n;
     setState(() => _isSaving = true);
 
     try {
@@ -59,7 +59,9 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update $_title: $error')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorOperationFailed(l10n.operationSaveSettings, error.toString()))));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -95,9 +97,11 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
 
   Future<void> _resetToDefaults() async {
     final defaults = PersonalizedShelfPreferencesCodec.defaultsFor(widget.mediaType);
+    final l10n = context.l10n;
+    final title = l10n.headingPersonalizedShelfPreferences(widget.mediaType.name);
     await _persistPreferences(
       defaults,
-      successMessage: 'Reset $_title to defaults.',
+      successMessage: l10n.statusPreferencesReset(title),
       clearPinnedLibraries: defaults.hiddenSectionIds.contains(PersonalizedShelfSection.pinned.id),
     );
   }
@@ -127,6 +131,7 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
 
   @override
   Widget build(BuildContext context) {
+    final title = context.l10n.headingPersonalizedShelfPreferences(widget.mediaType.name);
     final appDatabase = ref.watch(appDatabaseProvider);
     final fallbackRawValue = ref
         .read(settingsManagerProvider.notifier)
@@ -139,7 +144,7 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SettingsEditorHeader(title: _title, topPadding: 20, onReset: _isSaving ? null : _resetToDefaults),
+        SettingsEditorHeader(title: title, topPadding: 20, onReset: _isSaving ? null : _resetToDefaults),
         StreamBuilder<UserSettingEntry?>(
           stream: appDatabase.watchUserSetting(widget.userId, _settingKey),
           builder: (context, snapshot) {

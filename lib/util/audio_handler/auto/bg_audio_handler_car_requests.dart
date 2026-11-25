@@ -27,7 +27,10 @@ Future<T> _carBrowseRequest<T>(
             .invokeMethod<int>('getCarConnectionType');
 
         if (type != 2) {
-          throw PlatformException(code: 'car_disconnected', message: 'Connect to Android Auto to browse.');
+          throw PlatformException(
+            code: 'car_disconnected',
+            message: currentAppLocalizations().errorAndroidAutoConnectionRequired,
+          );
         }
       }
 

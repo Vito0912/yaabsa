@@ -14,6 +14,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum _MetadataTermType { tag, genre }
 
@@ -62,6 +63,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   }
 
   Future<void> _loadMetadataUtilsData() async {
+    final l10n = context.l10n;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -70,7 +72,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
     try {
       final api = ref.read(absApiProvider);
       if (api == null) {
-        throw StateError('No active API client.');
+        throw StateError(l10n.errorNoActiveApiClient);
       }
 
       final adminApi = api.getAdminApi();
@@ -94,7 +96,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
       }
 
       setState(() {
-        _errorMessage = 'Failed to load item metadata utilities: $error';
+        _errorMessage = l10n.errorOperationFailed(l10n.operationLoadMetadataUtilities, error.toString());
       });
     } finally {
       if (mounted) {
@@ -108,7 +110,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   Future<void> _refreshTags() async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No active API client.');
+      throw StateError(context.l10n.errorNoActiveApiClient);
     }
 
     final response = await api.getAdminApi().getTags();
@@ -124,7 +126,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   Future<void> _refreshGenres() async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No active API client.');
+      throw StateError(context.l10n.errorNoActiveApiClient);
     }
 
     final response = await api.getAdminApi().getGenres();
@@ -140,7 +142,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   Future<void> _refreshProviders() async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No active API client.');
+      throw StateError(context.l10n.errorNoActiveApiClient);
     }
 
     final response = await api.getAdminApi().getCustomMetadataProviders();
@@ -160,7 +162,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   }) async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No active API client.');
+      throw StateError(context.l10n.errorNoActiveApiClient);
     }
 
     final adminApi = api.getAdminApi();
@@ -180,7 +182,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   Future<MetadataTermUpdateResponse> _deleteTerm({required _MetadataTermType termType, required String term}) async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No active API client.');
+      throw StateError(context.l10n.errorNoActiveApiClient);
     }
 
     final adminApi = api.getAdminApi();
@@ -198,9 +200,10 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   }
 
   Future<CustomMetadataProvider?> _createProvider(CreateCustomMetadataProviderRequest payload) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No active API client.');
+      throw StateError(l10n.errorNoActiveApiClient);
     }
 
     final response = await api.getAdminApi().createCustomMetadataProvider(payload: payload);
@@ -210,14 +213,15 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
   }
 
   Future<void> _deleteProvider(CustomMetadataProvider provider) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No active API client.');
+      throw StateError(l10n.errorNoActiveApiClient);
     }
 
     final deleted = await api.getAdminApi().deleteCustomMetadataProvider(provider.id);
     if (!deleted) {
-      throw Exception('Delete request failed.');
+      throw Exception(l10n.errorDeleteCustomMetadataProviderFailed);
     }
 
     await _refreshProviders();
@@ -225,22 +229,17 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage item metadata utilities.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.promptSignInForAdminAccess));
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -290,11 +289,11 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const TabBar(
+                      TabBar(
                         tabs: [
-                          Tab(text: 'Manage Tags'),
-                          Tab(text: 'Manage Genres'),
-                          Tab(text: 'Custom Metadata Providers'),
+                          Tab(text: l10n.fieldTags),
+                          Tab(text: l10n.fieldGenres),
+                          Tab(text: l10n.headingCustomMetadataProviders),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -303,7 +302,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
                           children: [
                             AdminMetadataTermManager(
                               entityLabel: 'tag',
-                              emptyMessage: 'No tags found.',
+                              emptyMessage: l10n.statusNoTagsFound,
                               items: _tags,
                               onRefresh: _refreshTags,
                               onRename: (currentTerm, newTerm) => _renameTerm(
@@ -321,7 +320,7 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
                             ),
                             AdminMetadataTermManager(
                               entityLabel: 'genre',
-                              emptyMessage: 'No genres found.',
+                              emptyMessage: l10n.statusNoGenresFound,
                               items: _genres,
                               onRefresh: _refreshGenres,
                               onRename: (currentTerm, newTerm) => _renameTerm(
@@ -360,7 +359,10 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          l10n.errorOperationFailed(l10n.operationLoadUser, error.toString()),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }
@@ -384,7 +386,7 @@ class _MetadataUtilsErrorCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: () => unawaited(onRetry()), child: const Text('Retry')),
+            TextButton(onPressed: () => unawaited(onRetry()), child: Text(context.l10n.actionRetry)),
           ],
         ),
       ),

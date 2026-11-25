@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminBackupSettingsPanel extends StatelessWidget {
   const AdminBackupSettingsPanel({
@@ -66,10 +67,11 @@ class AdminBackupSettingsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final canEditBackupPath = !backupPathEnvSet;
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return ExpressiveExpandableCard(
-      title: 'Backup Configuration',
-      subtitle: 'Storage path, schedule, and retention',
+      title: l10n.headingBackupConfiguration,
+      subtitle: l10n.messageBackupConfiguration,
       icon: Icons.tune_rounded,
       initiallyExpanded: false,
       onExpansionChanged: onConfigurationExpandedChanged,
@@ -79,13 +81,13 @@ class AdminBackupSettingsPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  backupLocation.trim().isEmpty ? 'Backup location unavailable.' : backupLocation,
+                  backupLocation.trim().isEmpty ? l10n.statusBackupLocationUnavailable : backupLocation,
                   style: theme.textTheme.bodyMedium,
                   softWrap: true,
                 ),
               ),
               IconButton(
-                tooltip: canEditBackupPath ? 'Edit backup location' : 'Backup location locked',
+                tooltip: canEditBackupPath ? l10n.actionEdit : l10n.statusBackupLocationEnvironmentManaged,
                 onPressed: canEditBackupPath ? onTogglePathEditing : null,
                 icon: const Icon(Icons.edit_outlined),
               ),
@@ -93,7 +95,7 @@ class AdminBackupSettingsPanel extends StatelessWidget {
           ),
         ] else ...[
           StyledTextField(
-            label: 'Backup location path',
+            label: l10n.fieldBackupLocationPath,
             controller: backupPathController,
             enabled: canEditBackupPath && !isSavingBackupPath,
             hintText: '/metadata/backups',
@@ -108,17 +110,20 @@ class AdminBackupSettingsPanel extends StatelessWidget {
                 icon: isSavingBackupPath
                     ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.save_outlined),
-                label: const Text('Save Path'),
+                label: Text(l10n.actionSave),
               ),
               const SizedBox(width: 8),
-              OutlinedButton(onPressed: isSavingBackupPath ? null : onCancelPathEditing, child: const Text('Cancel')),
+              OutlinedButton(
+                onPressed: isSavingBackupPath ? null : onCancelPathEditing,
+                child: Text(l10n.actionCancel),
+              ),
             ],
           ),
         ],
         const SizedBox(height: 8),
         YaabsaSwitchTile.adaptive(
           contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-          title: const Text('Enable automatic backups'),
+          title: Text(l10n.settingAutomaticBackupsEnabled),
           value: enableAutomaticBackups,
           onChanged: isUpdatingSettings ? null : onAutomaticBackupsChanged,
         ),
@@ -126,7 +131,7 @@ class AdminBackupSettingsPanel extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: StyledTextField(
-              label: 'Cron expression',
+              label: l10n.fieldCronExpression,
               controller: cronExpressionController,
               enabled: !isUpdatingSettings,
               hintText: '30 1 * * *',
@@ -138,7 +143,7 @@ class AdminBackupSettingsPanel extends StatelessWidget {
           builder: (context, constraints) {
             final stacked = constraints.maxWidth < 520;
             final backupsToKeepField = StyledTextField(
-              label: 'Backups to keep',
+              label: l10n.fieldBackupsToKeep,
               controller: backupsToKeepController,
               enabled: !isUpdatingSettings,
               keyboardType: TextInputType.number,
@@ -148,14 +153,14 @@ class AdminBackupSettingsPanel extends StatelessWidget {
               onChanged: onBackupsToKeepChanged,
             );
             final maxBackupSizeField = StyledTextField(
-              label: 'Max backup size (GB)',
+              label: l10n.fieldMaximumBackupSize(l10n.byteUnitGigabytes),
               controller: maxBackupSizeController,
               enabled: !isUpdatingSettings,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               errorText: maxBackupSizeError,
               hintText: '1',
-              helperText: 'Use 0 for unlimited size.',
+              helperText: l10n.messageZeroBackupSizeUnlimited,
               onChanged: onMaxBackupSizeChanged,
             );
 
@@ -184,7 +189,7 @@ class AdminBackupSettingsPanel extends StatelessWidget {
             icon: isUpdatingSettings
                 ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.save_outlined),
-            label: const Text('Save Backup Settings'),
+            label: Text(l10n.actionSave),
           ),
         ),
       ],

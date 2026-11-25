@@ -1,8 +1,10 @@
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/wear/wear_preferences_provider.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearItemProgress extends ConsumerWidget {
   const WearItemProgress({required this.itemId, this.episodeId, super.key});
@@ -24,7 +26,10 @@ class WearItemProgress extends ConsumerWidget {
     }
 
     final value = progress.isFinished ? 1.0 : progress.progress.clamp(0.0, 1.0);
-    final label = progress.isFinished ? 'Finished' : '${(value * 100).floor()}%';
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final percentFormat = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
+    final visibleProgress = (value * 100).floor() / 100;
+    final label = progress.isFinished ? context.l10n.statusFinished : percentFormat.format(visibleProgress);
     return Row(
       children: [
         Expanded(

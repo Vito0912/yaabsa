@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum PlayerLayoutMode {
   adaptive,
@@ -27,9 +28,9 @@ enum PlayerAdaptivePreset {
   full,
   minimalistic;
 
-  String get label => switch (this) {
-    PlayerAdaptivePreset.full => 'Full',
-    PlayerAdaptivePreset.minimalistic => 'Minimalistic',
+  String label(AppLocalizations l10n) => switch (this) {
+    PlayerAdaptivePreset.full => l10n.sizeFull,
+    PlayerAdaptivePreset.minimalistic => l10n.optionMinimalistic,
   };
 
   static PlayerAdaptivePreset fromSettingValue(String? value) {
@@ -46,10 +47,10 @@ enum PlayerCoverSize {
   compact,
   large;
 
-  String get label => switch (this) {
-    PlayerCoverSize.automatic => 'Automatic',
-    PlayerCoverSize.compact => 'Compact',
-    PlayerCoverSize.large => 'Large',
+  String label(AppLocalizations l10n) => switch (this) {
+    PlayerCoverSize.automatic => l10n.optionAutomatic,
+    PlayerCoverSize.compact => l10n.sizeCompact,
+    PlayerCoverSize.large => l10n.sizeLarge,
   };
 
   static PlayerCoverSize fromSettingValue(String? value) {
@@ -71,10 +72,10 @@ enum PlayerTransportMode {
   skip,
   both;
 
-  String get label => switch (this) {
-    PlayerTransportMode.jump => 'Jump',
-    PlayerTransportMode.skip => 'Skip',
-    PlayerTransportMode.both => 'Jump and skip',
+  String label(AppLocalizations l10n) => switch (this) {
+    PlayerTransportMode.jump => l10n.actionJump,
+    PlayerTransportMode.skip => l10n.actionSkip,
+    PlayerTransportMode.both => l10n.actionJumpAndSkip,
   };
 
   static PlayerTransportMode fromSettingValue(
@@ -93,13 +94,13 @@ enum PlayerActionType {
   sleepTimer,
   queue;
 
-  String get label => switch (this) {
-    PlayerActionType.speed => 'Playback speed',
-    PlayerActionType.bookmarks => 'Bookmarks',
-    PlayerActionType.chapter => 'Chapters',
-    PlayerActionType.volume => 'Volume',
-    PlayerActionType.sleepTimer => 'Sleep timer',
-    PlayerActionType.queue => 'Queue',
+  String label(AppLocalizations l10n) => switch (this) {
+    PlayerActionType.speed => l10n.playbackSpeed,
+    PlayerActionType.bookmarks => l10n.navBookmarks,
+    PlayerActionType.chapter => l10n.navChapters,
+    PlayerActionType.volume => l10n.fieldVolume,
+    PlayerActionType.sleepTimer => l10n.playbackSleepTimer,
+    PlayerActionType.queue => l10n.headingQueue,
   };
 
   IconData get icon => switch (this) {

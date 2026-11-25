@@ -5,6 +5,7 @@ import 'package:yaabsa/api/library/library_author.dart';
 import 'package:yaabsa/util/byte_format.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryViewSubtitle {
   const LibraryViewSubtitle._(this.parts);
@@ -189,7 +190,7 @@ LibraryViewSubtitlePart? _libraryItemFieldValue(LibraryItem item, LibraryViewSub
           item.media?.bookMedia?.audioFiles?.length ??
           item.media?.podcastMedia?.numEpisodes ??
           item.media?.podcastMedia?.episodes?.length,
-      singular: item.media?.podcastMedia == null ? 'track' : 'episode',
+      unit: item.media?.podcastMedia == null ? 'track' : 'episode',
     ),
     LibraryViewSubtitleField.addedAt => _formatDate(item.addedAt),
     LibraryViewSubtitleField.publishedYear => _nonEmpty(item.media?.bookMedia?.metadata.publishedYear),
@@ -206,7 +207,7 @@ LibraryViewSubtitlePart? _libraryItemFieldValue(LibraryItem item, LibraryViewSub
 
 LibraryViewSubtitlePart? _seriesFieldValue(Series series, LibraryViewSubtitleField field) {
   final rawValue = switch (field) {
-    LibraryViewSubtitleField.numBooks => _formatCount(_seriesBookCount(series), singular: 'book'),
+    LibraryViewSubtitleField.numBooks => _formatCount(_seriesBookCount(series), unit: 'book'),
     LibraryViewSubtitleField.totalDuration => _formatDuration(_seriesDuration(series)),
     LibraryViewSubtitleField.addedAt => _formatDate(series.addedAt),
     _ => null,
@@ -257,7 +258,7 @@ double? _seriesDuration(Series series) {
 
 LibraryViewSubtitlePart? _authorFieldValue(LibraryAuthor author, LibraryViewSubtitleField field) {
   final rawValue = switch (field) {
-    LibraryViewSubtitleField.numBooks => _formatCount(author.numBooks, singular: 'book'),
+    LibraryViewSubtitleField.numBooks => _formatCount(author.numBooks, unit: 'book'),
     LibraryViewSubtitleField.addedAt => _formatDate(author.addedAt),
     LibraryViewSubtitleField.updatedAt => _formatDate(author.updatedAt),
     _ => null,
@@ -309,12 +310,18 @@ LibraryViewSubtitle? _joinValues(Iterable<LibraryViewSubtitlePart?> values) {
   return LibraryViewSubtitle._fromSortedParts(inlineParts, standaloneParts);
 }
 
-String? _formatCount(int? value, {required String singular}) {
+String? _formatCount(int? value, {required String unit}) {
   if (value == null || value < 0) {
     return null;
   }
 
-  return _keepNumberAndUnitTogether('$value ${value == 1 ? singular : '${singular}s'}');
+  final l10n = currentAppLocalizations();
+  return switch (unit) {
+    'book' => l10n.bookCount(value),
+    'track' => l10n.trackCount(value),
+    'episode' => l10n.episodeCount(value),
+    _ => null,
+  };
 }
 
 String? _formatSize(int? bytes) {
@@ -322,7 +329,7 @@ String? _formatSize(int? bytes) {
     return null;
   }
 
-  return _keepNumberAndUnitTogether(formatByteSize(bytes));
+  return formatByteSize(bytes);
 }
 
 String? _formatDuration(double? seconds) {
@@ -330,7 +337,7 @@ String? _formatDuration(double? seconds) {
     return null;
   }
 
-  return _keepNumberAndUnitTogether(formatDurationLong(Duration(seconds: seconds.round())));
+  return formatDurationLong(Duration(seconds: seconds.round()));
 }
 
 String? _formatDate(int? milliseconds) {
@@ -345,7 +352,7 @@ final Map<String, DateFormat> _dateFormatterCache = <String, DateFormat>{};
 
 DateFormat _dateFormatter() {
   final locale = Intl.getCurrentLocale();
-  return _dateFormatterCache.putIfAbsent(locale, DateFormat.yMMMd);
+  return _dateFormatterCache.putIfAbsent(locale, () => DateFormat.yMMMd(locale));
 }
 
 double? _libraryItemDuration(LibraryItem item) {
@@ -366,8 +373,4 @@ double? _libraryItemDuration(LibraryItem item) {
 String? _nonEmpty(String? value) {
   final normalized = value?.trim();
   return normalized == null || normalized.isEmpty ? null : normalized;
-}
-
-String _keepNumberAndUnitTogether(String value) {
-  return value.replaceAllMapped(RegExp(r'(\d)\s+(?=[A-Za-z])'), (match) => '${match.group(1)}\u00a0');
 }

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
@@ -7,14 +8,14 @@ void showPlayerBookmarksSheet(BuildContext context) {
   final messenger = ScaffoldMessenger.of(context);
 
   if (audioHandler.isReaderNarration) {
-    messenger.showSnackBar(const SnackBar(content: Text('Use the reader to bookmark a passage')));
+    messenger.showSnackBar(SnackBar(content: Text(context.l10n.playerBookmarkInReader)));
     return;
   }
 
   final media = audioHandler.currentMediaItem;
 
   if (media == null) {
-    messenger.showSnackBar(const SnackBar(content: Text('No active media to bookmark.')));
+    messenger.showSnackBar(SnackBar(content: Text(context.l10n.playerNoMediaToBookmark)));
     return;
   }
 
@@ -41,7 +42,7 @@ class BookmarksButton extends StatelessWidget {
       buttonSize: 48,
       compact: false,
       enabled: !isReaderNarration,
-      tooltip: isReaderNarration ? 'Use reader bookmarks' : 'Bookmarks',
+      tooltip: isReaderNarration ? context.l10n.playerBookmarkInReader : context.l10n.navBookmarks,
       onPressed: isReaderNarration ? null : () => showPlayerBookmarksSheet(context),
     );
   }

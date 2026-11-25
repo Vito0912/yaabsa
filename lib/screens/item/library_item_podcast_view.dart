@@ -43,6 +43,7 @@ import 'package:yaabsa/util/random_playback.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemPodcastView extends ConsumerStatefulWidget {
   const LibraryItemPodcastView({super.key, required this.item, required this.canDownload, this.initialEpisodeId});
@@ -228,7 +229,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     final podcastMedia = widget.item.media?.podcastMedia;
     if (podcastMedia == null) {
-      return const Center(child: Text('Podcast metadata is unavailable.'));
+      return Center(child: Text(context.l10n.statusPodcastMetadataUnavailable));
     }
 
     final allEpisodes = podcastMedia.episodes ?? const <Episode>[];
@@ -295,7 +296,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
             showPinnedShelfSnackBar(context: context, undo: undo);
           } catch (error) {
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not update Pinned: $error')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorUpdatePinned)));
             }
           }
           return;
@@ -649,11 +650,9 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                           ),
                                           if (visibleEpisodes.isEmpty) ...[
                                             const Divider(height: 1),
-                                            const Padding(
-                                              padding: EdgeInsets.all(24),
-                                              child: Center(
-                                                child: Text('No episodes match the current search/filter settings.'),
-                                              ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(24),
+                                              child: Center(child: Text(context.l10n.statusNoSearchMatches)),
                                             ),
                                           ],
                                         ],
@@ -818,9 +817,9 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                             showPinnedShelfSnackBar(context: context, undo: undo);
                                           } catch (error) {
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Could not update Pinned: $error')),
-                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(SnackBar(content: Text(context.l10n.errorUpdatePinned)));
                                             }
                                           }
                                           return;
@@ -832,7 +831,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                             PlayHistoryView.location(
                                               itemId: widget.item.id,
                                               episodeId: episode.id,
-                                              itemTitle: podcastEpisodeTitle(episode),
+                                              itemTitle: podcastEpisodeTitle(episode) ?? context.l10n.untitledEpisode,
                                             ),
                                           );
                                           return;
@@ -868,8 +867,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     final feedUrl = widget.item.media?.podcastMedia?.metadata.feedUrl?.trim();
     if (feedUrl == null || feedUrl.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('This podcast does not have an RSS feed URL.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastFeedUrlMissing)));
       return;
     }
 
@@ -886,11 +884,11 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
       final response = await api.getPodcastApi().getPodcastFeed(rssFeed: feedUrl);
       feed = response.data?.podcast;
-    } catch (e) {
+    } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not load podcast feed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastFeedLoad)));
       return;
     } finally {
       if (mounted) {
@@ -908,8 +906,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         .where((episode) => (episode.enclosure?.url ?? '').trim().isNotEmpty)
         .toList(growable: false);
     if (feedEpisodes.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('No downloadable episodes were found in the RSS feed.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusNoDownloadableEpisodes)));
       return;
     }
 
@@ -936,7 +933,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     try {
       final started = await runWithLoadingSnackBar<bool>(
         context: context,
-        message: 'Queuing episode downloads...',
+        message: context.l10n.statusQueuingEpisodeDownloads,
         action: () => api.getPodcastApi().downloadPodcastEpisodes(libraryItemId: widget.item.id, episodes: episodes),
       );
       if (!mounted) {
@@ -944,22 +941,17 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       }
 
       if (started) {
-        final count = episodes.length;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(count == 1 ? 'Started downloading 1 episode.' : 'Started downloading $count episodes.'),
-          ),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.statusPodcastEpisodesStarted(episodes.length))));
         ref.invalidate(libraryItemProvider(widget.item.id));
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Could not queue podcast episodes for download.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorDownloadQueueUnavailable)));
       }
-    } catch (e) {
+    } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not queue podcast episodes: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorDownloadQueueUnavailable)));
     }
   }
 
@@ -1014,12 +1006,12 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download added to queue.')));
-    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusDownloadQueued)));
+    } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorDownloadStartFailed)));
     }
   }
 
@@ -1037,20 +1029,20 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     try {
       final result = await runWithLoadingSnackBar(
         context: context,
-        message: 'Deleting downloaded files...',
+        message: context.l10n.statusDeletingDownloadedFiles,
         action: () => downloadHandler.deleteDownloadedItem(download, userId: userId),
       );
       if (!mounted) {
         return;
       }
-      final failedSuffix = result.failedFiles > 0 ? ' ${result.failedFiles} file(s) could not be removed.' : '';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')));
-    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.downloadFilesDeleteSummary(result.deletedFiles, result.failedFiles))),
+      );
+    } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorDeleteDownload)));
     }
   }
 
@@ -1090,7 +1082,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
             return true;
           }
 
-          final title = podcastEpisodeTitle(episode).toLowerCase();
+          final title = podcastEpisodeTitle(episode)?.toLowerCase() ?? '';
           return title.contains(normalizedQuery);
         })
         .toList(growable: true);
@@ -1143,9 +1135,13 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       case PodcastEpisodeSortMode.oldestFirst:
         return _episodeTimestamp(left).compareTo(_episodeTimestamp(right));
       case PodcastEpisodeSortMode.titleAsc:
-        return podcastEpisodeTitle(left).toLowerCase().compareTo(podcastEpisodeTitle(right).toLowerCase());
+        final leftTitle = podcastEpisodeTitle(left) ?? '';
+        final rightTitle = podcastEpisodeTitle(right) ?? '';
+        return leftTitle.toLowerCase().compareTo(rightTitle.toLowerCase());
       case PodcastEpisodeSortMode.titleDesc:
-        return podcastEpisodeTitle(right).toLowerCase().compareTo(podcastEpisodeTitle(left).toLowerCase());
+        final rightTitle = podcastEpisodeTitle(right) ?? '';
+        final leftTitle = podcastEpisodeTitle(left) ?? '';
+        return rightTitle.toLowerCase().compareTo(leftTitle.toLowerCase());
     }
   }
 
@@ -1162,14 +1158,14 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Download Episodes'),
+          title: Text(dialogContext.l10n.headingDownloadEpisodes),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.play_circle_outline_rounded),
-                title: const Text('Download not started episodes'),
-                subtitle: Text('${notStartedEpisodes.length} episodes'),
+                title: Text(dialogContext.l10n.actionDownloadNotStartedEpisodes),
+                subtitle: Text(dialogContext.l10n.episodeCount(notStartedEpisodes.length)),
                 enabled: notStartedEpisodes.isNotEmpty,
                 onTap: () {
                   Navigator.pop(dialogContext);
@@ -1178,8 +1174,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
               ),
               ListTile(
                 leading: const Icon(Icons.hourglass_empty_rounded),
-                title: const Text('Download unfinished episodes'),
-                subtitle: Text('${unfinishedEpisodes.length} episodes'),
+                title: Text(dialogContext.l10n.actionDownloadUnfinishedEpisodes),
+                subtitle: Text(dialogContext.l10n.episodeCount(unfinishedEpisodes.length)),
                 enabled: unfinishedEpisodes.isNotEmpty,
                 onTap: () {
                   Navigator.pop(dialogContext);
@@ -1190,8 +1186,11 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.cancel_outlined, color: Colors.red),
-                  title: const Text('Cancel active downloads', style: TextStyle(color: Colors.red)),
-                  subtitle: Text('${activePodcastTasks.length} downloads active'),
+                  title: Text(
+                    dialogContext.l10n.actionCancelActiveDownloads,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  subtitle: Text(dialogContext.l10n.statusActiveDownloadCount(activePodcastTasks.length)),
                   onTap: () {
                     Navigator.pop(dialogContext);
                     _cancelActiveDownloads(activePodcastTasks);
@@ -1200,14 +1199,18 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
               ],
             ],
           ),
-          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel'))],
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(dialogContext.l10n.actionCancel)),
+          ],
         );
       },
     );
   }
 
   Future<void> _downloadEpisodesList(List<Episode> episodes) async {
-    if (episodes.isEmpty) return;
+    if (episodes.isEmpty) {
+      return;
+    }
     var count = 0;
     for (final episode in episodes) {
       try {
@@ -1218,8 +1221,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       }
     }
     if (mounted) {
-      final message = count == 1 ? '1 download added to queue.' : '$count downloads added to queue.';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusDownloadsQueued(count))));
     }
   }
 
@@ -1232,7 +1234,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       }
     }
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cancelled $count ongoing download(s).')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusDownloadsCanceled(count))));
     }
   }
 
@@ -1255,8 +1257,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     if (episodesToDownload.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No new episodes to download in selection.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusNoNewSelectedEpisodes)));
       }
       setState(() {
         _selectionMode = false;

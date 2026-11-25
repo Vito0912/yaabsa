@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   group('player presentation settings', () {
@@ -70,6 +71,8 @@ Future<AdaptivePlayerLayout> _resolveForSize(WidgetTester tester, Size size) asy
   AdaptivePlayerLayout? resolved;
   await tester.pumpWidget(
     MaterialApp(
+      localizationsDelegates: yaabsaLocalizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: LayoutBuilder(
         builder: (context, constraints) {
           resolved = resolveAdaptivePlayerLayout(context, constraints);

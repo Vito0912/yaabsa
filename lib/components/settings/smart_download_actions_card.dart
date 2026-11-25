@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/settings/settings_button.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SmartDownloadActionsCard extends ConsumerStatefulWidget {
   const SmartDownloadActionsCard({super.key, required this.userId, required this.isBusy});
@@ -29,6 +30,8 @@ class _SmartDownloadActionsCardState extends ConsumerState<SmartDownloadActionsC
       return;
     }
 
+    final localizations = context.l10n;
+
     setState(() {
       _isCleaning = true;
     });
@@ -38,11 +41,11 @@ class _SmartDownloadActionsCardState extends ConsumerState<SmartDownloadActionsC
       final deleted = await manager.deleteListenedManagedDownloads(userId: widget.userId);
 
       final message = deleted == 0
-          ? 'No listened smart downloads were ready to delete.'
-          : 'Deleted $deleted listened smart download${deleted == 1 ? '' : 's'}';
+          ? localizations.statusNoListenedDownloadsToDelete
+          : localizations.statusDeletedListenedDownloads(deleted);
       _showMessage(message);
     } catch (error) {
-      _showMessage('Failed to delete listened smart downloads: $error');
+      _showMessage(localizations.errorDeleteListenedDownloadsFailed(error.toString()));
     } finally {
       if (mounted) {
         setState(() {
@@ -59,8 +62,8 @@ class _SmartDownloadActionsCardState extends ConsumerState<SmartDownloadActionsC
       child: Column(
         children: [
           SettingButton(
-            label: 'Delete listened items now',
-            buttonText: 'Delete',
+            label: context.l10n.actionDeleteListenedDownloads,
+            buttonText: context.l10n.actionDelete,
             buttonIcon: Icons.delete_sweep_outlined,
             isDestructive: true,
             isLoading: _isCleaning,

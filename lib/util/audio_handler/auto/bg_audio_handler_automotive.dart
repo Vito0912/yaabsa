@@ -349,7 +349,10 @@ Future<List<MediaItem>> _aaosAllItemsPage(
   return [
     ...handler._androidAutoMediaItemsFromLibraryItems(items, subtitlePrefix: ''),
     if (!paging.hasExplicitPaging && page.hasMore && page.items.isNotEmpty && page.page == paging.page)
-      handler._androidAutoBrowsableItem(id: _CarBrowsePage(libraryId, kind, page.page + 1).id, title: 'More'),
+      handler._androidAutoBrowsableItem(
+        id: _CarBrowsePage(libraryId, kind, page.page + 1).id,
+        title: currentAppLocalizations().actionMore,
+      ),
   ];
 }
 
@@ -368,7 +371,10 @@ Future<List<MediaItem>> _aaosSeriesPage(
       ),
     ),
     if (!paging.hasExplicitPaging && page.hasMore && page.series.isNotEmpty && page.page == paging.page)
-      handler._androidAutoBrowsableItem(id: _CarBrowsePage(libraryId, 'series', page.page + 1).id, title: 'More'),
+      handler._androidAutoBrowsableItem(
+        id: _CarBrowsePage(libraryId, 'series', page.page + 1).id,
+        title: currentAppLocalizations().actionMore,
+      ),
   ];
 }
 
@@ -395,7 +401,7 @@ Future<List<MediaItem>> _aaosLibraryTabNodes(BGAudioHandler handler, String libr
           rethrow;
         }
 
-        subtitle = 'Unable to load. Try again.';
+        subtitle = currentAppLocalizations().statusUnableToLoadRetry;
       }
 
       return handler._androidAutoBrowsableItem(

@@ -11,6 +11,7 @@ import 'package:yaabsa/screens/settings/player/player_settings_smart_rewind.dart
 import 'package:yaabsa/screens/settings/player/player_settings_subtitles.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/device_capabilities.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerSettings extends StatelessWidget {
   const PlayerSettings({super.key});
@@ -22,64 +23,64 @@ class PlayerSettings extends StatelessWidget {
     final supportsShakeActions = DeviceCapabilities.supportsShakeActions;
 
     return SettingsPageScaffold(
-      title: 'Player Settings',
+      title: context.l10n.settingsPlayerSettings,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         SettingsNavigationSection(
-          title: 'Playback',
+          title: context.l10n.playbackTitle,
           topPadding: 0,
           items: [
             SettingsNavigationItem(
               icon: Icons.tune_rounded,
-              title: 'General',
-              subtitle: 'Timeline mode, seek intervals, and auto queue behavior',
+              title: context.l10n.settingsCategoryGeneral,
+              subtitle: context.l10n.messagePlayerGeneralSettings,
               onTap: () => context.push(PlayerSettingsGeneral.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.replay_rounded,
-              title: 'Smart rewind',
-              subtitle: 'Control how much playback rewinds after pauses',
+              title: context.l10n.settingSmartRewind,
+              subtitle: context.l10n.messageSmartRewindSettings,
               onTap: () => context.push(PlayerSettingsSmartRewind.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.bedtime_outlined,
-              title: 'Sleep timer',
-              subtitle: 'Choose timer end behavior and optional automatic restart',
+              title: context.l10n.playbackSleepTimer,
+              subtitle: context.l10n.messageSleepTimerSettings,
               onTap: () => context.push(PlayerSettingsSleepTimer.routeName),
             ),
             if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
               SettingsNavigationItem(
                 icon: Icons.equalizer_rounded,
-                title: 'Equalizer',
-                subtitle: 'Adjust audio frequency bands',
+                title: context.l10n.navEqualizer,
+                subtitle: context.l10n.messageEqualizerSettings,
                 onTap: () => context.push(PlayerSettingsEqualizer.routeName),
               ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Accessibility & Device',
+          title: context.l10n.settingsCategoryAccessibilityDevice,
           items: [
             SettingsNavigationItem(
               icon: Icons.subtitles_outlined,
-              title: 'Subtitles',
-              subtitle: 'Enable subtitles and reading support behavior',
+              title: context.l10n.playerComponentSubtitles,
+              subtitle: context.l10n.messageSubtitleSettings,
               onTap: () => context.push(PlayerSettingsSubtitles.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.vibration_rounded,
-              title: 'Shake controls',
+              title: context.l10n.settingsCategoryShakeControls,
               subtitle: supportsShakeActions
-                  ? 'Configure shake gestures and sensitivity'
-                  : 'Available on devices with motion sensors',
-              disabledReason: supportsShakeActions ? null : 'This device does not support shake controls',
+                  ? context.l10n.messageShakeControlsSettings
+                  : context.l10n.statusMotionSensorsRequired,
+              disabledReason: supportsShakeActions ? null : context.l10n.statusShakeControlsUnavailable,
               enabled: supportsShakeActions,
               onTap: supportsShakeActions ? () => context.push(PlayerSettingsShakeControls.routeName) : null,
             ),
             if (PlayerSettingsCompatibility.isSupported)
               SettingsNavigationItem(
                 icon: Icons.build_outlined,
-                title: 'Compatibility',
+                title: context.l10n.settingsCategoryCompatibility,
                 onTap: () => context.push(PlayerSettingsCompatibility.routeName),
               ),
           ],

@@ -3,18 +3,20 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void showPinnedShelfSnackBar({required BuildContext context, required PinnedShelfUndo undo}) {
   final messenger = ScaffoldMessenger.of(context);
   final providerContainer = ProviderScope.containerOf(context, listen: false);
+  final localizations = context.l10n;
   messenger.clearSnackBars();
   messenger.removeCurrentSnackBar();
   final snackBarController = messenger.showSnackBar(
     SnackBar(
       duration: const Duration(seconds: 3),
-      content: Text(undo.wasPinned ? 'Removed from Pinned' : 'Added to Pinned'),
+      content: Text(undo.wasPinned ? localizations.statusPinnedShelfRemoved : localizations.statusPinnedShelfAdded),
       action: SnackBarAction(
-        label: 'Undo',
+        label: localizations.actionUndo,
         onPressed: () {
           unawaited(_undoPinnedShelfChange(context: context, providerContainer: providerContainer, undo: undo));
         },
@@ -36,7 +38,8 @@ Future<void> _undoPinnedShelfChange({
     providerContainer.invalidate(pinnedShelfItemsProvider);
   } catch (error) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not undo Pinned change: $error')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.errorUndoPinnedShelfChangeFailed(error.toString()))));
     }
   }
 }

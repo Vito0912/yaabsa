@@ -11,6 +11,7 @@ import 'package:yaabsa/screens/settings/library_view_subtitle_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/app_update_checker.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -29,16 +30,16 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
     final currentUser = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Library Settings',
+      title: context.l10n.headingLibrarySettings,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         currentUser.when(
           data: (user) {
             if (user == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('Sign in to configure library settings'),
+                child: Text(context.l10n.promptSignInToManageSettings),
               );
             }
 
@@ -46,68 +47,67 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SettingsNavigationSection(
-                  title: 'Library',
+                  title: context.l10n.navLibrary,
                   topPadding: 8,
                   items: [
                     SettingsNavigationItem(
                       icon: Icons.view_carousel_outlined,
-                      title: 'Shelf Sections',
-                      subtitle: 'Choose which shelf sections are visible and their order',
+                      title: context.l10n.settingShelfSections,
+                      subtitle: context.l10n.settingShelfSectionsDescription,
                       onTap: () => context.push(LibraryShelfSettings.routeName),
                     ),
                     SettingsNavigationItem(
                       icon: Icons.sort_rounded,
-                      title: 'Reorder & Configure Libraries',
+                      title: context.l10n.navLibraries,
                       onTap: () => context.push(LibraryOrderSettings.routeName),
                     ),
                     SettingsNavigationItem(
                       icon: Icons.subtitles_outlined,
-                      title: 'View Subtitles',
-                      subtitle: 'Configure details that are shown for items, series and authors as a subtitle',
+                      title: context.l10n.settingViewSubtitles,
+                      subtitle: context.l10n.settingViewSubtitlesDescription,
                       onTap: () => context.push(LibraryViewSubtitleSettings.routeName),
                     ),
                   ],
                   settings: [
                     SettingSlider<double>(
-                      label: 'Library Grid Scale',
-                      description: 'Scales library item cards in all grid views',
+                      label: context.l10n.settingLibraryGridScale,
+                      description: context.l10n.settingLibraryGridScaleDescription,
                       values: appLibraryGridScaleOptions,
                       valueLabels: appLibraryGridScaleLabels,
                       settingKey: SettingKeys.libraryGridScale,
                     ),
                     SettingSwitchTile(
-                      label: 'Collapse Series',
+                      label: context.l10n.settingCollapseSeries,
                       settingKey: SettingKeys.collapseSeries,
                       userId: user.id,
                     ),
-                    const SettingSwitchTile(
-                      label: 'Refresh Progress on Resume',
+                    SettingSwitchTile(
+                      label: context.l10n.settingRefreshProgressOnResume,
                       settingKey: SettingKeys.refreshProgressOnAppResume,
-                      subtitle:
-                          'Updates book and episode progress from the server when the app returns to the foreground',
-                    ),
-                    const SettingSwitchTile(
-                      label: 'Show Shelf Play Button',
-                      settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
-                      subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves',
+                      subtitle: context.l10n.settingRefreshProgressOnResumeDescription,
                     ),
                     SettingSwitchTile(
-                      label: 'Show Shuffle Button',
+                      label: context.l10n.settingShowShelfPlayButton,
+                      settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
+                      subtitle: context.l10n.settingShowShelfPlayButtonDescription,
+                    ),
+                    SettingSwitchTile(
+                      label: context.l10n.settingShowShuffleButton,
                       settingKey: SettingKeys.showShuffleButton,
                       userId: user.id,
-                      subtitle: 'Adds a shuffle button to collections, playlists, and podcasts',
+                      subtitle: context.l10n.settingShowShuffleButtonDescription,
                     ),
                     if (isAppUpdateCheckEligible)
-                      const SettingSwitchTile(
-                        label: 'Check for app updates',
+                      SettingSwitchTile(
+                        label: context.l10n.settingCheckForAppUpdates,
                         settingKey: appUpdateSettingKey,
                         defaultValue: false,
-                        subtitle: 'Check GitHub for newer YAABSA releases on app start. Enabling this contacts GitHub.',
+                        subtitle: context.l10n.settingCheckForAppUpdatesDescription,
                       ),
-                    const SettingSwitchTile(
-                      label: 'Check Server Updates',
+                    SettingSwitchTile(
+                      label: context.l10n.settingCheckServerUpdates,
                       settingKey: SettingKeys.checkForServerUpdates,
-                      subtitle: 'Checks for ABS updates via GitHub',
+                      subtitle: context.l10n.settingCheckServerUpdatesDescription,
                     ),
                   ],
                 ),
@@ -118,8 +118,10 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
             padding: EdgeInsets.all(16),
             child: Center(child: YaabsaCircularProgressIndicator()),
           ),
-          error: (error, _) =>
-              Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString())),
+          ),
         ),
       ],
     );

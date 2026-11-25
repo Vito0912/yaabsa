@@ -1,5 +1,6 @@
 // ignore_for_file: use_null_aware_elements
 
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -40,11 +41,11 @@ class AuthorsView extends HookConsumerWidget {
     ref.watch(userSettingsWatcherProvider);
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Authors are available only for book libraries.'));
+      return Center(child: Text(context.l10n.errorBookLibrariesOnly));
     }
 
     final libraryId = selectedLibrary.id;
@@ -113,9 +114,9 @@ class AuthorsView extends HookConsumerWidget {
                               controller: scrollController,
                               physics: const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                              children: const [
-                                SizedBox(height: 80),
-                                Center(child: Text('No authors found in this library.')),
+                              children: [
+                                const SizedBox(height: 80),
+                                Center(child: Text(context.l10n.statusNoAuthorsInLibrary)),
                               ],
                             ),
                           )
@@ -183,7 +184,7 @@ class AuthorsView extends HookConsumerWidget {
 
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Error loading authors',
+          title: context.l10n.errorLoadingNamedContent(context.l10n.navAuthors),
           onRetry: () async {
             ref.invalidate(authorsProvider);
             await ref.read(authorsProvider.future);
@@ -215,7 +216,7 @@ class _AuthorsToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sortButtonLabel = 'Sort: ${_truncateLabel(sortLabel)}';
+    final sortButtonLabel = context.l10n.actionSortBy(_truncateLabel(sortLabel));
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),

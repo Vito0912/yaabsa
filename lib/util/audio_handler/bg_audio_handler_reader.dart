@@ -110,7 +110,7 @@ extension _BGAudioHandlerReader on BGAudioHandler {
         episodeId: null,
         sessionId: 'epub:${DateTime.now().microsecondsSinceEpoch}',
         title: item.title,
-        subtitle: 'Book narration',
+        subtitle: currentAppLocalizations().readerBookNarration,
         author: item.authorString,
         cover: cover,
         tracks: tracks,

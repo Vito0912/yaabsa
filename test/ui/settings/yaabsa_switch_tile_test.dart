@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:yaabsa/ui/previews/preview_theme.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('standard switch tile forwards its value and callback', (tester) async {
@@ -31,6 +32,8 @@ void main() {
   testWidgets('adaptive switch tile preserves the platform control', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: ThemeData(useMaterial3: true, platform: TargetPlatform.iOS),
         home: const Scaffold(
           body: YaabsaSwitchTile.adaptive(

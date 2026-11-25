@@ -15,6 +15,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void> showLibraryItemContextMenu({
   required BuildContext context,
@@ -130,7 +131,8 @@ Future<void> showLibraryItemContextMenu({
             }
           } catch (error) {
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not update Pinned: $error')));
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(context.l10n.errorUpdatePinnedShelfFailed(error.toString()))));
             }
           }
           return;

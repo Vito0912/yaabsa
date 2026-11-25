@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/features/settings/widgets/settings_control_status_presentation.dart';
 import 'package:yaabsa/ui/components/lists/settings_control_label.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SettingDropdown<T> extends ConsumerWidget {
   final String label;
@@ -63,7 +64,7 @@ class SettingDropdown<T> extends ConsumerWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
           child: Text(
-            'Configuration error for dropdown: $label',
+            context.l10n.errorDropdownConfiguration(label),
             style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
           ),
         );
@@ -103,7 +104,10 @@ class SettingDropdown<T> extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
             child: Text(
-              'Error: Default value for $settingKey (type: ${defaultValueDynamic?.runtimeType}) is not of type $T or values list is empty.',
+              context.l10n.errorDropdownDefaultTypeMismatch(
+                settingKey!,
+                defaultValueDynamic?.runtimeType.toString() ?? context.l10n.statusUnknown,
+              ),
               style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
             ),
           );
@@ -136,7 +140,7 @@ class SettingDropdown<T> extends ConsumerWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Text(
-          'Configuration error for dropdown: $label',
+          context.l10n.errorDropdownConfiguration(label),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
         ),
       );
@@ -305,7 +309,12 @@ class SettingDropdown<T> extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))],
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.l10n.actionCancel),
+                        ),
+                      ],
                     );
                   },
                 );
@@ -325,7 +334,7 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
     required this.selectedValues,
     required this.onValueChanged,
     this.description,
-    this.emptyValueLabel = 'None selected',
+    this.emptyValueLabel,
     this.enabled = true,
     this.isLoading = false,
   });
@@ -336,7 +345,7 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
   final List<String> valueLabels;
   final Iterable<T> selectedValues;
   final ValueChanged<List<T>> onValueChanged;
-  final String emptyValueLabel;
+  final String? emptyValueLabel;
   final bool enabled;
   final bool isLoading;
 
@@ -346,7 +355,7 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Text(
-          'Configuration error for dropdown: $label',
+          context.l10n.errorDropdownConfiguration(label),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
         ),
       );
@@ -361,9 +370,9 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
     ];
     final isEnabled = enabled && !isLoading && values.isNotEmpty;
     final selectedLabel = switch (selectedLabels.length) {
-      0 => emptyValueLabel,
+      0 => emptyValueLabel ?? context.l10n.statusNoneSelected,
       1 => selectedLabels.single,
-      _ => '${selectedLabels.length} selected',
+      _ => context.l10n.selectedCount(selectedLabels.length),
     };
 
     return ListTile(
@@ -441,7 +450,10 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(dialogContext.l10n.actionCancel),
+                ),
                 FilledButton(
                   onPressed: () {
                     onValueChanged([
@@ -450,7 +462,7 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
                     ]);
                     Navigator.of(dialogContext).pop();
                   },
-                  child: const Text('Done'),
+                  child: Text(dialogContext.l10n.actionDone),
                 ),
               ],
             );

@@ -5,6 +5,7 @@ import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/android_live_updates.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AndroidLiveUpdatesSetting extends ConsumerStatefulWidget {
   const AndroidLiveUpdatesSetting({super.key});
@@ -53,8 +54,8 @@ class _AndroidLiveUpdatesSettingState extends ConsumerState<AndroidLiveUpdatesSe
       builder: (context, snapshot) {
         if (snapshot.data != true) return const SizedBox.shrink();
         return SettingDropdown<String>.remote(
-          label: 'Live Updates',
-          description: 'Show playback progress in Android status bar',
+          label: context.l10n.settingLiveUpdates,
+          description: context.l10n.settingLiveUpdatesDescription,
           values: AndroidLiveUpdateMode.values.map((mode) => mode.name).toList(),
           valueLabels: AndroidLiveUpdateMode.values.map((mode) => mode.label).toList(),
           value: AndroidLiveUpdateMode.fromSettingValue(setting.value).name,

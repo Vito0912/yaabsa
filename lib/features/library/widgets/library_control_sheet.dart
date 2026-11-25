@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryControlSheet extends StatelessWidget {
   const LibraryControlSheet({
@@ -37,7 +38,7 @@ class LibraryControlSheet extends StatelessWidget {
                     children: [
                       Expanded(child: Text(title, style: theme.textTheme.titleLarge)),
                       IconButton(
-                        tooltip: 'Close',
+                        tooltip: context.l10n.actionClose,
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(Icons.close_rounded),
                       ),

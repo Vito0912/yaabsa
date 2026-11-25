@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemEditorShell extends StatefulWidget {
   const LibraryItemEditorShell({
@@ -153,22 +154,22 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
                   padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
                   child: Row(
                     children: [
-                      Expanded(child: Text('Edit item', style: theme.textTheme.titleSmall)),
+                      Expanded(child: Text(context.l10n.headingEditItem, style: theme.textTheme.titleSmall)),
                       if (widget.showItemNavigation) ...[
                         IconButton(
                           onPressed: widget.onPreviousItem,
-                          tooltip: 'Previous item',
+                          tooltip: context.l10n.actionPreviousItem,
                           icon: const Icon(Icons.arrow_back_rounded, size: 20),
                         ),
                         IconButton(
                           onPressed: widget.onNextItem,
-                          tooltip: 'Next item',
+                          tooltip: context.l10n.actionNextItem,
                           icon: const Icon(Icons.arrow_forward_rounded, size: 20),
                         ),
                       ],
                       IconButton(
                         onPressed: widget.onClose,
-                        tooltip: 'Close editor',
+                        tooltip: context.l10n.actionClose,
                         icon: const Icon(Icons.close_rounded, size: 20),
                       ),
                     ],
@@ -198,7 +199,7 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
                   _showMobileDestinations = true;
                 });
               },
-              tooltip: 'Back to editor sections',
+              tooltip: context.l10n.actionBack,
               icon: const Icon(Icons.arrow_back_rounded),
             ),
           Expanded(
@@ -212,16 +213,20 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
           if (showSelector && widget.showItemNavigation) ...[
             IconButton(
               onPressed: widget.onPreviousItem,
-              tooltip: 'Previous item',
+              tooltip: context.l10n.actionPreviousItem,
               icon: const Icon(Icons.arrow_back_rounded, size: 20),
             ),
             IconButton(
               onPressed: widget.onNextItem,
-              tooltip: 'Next item',
+              tooltip: context.l10n.actionNextItem,
               icon: const Icon(Icons.arrow_forward_rounded, size: 20),
             ),
           ],
-          IconButton(onPressed: widget.onClose, tooltip: 'Close editor', icon: const Icon(Icons.close_rounded)),
+          IconButton(
+            onPressed: widget.onClose,
+            tooltip: context.l10n.actionClose,
+            icon: const Icon(Icons.close_rounded),
+          ),
         ],
       ),
     );

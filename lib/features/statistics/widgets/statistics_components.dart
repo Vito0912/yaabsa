@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/cards/surface_card.dart';
 import 'package:yaabsa/ui/components/feedback/feedback_panel.dart';
@@ -306,7 +307,10 @@ class _StatsRankedRow extends StatelessWidget {
         alignment: Alignment.center,
         margin: const EdgeInsets.only(right: 10),
         decoration: BoxDecoration(color: theme.colorScheme.secondaryContainer, borderRadius: BorderRadius.circular(9)),
-        child: Text('$rank', style: theme.textTheme.labelMedium),
+        child: Text(
+          NumberFormat.decimalPattern(Localizations.localeOf(context).toLanguageTag()).format(rank),
+          style: theme.textTheme.labelMedium,
+        ),
       );
     }
 

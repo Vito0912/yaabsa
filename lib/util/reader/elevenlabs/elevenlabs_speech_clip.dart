@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/util/reader/elevenlabs/elevenlabs_speech_api.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ElevenLabsSpeechClip {
   const ElevenLabsSpeechClip({
@@ -28,10 +29,10 @@ class ElevenLabsSpeechClip {
     final requestId = response.headers.value('request-id');
 
     if (requestId == null || requestId.isEmpty) {
-      throw const ElevenLabsSpeechException('ElevenLabs did not return a request ID for stitched speech');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsRequestIdMissing);
     }
     if (audio == null || audio.isEmpty) {
-      throw const ElevenLabsSpeechException('ElevenLabs returned no speech audio');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsSpeechAudioMissing);
     }
 
     try {
@@ -43,7 +44,7 @@ class ElevenLabsSpeechClip {
 
       await file.writeAsBytes(bytes, flush: true);
     } on FormatException {
-      throw const ElevenLabsSpeechException('ElevenLabs returned invalid speech audio');
+      throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsSpeechAudioInvalid);
     }
 
     final timings = <({double time, int start, int end})>[];

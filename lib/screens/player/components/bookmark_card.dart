@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/me/bookmark.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
@@ -81,7 +82,7 @@ class BookmarkCard extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 5, bottom: 4),
                   child: Text(
-                    note.isEmpty ? 'Untitled bookmark' : note,
+                    note.isEmpty ? context.l10n.untitledBookmark : note,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: note.isEmpty ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
                       fontStyle: note.isEmpty ? FontStyle.italic : FontStyle.normal,
@@ -99,7 +100,7 @@ class BookmarkCard extends StatelessWidget {
                 )
               else
                 YaabsaContextMenuButton<_BookmarkAction>(
-                  tooltip: 'Bookmark actions',
+                  tooltip: context.l10n.actionMoreActions,
                   onSelected: (action) {
                     switch (action) {
                       case _BookmarkAction.edit:
@@ -111,20 +112,20 @@ class BookmarkCard extends StatelessWidget {
                     }
                   },
                   itemBuilder: (context) => <PopupMenuEntry<_BookmarkAction>>[
-                    const PopupMenuItem<_BookmarkAction>(
+                    PopupMenuItem<_BookmarkAction>(
                       value: _BookmarkAction.edit,
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Icon(Icons.edit_outlined),
-                        title: Text('Edit'),
+                        title: Text(context.l10n.actionEdit),
                       ),
                     ),
-                    const PopupMenuItem<_BookmarkAction>(
+                    PopupMenuItem<_BookmarkAction>(
                       value: _BookmarkAction.select,
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Icon(Icons.check_circle_outline_rounded),
-                        title: Text('Select'),
+                        title: Text(context.l10n.actionSelect),
                       ),
                     ),
                     PopupMenuItem<_BookmarkAction>(
@@ -132,7 +133,7 @@ class BookmarkCard extends StatelessWidget {
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
-                        title: Text('Delete', style: TextStyle(color: colorScheme.error)),
+                        title: Text(context.l10n.actionDelete, style: TextStyle(color: colorScheme.error)),
                       ),
                     ),
                   ],

@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tray_manager/tray_manager.dart' as tray;
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/desktop_window_state.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class TrayManager extends ConsumerStatefulWidget {
@@ -209,6 +210,7 @@ class _TrayMenuBinding {
 
     final menus = <tray.Menu>[rootMenu];
     final items = <(tray.MenuItem, tray.ListenerId?)>[];
+    final l10n = currentAppLocalizations();
 
     void addActionItem(tray.Menu targetMenu, String label, VoidCallback onSelected) {
       final item = tray.MenuItem.createWithLabelAndType(label, tray.MenuItemType.normal);
@@ -227,24 +229,24 @@ class _TrayMenuBinding {
 
     if (audioHandler.currentMediaItem != null) {
       final playbackMenu = tray.Menu.create();
-      final playbackItem = tray.MenuItem.createWithLabelAndType('Playback', tray.MenuItemType.submenu);
+      final playbackItem = tray.MenuItem.createWithLabelAndType(l10n.playbackTitle, tray.MenuItemType.submenu);
       if (playbackMenu != null && playbackItem != null) {
         menus.add(playbackMenu);
         final isPlaying = audioHandler.playerControlState.playing;
-        addActionItem(playbackMenu, isPlaying ? 'Pause' : 'Play', () {
+        addActionItem(playbackMenu, isPlaying ? l10n.playbackPause : l10n.playbackPlay, () {
           if (audioHandler.playerControlState.playing) {
             audioHandler.pause();
           } else {
             audioHandler.play();
           }
         });
-        addActionItem(playbackMenu, 'Stop', audioHandler.stop);
-        addActionItem(playbackMenu, 'Next', audioHandler.skipToNextInApp);
-        addActionItem(playbackMenu, 'Previous', audioHandler.skipToPreviousInApp);
-        addActionItem(playbackMenu, 'Fast Forward', () {
+        addActionItem(playbackMenu, l10n.playbackStop, audioHandler.stop);
+        addActionItem(playbackMenu, l10n.playbackNext, audioHandler.skipToNextInApp);
+        addActionItem(playbackMenu, l10n.playbackPrevious, audioHandler.skipToPreviousInApp);
+        addActionItem(playbackMenu, l10n.playbackFastForward, () {
           audioHandler.seekAbsolute(audioHandler.position + const Duration(seconds: 10));
         });
-        addActionItem(playbackMenu, 'Rewind', () {
+        addActionItem(playbackMenu, l10n.playbackRewind, () {
           audioHandler.seekAbsolute(audioHandler.position - const Duration(seconds: 10));
         });
 
@@ -258,9 +260,9 @@ class _TrayMenuBinding {
     }
 
     rootMenu.addSeparator();
-    addActionItem(rootMenu, 'Play Last Played', _playLastPlayed);
+    addActionItem(rootMenu, l10n.playbackPlayLastPlayed, _playLastPlayed);
     rootMenu.addSeparator();
-    addActionItem(rootMenu, 'Exit App', _exitApp);
+    addActionItem(rootMenu, l10n.trayQuitApp, _exitApp);
 
     return _TrayMenuBinding._(rootMenu: rootMenu, menus: menus, items: items);
   }

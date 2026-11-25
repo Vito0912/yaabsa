@@ -5,6 +5,7 @@ import 'package:yaabsa/components/app/downloads/download_files_sheet.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -76,16 +77,14 @@ class _DownloadsState extends ConsumerState<Downloads> {
   }
 
   Future<bool> _confirmDelete(int count) async {
-    final label = count == 1 ? 'this download' : 'these $count downloads';
-
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete download'),
-        content: Text('Delete $label from local storage and remove it from Downloads?'),
+        title: Text(context.l10n.actionDeleteDownload),
+        content: Text(context.l10n.downloadDeletePrompt(count)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(context.l10n.actionDelete)),
         ],
       ),
     );
@@ -133,15 +132,15 @@ class _DownloadsState extends ConsumerState<Downloads> {
       _selectedDownloadKeys.clear();
     });
 
-    final message = StringBuffer()..write('Deleted $deletedItems item(s), removed $deletedFiles file(s).');
+    final messages = <String>[context.l10n.downloadDeleteSummary(deletedItems, deletedFiles)];
     if (failedFiles > 0) {
-      message.write(' $failedFiles file(s) could not be removed.');
+      messages.add(context.l10n.downloadDeleteFilesFailed(failedFiles));
     }
     if (failedItems > 0) {
-      message.write(' $failedItems item(s) failed to delete.');
+      messages.add(context.l10n.downloadDeleteItemsFailed(failedItems));
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message.toString())));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messages.join('\n'))));
   }
 
   @override
@@ -151,7 +150,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
     return currentUser.when(
       data: (user) {
         if (user == null) {
-          return const Center(child: Text('No active user.'));
+          return Center(child: Text(context.l10n.errorNoActiveUser));
         }
 
         return ref
@@ -159,7 +158,8 @@ class _DownloadsState extends ConsumerState<Downloads> {
             .when(
               skipLoadingOnReload: true,
               loading: () => const Center(child: YaabsaCircularProgressIndicator()),
-              error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
+              error: (error, _) =>
+                  ConnectionIssueView.requestFailed(error: error, title: context.l10n.errorUnableToLoadContent),
               data: (downloads) {
                 if (!identical(_cachedDownloads, downloads)) {
                   _cachedDownloads = downloads;
@@ -185,15 +185,15 @@ class _DownloadsState extends ConsumerState<Downloads> {
                         .toList(growable: false),
                 };
                 if (downloads.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.download_for_offline_outlined, size: 48),
-                        SizedBox(height: 16),
-                        Text('Your offline library starts here'),
-                        SizedBox(height: 8),
-                        Text('Download a book or episode to listen offline.'),
+                        const Icon(Icons.download_for_offline_outlined, size: 48),
+                        const SizedBox(height: 16),
+                        Text(context.l10n.offlineLibraryEmptyTitle),
+                        const SizedBox(height: 8),
+                        Text(context.l10n.offlineLibraryEmptyMessage),
                       ],
                     ),
                   );
@@ -230,8 +230,8 @@ class _DownloadsState extends ConsumerState<Downloads> {
                               Expanded(
                                 child: Text(
                                   _selectionMode
-                                      ? '${_selectedDownloadKeys.length} selected'
-                                      : '${downloads.length} ${downloads.length == 1 ? 'item' : 'items'}',
+                                      ? context.l10n.selectedCount(_selectedDownloadKeys.length)
+                                      : context.l10n.itemCount(downloads.length),
                                   style: Theme.of(context).textTheme.labelLarge,
                                 ),
                               ),
@@ -239,12 +239,12 @@ class _DownloadsState extends ConsumerState<Downloads> {
                                 TextButton.icon(
                                   onPressed: _isDeleting ? null : () => _setSelectionMode(true),
                                   icon: const Icon(Icons.checklist_rtl),
-                                  label: const Text('Select'),
+                                  label: Text(context.l10n.actionSelect),
                                 ),
                               if (_selectionMode)
                                 TextButton(
                                   onPressed: _isDeleting ? null : () => _setSelectionMode(false),
-                                  child: const Text('Cancel'),
+                                  child: Text(context.l10n.actionCancel),
                                 ),
                               if (_selectionMode) const SizedBox(width: 8),
                               if (_selectionMode)
@@ -253,7 +253,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
                                       ? null
                                       : () => _deleteDownloads(userId: user.id, downloads: selectedDownloads),
                                   icon: const Icon(Icons.delete_outline),
-                                  label: const Text('Delete'),
+                                  label: Text(context.l10n.actionDelete),
                                 ),
                             ],
                           ),
@@ -276,10 +276,13 @@ class _DownloadsState extends ConsumerState<Downloads> {
                                     FilterChip(
                                       selected: _filter == filter,
                                       label: Text(switch (filter) {
-                                        _DownloadFilter.all => 'All',
-                                        _DownloadFilter.partial =>
-                                          'Partial · ${downloads.length - _completeDownloadKeys.length}',
-                                        _DownloadFilter.offline => 'Offline · ${_completeDownloadKeys.length}',
+                                        _DownloadFilter.all => context.l10n.filterAll,
+                                        _DownloadFilter.partial => context.l10n.statusPartialDownloads(
+                                          downloads.length - _completeDownloadKeys.length,
+                                        ),
+                                        _DownloadFilter.offline => context.l10n.statusOfflineDownloads(
+                                          _completeDownloadKeys.length,
+                                        ),
                                       }),
                                       onSelected: (_) => setState(() => _filter = filter),
                                     ),
@@ -291,7 +294,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
                       ),
                     Expanded(
                       child: visibleDownloads.isEmpty
-                          ? const Center(child: Text('No downloads in this view'))
+                          ? Center(child: Text(context.l10n.statusNoDownloadsInView))
                           : ListView.builder(
                               padding: EdgeInsets.fromLTRB(horizontalPadding, 4, horizontalPadding, 32),
                               itemCount: visibleDownloads.length,
@@ -337,7 +340,8 @@ class _DownloadsState extends ConsumerState<Downloads> {
             );
       },
       loading: () => const Center(child: YaabsaCircularProgressIndicator()),
-      error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
+      error: (error, _) =>
+          ConnectionIssueView.requestFailed(error: error, title: context.l10n.errorUnableToLoadContent),
     );
   }
 }

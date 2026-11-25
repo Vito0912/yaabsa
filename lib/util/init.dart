@@ -20,6 +20,7 @@ import 'package:audio_service_mpris/audio_service_mpris.dart';
 
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'logger.dart';
 
@@ -204,7 +205,7 @@ class Init {
       builder: () => BGAudioHandler(containerRef),
       config: AudioServiceConfig(
         androidNotificationChannelId: 'de.vito0912.yaabsa.audio',
-        androidNotificationChannelName: 'Playback',
+        androidNotificationChannelName: currentAppLocalizations().playbackTitle,
         androidNotificationIcon: 'drawable/ic_launcher_monochrome',
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,

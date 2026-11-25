@@ -17,6 +17,7 @@ import 'package:yaabsa/components/sessions/open_share_session_dialog.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerSessionsView extends ConsumerStatefulWidget {
@@ -328,11 +329,11 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Selected Sessions'),
-          content: Text('Delete ${selectedSessions.length} selected session(s)? This cannot be undone.'),
+          title: Text(context.l10n.sessionDeleteTitle),
+          content: Text(context.l10n.sessionDeletePrompt(selectedSessions.length)),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(context.l10n.actionDelete)),
           ],
         );
       },
@@ -385,12 +386,10 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
 
     final messenger = ScaffoldMessenger.of(context);
     if (deletedCount > 0) {
-      messenger.showSnackBar(SnackBar(content: Text('Deleted $deletedCount session(s).')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.sessionDeleteSuccess(deletedCount))));
     }
     if (failedSessionIds.isNotEmpty) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete ${failedSessionIds.length} session(s). Check logs for details.')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.sessionDeleteFailure(failedSessionIds.length))));
     }
   }
 
@@ -462,10 +461,10 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       if (success && mounted) {
         await _loadOpenSessions();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Session closed successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.sessionCloseSuccess)));
         }
       } else if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to close session')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.sessionCloseFailure)));
       }
     } catch (error, stackTrace) {
       logger(
@@ -474,7 +473,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         level: InfoLevel.error,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to close session: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.sessionCloseFailure)));
       }
     }
   }
@@ -516,7 +515,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
               onPressed: () {
                 unawaited(_loadAllData());
               },
-              child: const Text('Retry'),
+              child: Text(context.l10n.actionRetry),
             ),
           ],
         ),
@@ -539,7 +538,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSectionTitle('Library Sessions'),
+        _buildSectionTitle(context.l10n.headingListeningSessions),
         const SizedBox(height: 8),
         ListeningSessionsPaginationControls(
           page: _currentPage,
@@ -561,7 +560,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
             padding: const EdgeInsets.only(top: 8),
             child: Row(
               children: [
-                Text('${_selectedLibrarySessionIds.length} selected'),
+                Text(context.l10n.selectedCount(_selectedLibrarySessionIds.length)),
                 const Spacer(),
                 FilledButton.icon(
                   onPressed: (_isBulkDeleting || !_canDeleteSelectedLibrarySessions(canDelete))
@@ -572,7 +571,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                   icon: _isBulkDeleting
                       ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.delete_outline_rounded),
-                  label: const Text('Delete Selected'),
+                  label: Text(context.l10n.actionDeleteSelected),
                 ),
               ],
             ),
@@ -602,19 +601,22 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSectionTitle('Open Sessions', trailingText: '${_openSessions.length} active'),
+        _buildSectionTitle(
+          context.l10n.headingOpenSessions,
+          trailingText: context.l10n.sessionCount(_openSessions.length),
+        ),
         const SizedBox(height: 8),
         if (_isLoadingOpenSessions)
           const Padding(padding: EdgeInsets.only(bottom: 8), child: YaabsaLinearProgressIndicator(minHeight: 2)),
         ListeningSessionTable(
           sessions: _openSessions.map((entry) => entry.session).toList(growable: false),
-          emptyMessage: 'No open sessions found.',
+          emptyMessage: context.l10n.sessionNoOpenSessions,
           usernameForSession: _usernameForOpenSession,
           actionsColumnWidth: 52,
           actions: [
             ExpressiveTableAction<PlaybackSession>(
               icon: Icons.close_rounded,
-              tooltip: 'Close session',
+              tooltip: context.l10n.sessionCloseAction,
               tone: ExpressiveTableActionTone.danger,
               onPressed: (session) => _closeOpenSession(session),
             ),
@@ -644,16 +646,19 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSectionTitle('Shared Sessions', trailingText: '${sortedSessions.length} active'),
+        _buildSectionTitle(
+          context.l10n.headingSharedSessions,
+          trailingText: context.l10n.sessionCount(sortedSessions.length),
+        ),
         const SizedBox(height: 8),
         if (_isLoadingOpenSessions)
           const Padding(padding: EdgeInsets.only(bottom: 8), child: YaabsaLinearProgressIndicator(minHeight: 2)),
         Card(
           margin: EdgeInsets.zero,
           child: sortedSessions.isEmpty
-              ? const Padding(
+              ? Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-                  child: Center(child: Text('No shared sessions found.')),
+                  child: Center(child: Text(context.l10n.sessionNoSharedSessions)),
                 )
               : ListView.separated(
                   itemCount: sortedSessions.length,
@@ -684,7 +689,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                     return ListTile(
                       dense: true,
                       title: Text(
-                        (title == null || title.isEmpty) ? 'Unknown Item' : title,
+                        (title == null || title.isEmpty) ? context.l10n.unknownMediaItem : title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -708,10 +713,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage sessions.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(context.l10n.sessionSignInRequired));
         }
 
         Widget centeredContent(Widget child) {
@@ -722,10 +724,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(context.l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -755,9 +754,9 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                     Expanded(
                       child: YaabsaExpressiveDropdownField<String?>(
                         value: _selectedFilterUserId,
-                        decoration: const InputDecoration(labelText: 'Filter by User'),
+                        decoration: InputDecoration(labelText: context.l10n.sessionFilterUser),
                         options: [
-                          const YaabsaDropdownOption<String?>(value: null, label: 'All Users'),
+                          YaabsaDropdownOption<String?>(value: null, label: context.l10n.filterAll),
                           ..._availableUsers.map(
                             (user) => YaabsaDropdownOption<String?>(value: user.id, label: user.username),
                           ),
@@ -771,7 +770,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                     ),
                     const SizedBox(width: 10),
                     IconButton(
-                      tooltip: 'Refresh sessions',
+                      tooltip: context.l10n.actionRefresh,
                       onPressed: (_isLoadingUsers || _isLoadingLibrarySessions || _isLoadingOpenSessions)
                           ? null
                           : () {
@@ -798,7 +797,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(context.l10n.errorCouldNotLoadUser, style: TextStyle(color: Theme.of(context).colorScheme.error)),
       ),
     );
   }

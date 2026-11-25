@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/playlist.dart';
@@ -42,7 +43,7 @@ class PlaylistDetailView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     final libraryId = this.libraryId ?? selectedLibrary?.id;
     if (libraryId == null || libraryId.isEmpty) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     final api = ref.watch(absApiProvider);
@@ -71,16 +72,16 @@ class PlaylistDetailView extends HookConsumerWidget {
         }
 
         return ConnectionIssueView.requestFailed(
-          error: details.error ?? Exception('Unknown playlist loading error.'),
-          title: 'Playlist details could not be loaded',
+          error: details.error ?? Exception(context.l10n.errorUnableToLoadContent),
+          title: context.l10n.errorPlaylistUnavailable,
           onRetry: () => ref.refresh(playlistByIdProvider(libraryId, playlistId).future),
         );
       }
 
-      return const ListEntityMissingView(
+      return ListEntityMissingView(
         icon: Icons.playlist_play_rounded,
-        title: 'Playlist is no longer available',
-        message: 'It may have been deleted or moved to another user.',
+        title: context.l10n.errorPlaylistMissing,
+        message: context.l10n.statusListMayBeRemoved,
       );
     }
 
@@ -99,11 +100,9 @@ class PlaylistDetailView extends HookConsumerWidget {
       builder: (context, _, tileWidth, _) => ManagedListDetailFrame(
         title: resolvedEntry?.title ?? resolvedPlaylist.name,
         description: description,
-        statusMessage: missingCount > 0
-            ? '$missingCount playlist entr${missingCount == 1 ? 'y could' : 'ies could'} not be loaded.'
-            : null,
-        emptyTitle: 'No library items in this playlist',
-        emptyMessage: 'Add books or podcast episodes to this playlist to see them here.',
+        statusMessage: missingCount > 0 ? context.l10n.errorLibraryItemsNotLoaded(missingCount) : null,
+        emptyTitle: context.l10n.statusNoItemsInManagedList,
+        emptyMessage: context.l10n.promptAddItemsToManagedList,
         emptyIcon: Icons.playlist_play_rounded,
         scrollController: scrollController,
         tileWidth: tileWidth,
@@ -157,11 +156,11 @@ class PlaylistDetailView extends HookConsumerWidget {
                   ),
                 ),
                 icon: const Icon(Icons.shuffle_rounded),
-                tooltip: 'Play random item',
+                tooltip: context.l10n.actionPlayRandomItem,
               ),
             if (canManagePlaylist)
               YaabsaContextMenuButton<_PlaylistDetailAction>(
-                tooltip: 'Playlist actions',
+                tooltip: context.l10n.actionMore,
                 onSelected: (action) => _handlePlaylistAction(
                   context: context,
                   ref: ref,
@@ -174,20 +173,20 @@ class PlaylistDetailView extends HookConsumerWidget {
                   final items = <PopupMenuEntry<_PlaylistDetailAction>>[];
                   if (allowBookSelection) {
                     items.add(
-                      const PopupMenuItem<_PlaylistDetailAction>(
+                      PopupMenuItem<_PlaylistDetailAction>(
                         value: _PlaylistDetailAction.editBooks,
-                        child: Text('Edit books'),
+                        child: Text(context.l10n.actionEditBooks),
                       ),
                     );
                   }
-                  items.addAll(const [
+                  items.addAll([
                     PopupMenuItem<_PlaylistDetailAction>(
                       value: _PlaylistDetailAction.edit,
-                      child: Text('Edit details'),
+                      child: Text(context.l10n.actionEditDetails),
                     ),
                     PopupMenuItem<_PlaylistDetailAction>(
                       value: _PlaylistDetailAction.delete,
-                      child: Text('Delete playlist'),
+                      child: Text(context.l10n.actionDelete),
                     ),
                   ]);
                   return items;
@@ -329,8 +328,8 @@ Future<void> _editPlaylistBooks({
   final currentBooks = _playlistLibraryItems(playlist.items ?? const <PlaylistItem>[]);
   await editManagedListBooks(
     context: context,
-    title: 'Edit books',
-    confirmLabel: 'Save books',
+    title: context.l10n.actionEditBooks,
+    confirmLabel: context.l10n.actionSaveBooks,
     selectionRequired: true,
     initialBooks: currentBooks,
     onSave: (bookIds) => ref
@@ -340,8 +339,8 @@ Future<void> _editPlaylistBooks({
           currentBookIds: currentBooks.map((item) => item.id).toList(growable: false),
           desiredBookIds: bookIds,
         ),
-    successMessage: 'Playlist books updated.',
-    errorFallback: 'Could not update playlist books.',
+    successMessage: context.l10n.statusNamedBooksUpdated(context.l10n.fieldPlaylist),
+    errorFallback: context.l10n.errorNamedBooksUpdateFailed(context.l10n.fieldPlaylist),
   );
 }
 
@@ -353,14 +352,14 @@ Future<void> _editPlaylist({
 }) async {
   await editManagedListDetails(
     context: context,
-    title: 'Edit playlist',
+    title: context.l10n.editNamedEntity(context.l10n.fieldPlaylist),
     initialName: playlist.name,
     initialDescription: playlist.description,
     onSave: ({required name, description}) => ref
         .read(playlistsProvider(libraryId).notifier)
         .updatePlaylist(playlist.id, name: name, description: description),
-    successMessage: 'Playlist updated.',
-    errorFallback: 'Could not update playlist.',
+    successMessage: context.l10n.statusNamedEntityUpdated(context.l10n.fieldPlaylist),
+    errorFallback: context.l10n.errorNamedEntityUpdateFailed(context.l10n.fieldPlaylist),
   );
 }
 
@@ -372,11 +371,11 @@ Future<void> _deletePlaylist({
 }) async {
   await deleteManagedListEntity(
     context: context,
-    title: 'Delete playlist?',
-    message: '"${playlist.name}" will be permanently removed.',
+    title: context.l10n.headingDeleteManagedList,
+    message: context.l10n.deleteNamedEntityMessage(playlist.name),
     onDelete: () => ref.read(playlistsProvider(libraryId).notifier).deletePlaylist(playlist.id),
-    successMessage: 'Playlist deleted.',
-    errorFallback: 'Could not delete playlist.',
+    successMessage: context.l10n.statusNamedEntityDeleted(context.l10n.fieldPlaylist),
+    errorFallback: context.l10n.errorNamedEntityDeleteFailed(context.l10n.fieldPlaylist),
     popOnSuccess: true,
   );
 }

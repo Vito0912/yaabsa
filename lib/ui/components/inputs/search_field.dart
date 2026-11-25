@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 
 import 'styled_form_fields.dart';
 
+import 'package:yaabsa/util/l10n.dart';
+
 class YaabsaSearchField extends StatelessWidget {
   const YaabsaSearchField({
     super.key,
@@ -60,7 +62,7 @@ class YaabsaSearchField extends StatelessWidget {
               }
 
               return IconButton(
-                tooltip: 'Clear search',
+                tooltip: context.l10n.actionClearSearch,
                 onPressed: enabled
                     ? () {
                         if (onClear != null) {

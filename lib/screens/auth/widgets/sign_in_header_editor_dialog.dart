@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SignInHeaderEntry {
   const SignInHeaderEntry({required this.name, required this.value});
@@ -63,7 +64,7 @@ class _SignInHeaderEditorDialogState extends State<_SignInHeaderEditorDialog> {
     );
     if (hasDuplicate) {
       setState(() {
-        _dialogError = 'A header with this name already exists.';
+        _dialogError = context.l10n.authHeaderNameDuplicate;
       });
       return;
     }
@@ -74,12 +75,14 @@ class _SignInHeaderEditorDialogState extends State<_SignInHeaderEditorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.originalHeaderName == null ? 'Add Header' : 'Edit Header'),
+      title: Text(
+        widget.originalHeaderName == null ? context.l10n.titleAddCustomHeader : context.l10n.titleEditCustomHeader,
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           StyledTextField(
-            label: 'Header Name',
+            label: context.l10n.fieldHeaderName,
             controller: _keyController,
             autofocus: true,
             textInputAction: TextInputAction.next,
@@ -87,7 +90,7 @@ class _SignInHeaderEditorDialogState extends State<_SignInHeaderEditorDialog> {
           ),
           const SizedBox(height: 12),
           StyledTextField(
-            label: 'Header Value',
+            label: context.l10n.fieldValue,
             controller: _valueController,
             prefixIcon: const Icon(Icons.key_rounded),
           ),
@@ -101,8 +104,8 @@ class _SignInHeaderEditorDialogState extends State<_SignInHeaderEditorDialog> {
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
+        FilledButton(onPressed: _save, child: Text(context.l10n.actionSave)),
       ],
     );
   }

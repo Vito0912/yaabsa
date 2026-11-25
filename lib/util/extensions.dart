@@ -1,3 +1,5 @@
+import 'package:yaabsa/util/l10n.dart';
+
 extension DurationExtensions on Duration {
   double get inSecondsPrecise => inMicroseconds / Duration.microsecondsPerSecond;
 
@@ -37,26 +39,28 @@ extension DurationExtensions on Duration {
     return '$inHours:${_twoDigits(inMinutes.remainder(60))}:${_twoDigits(inSeconds.remainder(60))}';
   }
 
-  String toLargestUnitCompactString() {
+  String toLargestUnitCompactString({AppLocalizations? localizations}) {
+    final l10n = localizations ?? currentAppLocalizations();
     if (inHours > 0) {
-      return '${inHours}h';
+      return l10n.durationCompactHours(inHours);
     }
     if (inMinutes > 0) {
-      return '${inMinutes}m';
+      return l10n.durationCompactMinutes(inMinutes);
     }
-    return '${inSeconds}s';
+    return l10n.durationCompactSeconds(inSeconds);
   }
 
-  String toCompactRemainingString() {
+  String toCompactRemainingString({AppLocalizations? localizations}) {
+    final l10n = localizations ?? currentAppLocalizations();
     final minutes = inMinutes.remainder(60);
     final seconds = inSeconds.remainder(60);
     if (inHours > 0) {
-      return '${inHours}h ${minutes}m';
+      return l10n.durationCompactHoursMinutes(inHours, minutes);
     }
     if (minutes > 0) {
-      return '${minutes}m ${seconds}s';
+      return l10n.durationCompactMinutesSeconds(minutes, seconds);
     }
-    return '${seconds}s';
+    return l10n.durationCompactSeconds(seconds);
   }
 }
 

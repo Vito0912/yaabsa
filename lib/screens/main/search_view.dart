@@ -12,6 +12,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SearchView extends HookConsumerWidget {
@@ -25,7 +26,7 @@ class SearchView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     final searchProvider = librarySearchProvider((query: query, limit: limit, libraryId: null));
@@ -36,7 +37,7 @@ class SearchView extends HookConsumerWidget {
       skipLoadingOnReload: true,
       data: (searchResult) {
         if (searchResult == null) {
-          return const Center(child: Text('No results found.'));
+          return Center(child: Text(context.l10n.searchNoResults));
         }
 
         final resultItems = _buildLibraryItems(searchResult);
@@ -49,7 +50,7 @@ class SearchView extends HookConsumerWidget {
             (searchResult.genres?.isNotEmpty ?? false);
 
         if (resultItems.isEmpty && !hasMetadataResults) {
-          return Center(child: Text('No results found for "$query".'));
+          return Center(child: Text(context.l10n.searchNoResultsFor(query)));
         }
 
         return Stack(
@@ -61,7 +62,10 @@ class SearchView extends HookConsumerWidget {
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                     sliver: SliverToBoxAdapter(
-                      child: Text('Search results for "$query"', style: Theme.of(context).textTheme.headlineSmall),
+                      child: Text(
+                        context.l10n.searchResultsFor(query),
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
                     ),
                   ),
                   SliverPadding(
@@ -81,11 +85,14 @@ class SearchView extends HookConsumerWidget {
                           if (searchResult.series?.isNotEmpty ?? false) ...[
                             const SizedBox(height: 20),
                             _TokenSection(
-                              title: 'Series',
+                              title: context.l10n.navSeries,
                               tokens: searchResult.series!
                                   .map(
                                     (series) => _SearchToken(
-                                      label: '${series.series.name} (${series.books.length})',
+                                      label: context.l10n.searchResultCount(
+                                        series.series.name,
+                                        context.l10n.bookCount(series.books.length),
+                                      ),
                                       onTap: () => context.push(
                                         '/series/${series.series.id}',
                                         extra: MultiBookEntryData.fromSeries(series.series),
@@ -98,11 +105,14 @@ class SearchView extends HookConsumerWidget {
                           if (searchResult.authors?.isNotEmpty ?? false) ...[
                             const SizedBox(height: 20),
                             _TokenSection(
-                              title: 'Authors',
+                              title: context.l10n.navAuthors,
                               tokens: searchResult.authors!
                                   .map(
                                     (author) => _SearchToken(
-                                      label: '${author.name} (${author.numBooks})',
+                                      label: context.l10n.searchResultCount(
+                                        author.name,
+                                        context.l10n.bookCount(author.numBooks),
+                                      ),
                                       onTap: () => context.push('/author/${author.id}'),
                                     ),
                                   )
@@ -112,11 +122,14 @@ class SearchView extends HookConsumerWidget {
                           if (searchResult.narrators?.isNotEmpty ?? false) ...[
                             const SizedBox(height: 20),
                             _TokenSection(
-                              title: 'Narrators',
+                              title: context.l10n.navNarrators,
                               tokens: searchResult.narrators!
                                   .map(
                                     (narrator) => _SearchToken(
-                                      label: '${narrator.name} (${narrator.numBooks})',
+                                      label: context.l10n.searchResultCount(
+                                        narrator.name,
+                                        context.l10n.bookCount(narrator.numBooks ?? 0),
+                                      ),
                                       onTap: () => context.push('/narrator/${Uri.encodeComponent(narrator.name)}'),
                                     ),
                                   )
@@ -126,11 +139,14 @@ class SearchView extends HookConsumerWidget {
                           if (searchResult.tags?.isNotEmpty ?? false) ...[
                             const SizedBox(height: 20),
                             _TokenSection(
-                              title: 'Tags',
+                              title: context.l10n.fieldTags,
                               tokens: searchResult.tags!
                                   .map(
                                     (tag) => _SearchToken(
-                                      label: '${tag.name} (${tag.numItems ?? 0})',
+                                      label: context.l10n.searchResultCount(
+                                        tag.name,
+                                        context.l10n.itemCount(tag.numItems ?? 0),
+                                      ),
                                       onTap: () {
                                         openLibraryWithFilter(
                                           context,
@@ -146,11 +162,14 @@ class SearchView extends HookConsumerWidget {
                           if (searchResult.genres?.isNotEmpty ?? false) ...[
                             const SizedBox(height: 20),
                             _TokenSection(
-                              title: 'Genres',
+                              title: context.l10n.fieldGenres,
                               tokens: searchResult.genres!
                                   .map(
                                     (genre) => _SearchToken(
-                                      label: '${genre.name} (${genre.numItems ?? 0})',
+                                      label: context.l10n.searchResultCount(
+                                        genre.name,
+                                        context.l10n.itemCount(genre.numItems ?? 0),
+                                      ),
                                       onTap: () {
                                         openLibraryWithFilter(
                                           context,
@@ -181,7 +200,7 @@ class SearchView extends HookConsumerWidget {
       error: (err, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('Error loading search results: $err', textAlign: TextAlign.center),
+          child: Text(context.l10n.errorUnableToLoadContent, textAlign: TextAlign.center),
         ),
       ),
     );
@@ -264,7 +283,7 @@ class _SearchResultItem extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item.mediaType ?? 'Unknown media',
+                      item.mediaType ?? context.l10n.statusUnknown,
                       style: Theme.of(context).textTheme.bodySmall
                           ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),

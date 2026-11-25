@@ -4,6 +4,7 @@ import 'package:yaabsa/features/player/widgets/player_collection_empty_presentat
 import 'package:yaabsa/features/player/widgets/player_queue_item_presentation.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -68,16 +69,16 @@ class _PlayerQueueViewState extends State<PlayerQueueView> {
           }
 
           if (widget.emptyMode == PlayerCollectionEmptyMode.compact) {
-            return const PlayerCollectionEmptyPresentation(
+            return PlayerCollectionEmptyPresentation(
               icon: Icons.queue_music_rounded,
-              title: 'Queue is empty',
+              title: context.l10n.statusQueueEmpty,
               density: PlayerCollectionEmptyDensity.compact,
             );
           }
 
           return PlayerCollectionEmptyPresentation(
             icon: Icons.queue_music_rounded,
-            title: 'Queue is empty',
+            title: context.l10n.statusQueueEmpty,
             showIcon: widget.showEmptyIcon,
             isLoading: queueSnapshot.autoQueueLoading,
           );
@@ -148,7 +149,7 @@ class _QueueTile extends StatelessWidget {
         if (resolvedTitle != null && resolvedTitle.isNotEmpty) {
           title = resolvedTitle;
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          title = 'Loading title...';
+          title = context.l10n.statusLoading;
         } else {
           title = entry.item.itemId;
         }

@@ -147,6 +147,7 @@ dependency_overrides:
   dbus: ^0.8.0
 
 flutter:
+  generate: true
   uses-material-design: true
 
   assets:

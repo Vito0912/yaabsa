@@ -1,3 +1,4 @@
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -22,11 +23,11 @@ class NarratorsView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Narrators are available only for book libraries.'));
+      return Center(child: Text(context.l10n.errorBookLibrariesOnly));
     }
 
     final libraryId = selectedLibrary.id;
@@ -46,7 +47,7 @@ class NarratorsView extends HookConsumerWidget {
         final sortedNarrators = [...narrators]..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
         if (sortedNarrators.isEmpty) {
-          return const Center(child: Text('No narrators found in this library.'));
+          return Center(child: Text(context.l10n.statusNoNarratorsInLibrary));
         }
 
         final horizontalPadding = context.isDesktop
@@ -106,7 +107,7 @@ class NarratorsView extends HookConsumerWidget {
 
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Error loading narrators',
+          title: context.l10n.errorLoadingNamedContent(context.l10n.navNarrators),
           onRetry: () async {
             ref.invalidate(libraryFilterDataProvider(libraryId));
             await ref.read(libraryFilterDataProvider(libraryId).future);

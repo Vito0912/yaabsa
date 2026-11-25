@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:yaabsa/screens/wear/components/wear_item_header.dart';
 import 'package:yaabsa/screens/wear/components/wear_player_background.dart';
 import 'package:yaabsa/provider/common/item_download_status_provider.dart';
@@ -14,6 +15,7 @@ import 'package:yaabsa/screens/wear/components/wear_playback_progress.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/browse/compact_browse_models.dart';
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
+import 'package:yaabsa/util/l10n.dart';
 
 class WearItemScreen extends ConsumerStatefulWidget {
   const WearItemScreen({required this.entry, required this.handler, this.onShowPlayer, super.key});
@@ -117,11 +119,14 @@ class _WearItemScreenState extends ConsumerState<WearItemScreen> {
     );
     String downloadLabel;
     if (downloading != null) {
-      downloadLabel = 'Cancel download ${downloading.percent}%';
+      final locale = Localizations.localeOf(context).toLanguageTag();
+      final percentFormat = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
+      final percent = percentFormat.format(downloading.percent / 100);
+      downloadLabel = context.l10n.actionCancelDownloadProgress(percent);
     } else if (completed) {
-      downloadLabel = 'Remove download';
+      downloadLabel = context.l10n.actionRemove;
     } else {
-      downloadLabel = 'Download';
+      downloadLabel = context.l10n.actionDownload;
     }
 
     IconData downloadIcon;
@@ -137,7 +142,7 @@ class _WearItemScreenState extends ConsumerState<WearItemScreen> {
       if (widget.onShowPlayer != null) const Padding(padding: EdgeInsets.only(bottom: 12), child: WearPlaybackTime()),
       WearItemHeader(entry: entry, showCover: widget.onShowPlayer == null),
       WearBrowseButton(
-        title: _pendingAction == _WearItemAction.play ? 'Opening…' : 'Play',
+        title: _pendingAction == _WearItemAction.play ? context.l10n.statusOpening : context.l10n.playbackPlay,
         icon: Icons.play_arrow_rounded,
         primary: true,
         loading: _pendingAction == _WearItemAction.play,

@@ -7,6 +7,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/settings/admin_tool_library_selector.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminForceMetadataRefreshTool extends ConsumerWidget {
@@ -20,9 +21,9 @@ class AdminForceMetadataRefreshTool extends ConsumerWidget {
       margin: EdgeInsets.zero,
       child: ListTile(
         leading: const Icon(Icons.refresh_outlined),
-        title: const Text('Force metadata refresh'),
-        subtitle: const Text('Recreates the metadata.json files for all items'),
-        trailing: OutlinedButton(onPressed: () => _openDialog(context, ref), child: const Text('Run')),
+        title: Text(context.l10n.settingForceMetadataRefresh),
+        subtitle: Text(context.l10n.settingForceMetadataRefreshDescription),
+        trailing: OutlinedButton(onPressed: () => _openDialog(context, ref), child: Text(context.l10n.actionRun)),
       ),
     );
   }
@@ -30,7 +31,7 @@ class AdminForceMetadataRefreshTool extends ConsumerWidget {
   Future<void> _openDialog(BuildContext context, WidgetRef ref) async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No active API client.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorNoActiveApiClient)));
       return;
     }
 
@@ -46,13 +47,8 @@ class AdminForceMetadataRefreshTool extends ConsumerWidget {
     final updated = result.itemsUpdated;
     final tagged = result.itemsTagged;
     final libraries = result.librariesProcessed;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Processed $libraries librar${libraries == 1 ? 'y' : 'ies'} and tagged $tagged item(s). Server reported $updated updated item(s).',
-        ),
-      ),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.l10n.adminMetadataRefreshSummary(libraries, tagged, updated))));
 
     if (onCompleted != null) {
       await onCompleted!();
@@ -105,7 +101,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
       }
 
       setState(() {
-        _errorMessage = 'Failed to load libraries: $error';
+        _errorMessage = context.l10n.errorOperationFailed(context.l10n.operationLoadLibraries, error.toString());
       });
     } finally {
       if (mounted) {
@@ -123,7 +119,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
 
     if (_selectedLibraryIds.isEmpty) {
       setState(() {
-        _errorMessage = 'Select at least one library.';
+        _errorMessage = context.l10n.errorSelectAtLeastOneLibrary;
       });
       return;
     }
@@ -149,7 +145,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
       }
 
       setState(() {
-        _errorMessage = 'Force metadata refresh failed: $error';
+        _errorMessage = context.l10n.errorOperationFailed(context.l10n.settingForceMetadataRefresh, error.toString());
       });
     } finally {
       if (mounted) {
@@ -165,7 +161,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
     final busy = _isRunning || _isLoadingLibraries;
 
     return AlertDialog(
-      title: const Text('Force Metadata Refresh'),
+      title: Text(context.l10n.settingForceMetadataRefresh),
       content: SizedBox(
         width: 640,
         child: SingleChildScrollView(
@@ -173,10 +169,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'This tool appends the "force-metadata" tag to every item in the selected libraries, performs a batch update, then removes the tag via the remove endpoint.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              Text(context.l10n.settingForceMetadataRefreshDescription, style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 12),
               if (_errorMessage != null && _errorMessage!.isNotEmpty)
                 Padding(
@@ -205,8 +198,11 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
         ),
       ),
       actions: [
-        TextButton(onPressed: busy ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: busy ? null : _runTool, child: Text(_isRunning ? 'Running...' : 'Run Tool')),
+        TextButton(onPressed: busy ? null : () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
+        FilledButton(
+          onPressed: busy ? null : _runTool,
+          child: Text(_isRunning ? context.l10n.statusRunning : context.l10n.actionRun),
+        ),
       ],
     );
   }

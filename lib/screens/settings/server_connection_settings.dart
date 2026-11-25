@@ -13,6 +13,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_header_editor_dialog.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
@@ -130,6 +131,8 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
       return;
     }
 
+    final l10n = context.l10n;
+
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) {
       return;
@@ -137,16 +140,14 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
 
     final normalizedExternal = _normalizeServerAddress(_externalServerController.text.trim());
     if (normalizedExternal == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Please enter a valid external server URL.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.validationInvalidExternalServerUrl)));
       return;
     }
 
     final localInput = _localServerController.text.trim();
     final normalizedLocal = localInput.isEmpty ? null : _normalizeServerAddress(localInput);
     if (localInput.isNotEmpty && normalizedLocal == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Please enter a valid local server URL or leave it blank.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.validationInvalidLocalServerUrl)));
       return;
     }
 
@@ -156,7 +157,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
 
     if (wantsCredentialUpdate && password.isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Enter password to update username or credentials.')));
+          .showSnackBar(SnackBar(content: Text(l10n.validationPasswordRequiredForCredentialUpdate)));
       return;
     }
 
@@ -182,11 +183,21 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
 
         final loginData = loginResponse.data;
         if (loginData == null) {
-          throw const FormatException('Credential validation returned no data.');
+          if (!mounted) {
+            return;
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorCredentialValidationNoData)));
+          return;
         }
 
         if (loginData.user.id != currentUser.id) {
-          throw const FormatException('Credentials belong to a different account. Use Add Account instead.');
+          if (!mounted) {
+            return;
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorCredentialsForDifferentAccount)));
+          return;
         }
 
         updatedUser = loginData.user.copyWith(server: updatedServer, isActive: true, setting: loginData.serverSettings);
@@ -205,21 +216,31 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Server settings saved.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.statusServerSettingsSaved)));
       _passwordController.clear();
     } on DioException catch (e) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(_parseDioErrorMessage(e, fallback: 'Failed to save server settings.'))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _parseDioErrorMessage(
+              e,
+              fallback: l10n.errorOperationFailed(l10n.operationSaveServerSettings, l10n.errorUnknown),
+            ),
+          ),
+        ),
+      );
     } catch (e) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save server settings: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.errorOperationFailed(l10n.operationSaveServerSettings, e.toString()))),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -258,20 +279,20 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
       controller: _externalServerController,
       keyboardType: TextInputType.url,
       enabled: !_isSaving,
-      label: 'External server URL',
+      label: context.l10n.fieldExternalServerUrl,
       hintText: 'https://your-audiobookshelf.example',
       prefixIcon: const Icon(Icons.public_rounded),
       validator: (value) {
         final normalized = _normalizeServerAddress((value ?? '').trim());
-        return normalized == null ? 'Enter a valid external URL.' : null;
+        return normalized == null ? context.l10n.validationInvalidExternalServerUrl : null;
       },
     );
     final localField = StyledTextFormField(
       controller: _localServerController,
       keyboardType: TextInputType.url,
       enabled: !_isSaving,
-      label: 'Local server URL',
-      hintText: 'Optional · http://192.168.1.25:13378',
+      label: context.l10n.fieldLocalServerUrl,
+      hintText: context.l10n.hintLocalServerUrl,
       prefixIcon: const Icon(Icons.lan_rounded),
       validator: (value) {
         final trimmed = (value ?? '').trim();
@@ -279,7 +300,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
           return null;
         }
         final normalized = _normalizeServerAddress(trimmed);
-        return normalized == null ? 'Enter a valid local URL or leave blank.' : null;
+        return normalized == null ? context.l10n.validationInvalidLocalServerUrl : null;
       },
     );
 
@@ -297,7 +318,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
               ),
         const SizedBox(height: 12),
         Text(
-          'When a local address is available, the app prefers it and falls back to the external address when needed.',
+          context.l10n.messageLocalServerPreferred,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
@@ -313,20 +334,20 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
         StyledTextFormField(
           controller: _usernameController,
           enabled: !_isSaving,
-          label: 'Username',
+          label: context.l10n.fieldUsername,
           prefixIcon: const Icon(Icons.person_outline_rounded),
-          validator: (value) => (value ?? '').trim().isEmpty ? 'Username cannot be empty.' : null,
+          validator: (value) => (value ?? '').trim().isEmpty ? context.l10n.validationUsernameRequired : null,
         ),
         const SizedBox(height: 12),
         StyledTextFormField(
           controller: _passwordController,
           enabled: !_isSaving,
           obscureText: _obscurePassword,
-          label: 'Password',
-          hintText: 'Only needed when changing credentials',
+          label: context.l10n.fieldPassword,
+          hintText: context.l10n.hintPasswordCredentialUpdate,
           prefixIcon: const Icon(Icons.password_rounded),
           suffixIcon: IconButton(
-            tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+            tooltip: _obscurePassword ? context.l10n.actionShowPassword : context.l10n.actionHidePassword,
             onPressed: _isSaving
                 ? null
                 : () {
@@ -339,7 +360,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
         ),
         const SizedBox(height: 12),
         Text(
-          'Leave the password empty to keep your current credentials.',
+          context.l10n.messageEmptyPasswordKeepsCredentials,
           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       ],
@@ -364,7 +385,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                 child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
               )
             : const Icon(Icons.save_outlined),
-        label: Text(_isSaving ? 'Saving changes…' : 'Save changes'),
+        label: Text(_isSaving ? context.l10n.statusSaving : context.l10n.actionSave),
       ),
     );
   }
@@ -374,7 +395,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Server Connection',
+      title: context.l10n.settingsServerConnection,
       maxWidth: 820,
       embedded: true,
       showEmbeddedBackButton: true,
@@ -395,10 +416,10 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                       children: [
                         Icon(Icons.person_off_rounded, size: 40, color: colorScheme.onSurfaceVariant),
                         const SizedBox(height: 12),
-                        const Text('No active user'),
+                        Text(context.l10n.errorNoActiveUser),
                         const SizedBox(height: 4),
                         Text(
-                          'Sign in before editing server settings.',
+                          context.l10n.promptSignInToManageSettings,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                           textAlign: TextAlign.center,
                         ),
@@ -418,17 +439,21 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildSettingsSection(context, title: 'Server endpoints', child: _buildConnectionFields(context)),
+                    _buildSettingsSection(
+                      context,
+                      title: context.l10n.headingServerEndpoints,
+                      child: _buildConnectionFields(context),
+                    ),
                     const SizedBox(height: 12),
                     _buildSettingsSection(
                       context,
-                      title: 'Account credentials',
+                      title: context.l10n.headingAccountCredentials,
                       child: _buildCredentialsFields(context),
                     ),
                     const SizedBox(height: 12),
                     _buildSettingsSection(
                       context,
-                      title: 'Custom headers',
+                      title: context.l10n.headingCustomHeaders,
                       child: CustomHeadersEditor(
                         headers: _customHeaders,
                         enabled: !_isSaving,
@@ -448,7 +473,10 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
             padding: EdgeInsets.all(32),
             child: Center(child: YaabsaCircularProgressIndicator()),
           ),
-          error: (error, _) => Padding(padding: const EdgeInsets.all(20), child: Text('Failed to load user: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(context.l10n.errorOperationFailed(context.l10n.operationLoadUser, error.toString())),
+          ),
         ),
       ],
     );

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/item_detail_components.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/util/playlist_membership.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 ItemMetadataRowData buildBookPlaylistsMetadataRow(
   BuildContext context, {
@@ -11,8 +12,10 @@ ItemMetadataRowData buildBookPlaylistsMetadataRow(
   required VoidCallback onRetry,
   VoidCallback? onLoadMore,
 }) {
+  final localizations = context.l10n;
+
   if (playlists.isLoading && !playlists.hasValue) {
-    return const ItemMetadataRowData(label: 'Playlists', value: 'Loading playlists…');
+    return ItemMetadataRowData(label: localizations.navPlaylists, value: localizations.statusLoadingContent);
   }
   final state = playlists.value;
   final hasError = playlists.hasError || state?.error != null;
@@ -32,19 +35,26 @@ ItemMetadataRowData buildBookPlaylistsMetadataRow(
       )
       .toList();
   if (hasError || state == null) {
-    values.add(ItemLinkValue(label: 'Could not load playlists. Retry', onTap: onRetry));
+    values.add(
+      ItemLinkValue(label: localizations.errorLoadNamedItemsRetry(localizations.entityPlaylists), onTap: onRetry),
+    );
   } else if (unknown) {
-    values.add(ItemLinkValue(label: 'Some playlists could not be checked. Retry', onTap: onRetry));
+    values.add(
+      ItemLinkValue(label: localizations.statusNamedItemsUnknown(localizations.entityPlaylists), onTap: onRetry),
+    );
   }
   if (state?.hasMore ?? false) {
     values.add(
       ItemLinkValue(
-        label: state!.isLoadingMore ? 'Loading playlists…' : 'Load more playlists',
+        label: state!.isLoadingMore ? localizations.statusLoadingContent : localizations.actionLoadMore,
         onTap: state.isLoadingMore ? null : onLoadMore,
       ),
     );
   } else if (!hasError && !unknown && values.isEmpty) {
-    return const ItemMetadataRowData(label: 'Playlists', value: 'No playlists');
+    return ItemMetadataRowData(
+      label: localizations.navPlaylists,
+      value: localizations.statusNoNamedItems(localizations.entityPlaylists),
+    );
   }
-  return ItemMetadataRowData(label: 'Playlists', values: values);
+  return ItemMetadataRowData(label: localizations.navPlaylists, values: values);
 }

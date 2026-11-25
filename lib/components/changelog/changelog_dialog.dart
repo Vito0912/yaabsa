@@ -8,6 +8,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void>? _startupPresentation;
 
@@ -94,7 +95,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
       logger('Could not save changelog preference: $error\n$stack', tag: 'Changelog', level: InfoLevel.warning);
       if (mounted) {
         setState(() {
-          _errorMessage = 'Could not save your preference. Please try again.';
+          _errorMessage = context.l10n.changelogErrorSavePreference;
         });
       }
     } finally {
@@ -121,7 +122,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
 
     if (mounted) {
       setState(() {
-        _errorMessage = 'Could not open GitHub Sponsors. Please try again.';
+        _errorMessage = context.l10n.changelogErrorSponsorOpen;
       });
     }
   }
@@ -150,14 +151,14 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.releases == null ? 'Changelog' : 'What’s new',
+                          widget.releases == null ? context.l10n.changelogTitle : context.l10n.changelogWhatsNew,
                           style: theme.textTheme.headlineSmall,
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: context.l10n.actionClose,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                   ),
@@ -174,7 +175,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('Could not load the changelog.'),
+                          Text(context.l10n.changelogErrorLoad),
                           TextButton.icon(
                             onPressed: () {
                               setState(() {
@@ -182,7 +183,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                               });
                             },
                             icon: const Icon(Icons.refresh),
-                            label: const Text('Try again'),
+                            label: Text(context.l10n.actionRetry),
                           ),
                         ],
                       ),
@@ -205,7 +206,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                       shrinkWrap: true,
                       padding: EdgeInsets.symmetric(horizontal: padding, vertical: 8),
                       children: [
-                        if (releases.isEmpty) const Text('No release notes are available for this version yet.'),
+                        if (releases.isEmpty) Text(context.l10n.changelogNoReleaseNotes),
                         for (final (index, release) in releases.indexed)
                           ChangelogReleaseCard(
                             release: release,
@@ -240,12 +241,12 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                           contentPadding: EdgeInsets.zero,
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
-                          title: const Text('Don\'t show again'),
+                          title: Text(context.l10n.changelogDontShowAgain),
                           value: _disabled,
                           onChanged: _saving ? null : _setDisabled,
                         ),
                       ),
-                      FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Done')),
+                      FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionDone)),
                     ],
                   ),
                 ],

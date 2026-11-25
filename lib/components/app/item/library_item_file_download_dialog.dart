@@ -12,6 +12,7 @@ import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<Uri?> showLibraryItemFileDownloadDialog({
   required BuildContext context,
@@ -63,6 +64,7 @@ class _FileDownloadDialogState extends State<_FileDownloadDialog> {
 
   Future<void> _download() async {
     Directory? temporary;
+    final l10n = context.l10n;
     try {
       if (!mounted) {
         return;
@@ -102,7 +104,7 @@ class _FileDownloadDialogState extends State<_FileDownloadDialog> {
       });
       final safeName = widget.filename.replaceAll(RegExp(r'[<>:"/\\|?*\x00-\x1F]'), '_');
       final destination = await FilePicker.saveFile(
-        dialogTitle: 'Save file',
+        dialogTitle: l10n.titleSaveFile,
         fileName: safeName.isEmpty ? 'download' : safeName,
         bytes: Uint8List(0),
       );
@@ -137,7 +139,7 @@ class _FileDownloadDialogState extends State<_FileDownloadDialog> {
       if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           _saving = false;
-          _error = listManagementErrorMessage(error, fallback: 'Could not download or save the file.');
+          _error = listManagementErrorMessage(error, fallback: l10n.errorDownloadOrSaveFileFailed);
         });
       }
     } finally {
@@ -160,7 +162,7 @@ class _FileDownloadDialogState extends State<_FileDownloadDialog> {
     return PopScope(
       canPop: !_saving,
       child: AlertDialog(
-        title: const Text('Download file'),
+        title: Text(context.l10n.headingDownloadFile),
         content: SizedBox(
           width: 400,
           child: Column(
@@ -172,11 +174,18 @@ class _FileDownloadDialogState extends State<_FileDownloadDialog> {
               if (_error != null)
                 Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error))
               else if (_saving)
-                Text(_copying ? 'Saving file...' : 'Choose where to save the file')
+                Text(_copying ? context.l10n.statusSavingFile : context.l10n.hintChooseFileSaveLocation)
               else ...[
                 YaabsaLinearProgressIndicator(value: _total > 0 ? (_received / _total).clamp(0, 1) : null),
                 const SizedBox(height: 8),
-                Text(_total > 0 ? '${formatBytes(_received)} of ${formatBytes(_total)}' : formatBytes(_received)),
+                Text(
+                  _total > 0
+                      ? context.l10n.statusDownloadedBytes(
+                          formatBytes(_received, localizations: context.l10n),
+                          formatBytes(_total, localizations: context.l10n),
+                        )
+                      : formatBytes(_received, localizations: context.l10n),
+                ),
               ],
             ],
           ),
@@ -189,7 +198,7 @@ class _FileDownloadDialogState extends State<_FileDownloadDialog> {
                     _cancelToken.cancel();
                     Navigator.of(context).pop();
                   },
-            child: Text(_error == null ? 'Cancel' : 'Close'),
+            child: Text(_error == null ? context.l10n.actionCancel : context.l10n.actionClose),
           ),
         ],
       ),

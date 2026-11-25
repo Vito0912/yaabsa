@@ -1,9 +1,20 @@
+import 'package:yaabsa/util/l10n.dart';
+
 enum AudioFileDownloadMode {
-  all('All files'),
-  custom('Custom'),
-  fromCurrent('All files starting from current');
+  all,
+  custom,
+  fromCurrent;
 
-  const AudioFileDownloadMode(this.label);
+  String get label {
+    final l10n = currentAppLocalizations();
 
-  final String label;
+    switch (this) {
+      case AudioFileDownloadMode.all:
+        return l10n.audioFileModeAll;
+      case AudioFileDownloadMode.custom:
+        return l10n.optionCustom;
+      case AudioFileDownloadMode.fromCurrent:
+        return l10n.audioFileModeFromCurrent;
+    }
+  }
 }

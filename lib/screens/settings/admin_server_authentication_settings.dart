@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/authentication/admin_server_authentication_view.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerAuthenticationSettings extends StatelessWidget {
   const AdminServerAuthenticationSettings({super.key});
@@ -26,13 +27,13 @@ class AdminServerAuthenticationSettings extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Back',
+                tooltip: context.l10n.actionBack,
                 onPressed: () => _handleBack(context),
                 icon: const Icon(Icons.arrow_back_rounded),
               ),
               Expanded(
                 child: Text(
-                  'Authentication',
+                  context.l10n.navAuthentication,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),

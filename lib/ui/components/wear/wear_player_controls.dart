@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/player/common/jump_button.dart' show JumpIcon;
 import 'package:yaabsa/ui/components/buttons/media_play_button.dart';
 import 'package:yaabsa/util/globals.dart' show BreakpointContextX;
+import 'package:yaabsa/util/l10n.dart';
 
 double wearPrimaryControlSize(BuildContext context) => context.screenWidth >= 225 ? 72 : 56;
 
@@ -49,13 +50,13 @@ class WearPlaybackControlsView extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           onPressed: onRewind,
           icon: JumpIcon(rewind: true, durationSeconds: rewindSeconds, size: 28),
-          tooltip: 'Rewind $rewindSeconds seconds',
+          tooltip: context.l10n.playbackRewindInterval(rewindSeconds),
         ),
         YaabsaMediaPlayButton(
           style: YaabsaMediaPlayButtonStyle.scalloped,
           size: primarySize,
           iconSize: 36,
-          tooltip: isPlaying ? 'Pause' : 'Play',
+          tooltip: isPlaying ? context.l10n.playbackPause : context.l10n.playbackPlay,
           isPlaying: isPlaying,
           isFinished: false,
           isLoading: isLoading,
@@ -67,7 +68,7 @@ class WearPlaybackControlsView extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           onPressed: onForward,
           icon: JumpIcon(rewind: false, durationSeconds: forwardSeconds, size: 28),
-          tooltip: 'Forward $forwardSeconds seconds',
+          tooltip: context.l10n.playbackForwardInterval(forwardSeconds),
         ),
       ],
     );
@@ -98,14 +99,14 @@ class WearPlayerActionsView extends StatelessWidget {
         IconButton(
           style: menuStyle,
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-          tooltip: 'Volume',
+          tooltip: context.l10n.fieldVolume,
           icon: const Icon(Icons.volume_up),
           onPressed: onVolumePressed,
         ),
         IconButton(
           style: menuStyle,
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-          tooltip: 'Playback settings',
+          tooltip: context.l10n.playbackSettings,
           icon: const Icon(Icons.speed_rounded),
           onPressed: onSettingsPressed,
         ),

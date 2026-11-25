@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/cast/cast_backend.dart';
@@ -59,7 +60,7 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Unable to stop playback on the receiver';
+          _error = context.l10n.errorCastStopFailed;
           _disconnecting = false;
         });
       }
@@ -84,18 +85,18 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text('Cast devices', style: Theme.of(context).textTheme.titleLarge)),
+                  Expanded(child: Text(context.l10n.castDevices, style: Theme.of(context).textTheme.titleLarge)),
                   YaabsaActionIconButton(
                     icon: Icons.refresh,
                     iconSize: 24,
                     buttonSize: 48,
                     compact: false,
                     onPressed: _searching ? null : _discover,
-                    tooltip: 'Search again',
+                    tooltip: context.l10n.playerSearchAgain,
                   ),
                 ],
               ),
-              Text(widget.casting.supportedProtocols.map((protocol) => protocol.label).join(' and ')),
+              Text(widget.casting.supportedProtocols.map((protocol) => protocol.label).join(', ')),
               const SizedBox(height: 12),
               if (_searching) const YaabsaLinearProgressIndicator(),
               if (_error != null) Text(_error!),
@@ -103,10 +104,10 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
                 stream: widget.casting.discoveryErrors,
                 initialData: widget.casting.discoveryErrors.value,
                 builder: (context, snapshot) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [for (final error in snapshot.data ?? <String>[]) Text(error)],
-                  );
+                  if (snapshot.data?.isNotEmpty ?? false) {
+                    return Text(context.l10n.errorCastDiscoveryFailed);
+                  }
+                  return const SizedBox.shrink();
                 },
               ),
               Expanded(
@@ -124,8 +125,8 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
                           return Center(
                             child: Text(
                               _searching
-                                  ? 'Searching for devices on your network...'
-                                  : 'No devices found. Check that your receiver is on the same network.',
+                                  ? context.l10n.statusSearchingCastDevices
+                                  : context.l10n.statusNoCastDevicesFound,
                               textAlign: TextAlign.center,
                             ),
                           );
@@ -137,10 +138,12 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
                               ListTile(
                                 leading: const Icon(Icons.cast_connected),
                                 title: Text(active.name),
-                                subtitle: Text('${active.protocol.label} • Connected'),
+                                subtitle: Text(
+                                  context.l10n.castProtocolStatus(active.protocol.label, context.l10n.statusConnected),
+                                ),
                                 trailing: TextButton(
                                   onPressed: _disconnecting ? null : _disconnect,
-                                  child: const Text('Disconnect'),
+                                  child: Text(context.l10n.actionDisconnect),
                                 ),
                               ),
                             for (final device in devices)

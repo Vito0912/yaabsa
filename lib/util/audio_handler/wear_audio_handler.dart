@@ -15,6 +15,7 @@ import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
 import 'package:yaabsa/util/network/request_headers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearAudioHandler extends BaseAudioHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -128,7 +129,7 @@ class WearAudioHandler extends BaseAudioHandler {
       playbackState.value.copyWith(
         processingState: AudioProcessingState.error,
         errorCode: 1,
-        errorMessage: 'Playback failed. Check your connection or use a download.',
+        errorMessage: currentAppLocalizations().errorWearPlaybackFailed,
       ),
     );
   }
@@ -248,7 +249,7 @@ class WearAudioHandler extends BaseAudioHandler {
           return;
         }
         if (opened == null || opened.tracks.isEmpty) {
-          throw const FormatException('This item cannot be played.');
+          throw FormatException(currentAppLocalizations().errorMediaCannotPlay);
         }
 
         final resumeSeconds = sessions.currentSession?.currentTime ?? 0;

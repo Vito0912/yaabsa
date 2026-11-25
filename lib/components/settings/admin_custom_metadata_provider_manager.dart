@@ -6,6 +6,7 @@ import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/custom_metadata_provider.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 typedef CreateCustomMetadataProviderCallback = Future<CustomMetadataProvider?> Function(
   CreateCustomMetadataProviderRequest payload,
@@ -62,7 +63,10 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
       return;
     }
 
-    final payload = await _showProviderDialog(title: 'Add Custom Metadata Provider', confirmLabel: 'Add');
+    final payload = await _showProviderDialog(
+      title: context.l10n.headingAddCustomMetadataProvider,
+      confirmLabel: context.l10n.actionAdd,
+    );
 
     if (!mounted || payload == null) {
       return;
@@ -79,13 +83,20 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
       }
 
       final name = provider?.name ?? payload.name;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added provider "$name".')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.statusCustomMetadataProviderAdded(name))));
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = listManagementErrorMessage(error, fallback: 'Failed to create provider.');
+      final message = listManagementErrorMessage(
+        error,
+        fallback: context.l10n.errorOperationFailed(
+          context.l10n.operationCreateCustomMetadataProvider,
+          error.toString(),
+        ),
+      );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -121,8 +132,8 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
     }
 
     final payload = await _showProviderDialog(
-      title: 'Edit Custom Metadata Provider',
-      confirmLabel: 'Save',
+      title: context.l10n.headingEditCustomMetadataProvider,
+      confirmLabel: context.l10n.actionSave,
       initialName: provider.name,
       initialUrl: provider.url,
       initialAuthHeaderValue: provider.authHeaderValue,
@@ -144,13 +155,20 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
       }
 
       final name = recreatedProvider?.name ?? payload.name;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Updated provider "$name".')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.statusCustomMetadataProviderUpdated(name))));
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = listManagementErrorMessage(error, fallback: 'Failed to update provider.');
+      final message = listManagementErrorMessage(
+        error,
+        fallback: context.l10n.errorOperationFailed(
+          context.l10n.operationUpdateCustomMetadataProvider,
+          error.toString(),
+        ),
+      );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -168,8 +186,8 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
 
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Delete provider?',
-      message: 'Delete custom metadata provider "${provider.name}"?',
+      title: context.l10n.titleDeleteCustomMetadataProvider,
+      message: context.l10n.promptDeleteCustomMetadataProvider(provider.name),
     );
 
     if (!mounted || !confirmed) {
@@ -186,13 +204,20 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted provider "${provider.name}".')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.statusCustomMetadataProviderDeleted(provider.name))));
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = listManagementErrorMessage(error, fallback: 'Failed to delete provider.');
+      final message = listManagementErrorMessage(
+        error,
+        fallback: context.l10n.errorOperationFailed(
+          context.l10n.operationDeleteCustomMetadataProvider,
+          error.toString(),
+        ),
+      );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -215,14 +240,14 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
               Spacer(),
               const SizedBox(width: 12),
               IconButton(
-                tooltip: 'Refresh providers',
+                tooltip: context.l10n.actionRefresh,
                 onPressed: _isBusy ? null : _handleRefresh,
                 icon: const Icon(Icons.refresh_outlined),
               ),
               FilledButton.icon(
                 onPressed: _isBusy ? null : _showAddProviderDialog,
                 icon: const Icon(Icons.add),
-                label: const Text('Add'),
+                label: Text(context.l10n.actionAdd),
               ),
             ],
           ),
@@ -234,7 +259,7 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-                    children: const [Text('No custom metadata providers found.')],
+                    children: [Text(context.l10n.statusNoCustomMetadataProviders)],
                   )
                 : ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -254,7 +279,7 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                             children: [
                               Text(provider.url),
                               if (provider.authHeaderValue != null && provider.authHeaderValue!.trim().isNotEmpty)
-                                const Text('Auth header configured'),
+                                Text(context.l10n.statusAuthHeaderConfigured),
                             ],
                           ),
                           trailing: processingThisProvider
@@ -269,12 +294,12 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       IconButton(
-                                        tooltip: 'Edit provider',
+                                        tooltip: context.l10n.actionEdit,
                                         onPressed: _isBusy ? null : () => _editProvider(provider),
                                         icon: const Icon(Icons.edit_outlined),
                                       ),
                                       YaabsaDeleteIconButton(
-                                        tooltip: 'Delete provider',
+                                        tooltip: context.l10n.actionDelete,
                                         onPressed: _isBusy ? null : () => _deleteProvider(provider),
                                       ),
                                     ],
@@ -397,24 +422,28 @@ class _CreateCustomMetadataProviderDialogState extends State<_CreateCustomMetada
             children: [
               StyledTextField(
                 controller: _nameController,
-                label: 'Name',
-                errorText: _showValidation && !_isNameValid ? 'Name is required.' : null,
+                label: context.l10n.fieldName,
+                errorText: _showValidation && !_isNameValid ? context.l10n.errorNameRequired : null,
               ),
               const SizedBox(height: 12),
               StyledTextField(
                 controller: _urlController,
-                label: 'URL',
+                label: context.l10n.fieldUrl,
                 hintText: 'https://example.com/path',
-                errorText: _showValidation && !_isUrlValid ? 'Enter a valid http or https URL.' : null,
+                errorText: _showValidation && !_isUrlValid ? context.l10n.validationHttpUrlRequired : null,
               ),
               const SizedBox(height: 12),
-              StyledTextField(controller: _authController, label: 'Auth Header Value', hintText: 'Optional'),
+              StyledTextField(
+                controller: _authController,
+                label: context.l10n.fieldAuthHeaderValue,
+                hintText: context.l10n.inputOptional,
+              ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
         FilledButton(onPressed: _isFormValid ? _submit : null, child: Text(widget.confirmLabel)),
       ],
     );

@@ -8,6 +8,8 @@ import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/screens/settings/reader_tts_settings.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_appearance_controls.dart';
+import 'package:intl/intl.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ReaderSettings extends StatelessWidget {
   const ReaderSettings({super.key});
@@ -16,73 +18,113 @@ class ReaderSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
+    final percentFormatter = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
+    final decimalFormatter = NumberFormat.decimalPattern(locale)
+      ..minimumFractionDigits = 1
+      ..maximumFractionDigits = 1;
+
     return SettingsPageScaffold(
-      title: 'Reader Settings',
+      title: localizations.readerSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: Navigator.of(context).canPop(),
       children: [
         SettingsNavigationSection(
-          title: 'Display & Theme',
+          title: localizations.settingsDisplayTitle,
           topPadding: 0,
           settings: [
             const ReaderAppearancePreview(),
             const ReaderPageColorPicker(),
             SettingDropdown<String>(
-              label: 'Typeface',
-              description: 'Choose a comfortable reading font',
+              label: localizations.readerFieldTypeface,
+              description: localizations.readerChooseFontDescription,
               values: const ['publisher', 'serif', 'sans'],
-              valueLabels: const ['Book default', 'Serif', 'Sans serif'],
+              valueLabels: [localizations.optionBookDefault, localizations.fontSerif, localizations.fontSansSerif],
               settingKey: SettingKeys.readerFontFamily,
             ),
             SettingSlider<double>(
-              label: 'Font Size',
-              description: 'Adjust the size of the reader text',
+              label: localizations.readerFieldTextSize,
+              description: localizations.readerAdjustTextSizeDescription,
               values: const [0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.5],
-              valueLabels: const ['60%', '80%', '100%', '120%', '140%', '160%', '180%', '200%', '220%', '250%'],
+              valueLabels: const [
+                0.6,
+                0.8,
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0,
+                2.2,
+                2.5,
+              ].map(percentFormatter.format).toList(growable: false),
               settingKey: SettingKeys.readerFontSizeMultiplier,
             ),
             SettingSlider<double>(
-              label: 'Line Spacing',
-              description: 'Adjust the line spacing of the reader text',
+              label: localizations.readerFieldLineSpacing,
+              description: localizations.readerAdjustLineSpacingDescription,
               values: const [1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0],
-              valueLabels: const ['1.0', '1.2', '1.5', '1.8', '2.0', '2.5', '3.0'],
+              valueLabels: const [
+                1.0,
+                1.2,
+                1.5,
+                1.8,
+                2.0,
+                2.5,
+                3.0,
+              ].map(decimalFormatter.format).toList(growable: false),
               settingKey: SettingKeys.readerLineHeight,
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Layout',
+          title: localizations.headingLayout,
           settings: [
             const ReaderPageGeometrySettings(),
             SettingDropdown<String>(
-              label: 'Text alignment',
-              description: 'Choose how paragraphs are aligned',
+              label: localizations.fieldTextAlignment,
+              description: localizations.readerChooseTextAlignmentDescription,
               values: const ['publisher', 'start', 'justify'],
-              valueLabels: const ['Book default', 'Start aligned', 'Justified'],
+              valueLabels: [
+                localizations.optionBookDefault,
+                localizations.textAlignmentStart,
+                localizations.textAlignmentJustified,
+              ],
               settingKey: SettingKeys.readerTextAlignment,
             ),
             SettingSlider<double>(
-              label: 'Letter spacing',
-              description: 'Adjust the space between letters',
+              label: localizations.readerFieldLetterSpacing,
+              description: localizations.readerAdjustLetterSpacingDescription,
               values: const [0.0, 0.02, 0.04, 0.08, 0.12],
-              valueLabels: const ['Book default', 'Slight', 'Medium', 'Wide', 'Extra wide'],
+              valueLabels: [
+                localizations.optionBookDefault,
+                localizations.spacingSlight,
+                localizations.sizeMedium,
+                localizations.sizeWide,
+                localizations.sizeExtraWide,
+              ],
               settingKey: SettingKeys.readerLetterSpacing,
             ),
             SettingDropdown<String>(
-              label: 'Layout Mode',
-              description: 'Choose how pages move while reading',
+              label: localizations.readerFieldPageLayout,
+              description: localizations.readerChoosePageLayoutDescription,
               values: const ['paginated_1', 'paginated_2', 'scrolled'],
-              valueLabels: const ['Single page', 'Two pages on wide screens', 'Scroll'],
+              valueLabels: [
+                localizations.pageLayoutSingle,
+                localizations.pageLayoutTwoWide,
+                localizations.pageLayoutScroll,
+              ],
               settingKey: SettingKeys.readerLayout,
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Speech',
+          title: localizations.readerReadAloud,
           items: [
             SettingsNavigationItem(
               icon: Icons.record_voice_over_outlined,
-              title: 'Text-to-Speech (TTS)',
+              title: localizations.readerReadAloud,
               onTap: () {
                 final isNested = Navigator.of(context) != Navigator.of(context, rootNavigator: true);
 
@@ -96,16 +138,16 @@ class ReaderSettings extends StatelessWidget {
           ],
         ),
         SettingsNavigationSection(
-          title: 'Player Integration',
+          title: localizations.readerPlayerIntegration,
           settings: [
-            const SettingSwitchTile(
-              label: 'Hide mini player when reading',
-              subtitle: 'Hides the bottom audio mini player in the book reader',
+            SettingSwitchTile(
+              label: localizations.readerHideMiniPlayer,
+              subtitle: localizations.readerHideMiniPlayerDescription,
               settingKey: SettingKeys.readerHideMiniPlayer,
             ),
-            const SettingSwitchTile(
-              label: 'Track reading time as listening',
-              subtitle: 'Includes reading time in your listening statistics',
+            SettingSwitchTile(
+              label: localizations.readerTrackReadingTime,
+              subtitle: localizations.readerTrackReadingTimeDescription,
               settingKey: SettingKeys.readerStartSession,
             ),
           ],

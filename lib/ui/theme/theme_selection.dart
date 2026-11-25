@@ -1,3 +1,5 @@
+import 'package:yaabsa/util/l10n.dart';
+
 enum AppThemeMode {
   light,
   dark,
@@ -21,16 +23,7 @@ enum AppThemeMode {
   }
 
   String get label {
-    switch (this) {
-      case AppThemeMode.light:
-        return 'Light';
-      case AppThemeMode.dark:
-        return 'Dark';
-      case AppThemeMode.amoled:
-        return 'AMOLED';
-      case AppThemeMode.system:
-        return 'System';
-    }
+    return currentAppLocalizations().themeModeName(name);
   }
 }
 
@@ -64,36 +57,10 @@ enum AppThemePreset {
   }
 
   String get label {
-    switch (this) {
-      case AppThemePreset.yaabsa:
-        return 'Yaabsa';
-      case AppThemePreset.ember:
-        return 'Ember';
-      case AppThemePreset.moss:
-        return 'Moss';
-      case AppThemePreset.cobalt:
-        return 'Cobalt';
-      case AppThemePreset.rose:
-        return 'Rose';
-      case AppThemePreset.custom:
-        return 'Custom';
-    }
+    return currentAppLocalizations().themePresetName(name);
   }
 
   String get description {
-    switch (this) {
-      case AppThemePreset.yaabsa:
-        return 'Balanced teal accent with soft contrast.';
-      case AppThemePreset.ember:
-        return 'Warm orange highlights and energetic surfaces.';
-      case AppThemePreset.moss:
-        return 'Natural green tones with a calmer look.';
-      case AppThemePreset.cobalt:
-        return 'Cool blue accents with a crisp interface feel.';
-      case AppThemePreset.rose:
-        return 'Rosy highlights with a softer modern touch.';
-      case AppThemePreset.custom:
-        return 'Build your own color profile.';
-    }
+    return currentAppLocalizations().themePresetDescription(name);
   }
 }

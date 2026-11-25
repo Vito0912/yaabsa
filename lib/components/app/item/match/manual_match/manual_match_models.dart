@@ -34,9 +34,10 @@ class ManualMatchResult {
     Map<String, dynamic> map, {
     required String providerValue,
     required String providerLabel,
+    required String untitledLabel,
   }) {
     final parsedAuthors = extractAuthorList(map);
-    final normalizedTitle = _asTrimmedString(map['title']) ?? _asTrimmedString(map['name']) ?? 'Untitled';
+    final normalizedTitle = _asTrimmedString(map['title']) ?? _asTrimmedString(map['name']) ?? untitledLabel;
 
     return ManualMatchResult(
       providerValue: providerValue,
@@ -178,57 +179,7 @@ enum ManualMatchField {
   abridged,
 }
 
-extension ManualMatchFieldX on ManualMatchField {
-  String get label {
-    switch (this) {
-      case ManualMatchField.cover:
-        return 'Cover image';
-      case ManualMatchField.title:
-        return 'Title';
-      case ManualMatchField.subtitle:
-        return 'Subtitle';
-      case ManualMatchField.authors:
-        return 'Authors';
-      case ManualMatchField.narrators:
-        return 'Narrators';
-      case ManualMatchField.description:
-        return 'Description';
-      case ManualMatchField.publisher:
-        return 'Publisher';
-      case ManualMatchField.publishedYear:
-        return 'Published year';
-      case ManualMatchField.series:
-        return 'Series';
-      case ManualMatchField.genres:
-        return 'Genres';
-      case ManualMatchField.tags:
-        return 'Tags';
-      case ManualMatchField.language:
-        return 'Language';
-      case ManualMatchField.isbn:
-        return 'ISBN';
-      case ManualMatchField.asin:
-        return 'ASIN';
-      case ManualMatchField.explicit:
-        return 'Explicit';
-      case ManualMatchField.abridged:
-        return 'Abridged';
-    }
-  }
-}
-
 enum ManualListApplyMode { overwrite, add }
-
-extension ManualListApplyModeX on ManualListApplyMode {
-  String get label {
-    switch (this) {
-      case ManualListApplyMode.overwrite:
-        return 'Overwrite';
-      case ManualListApplyMode.add:
-        return 'Add to current';
-    }
-  }
-}
 
 const Set<ManualMatchField> manualListFields = <ManualMatchField>{
   ManualMatchField.authors,

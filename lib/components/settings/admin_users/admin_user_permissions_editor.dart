@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminUserPermissionsEditor extends StatelessWidget {
   const AdminUserPermissionsEditor({
@@ -16,6 +17,8 @@ class AdminUserPermissionsEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -23,40 +26,43 @@ class AdminUserPermissionsEditor extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Permissions', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              l10n.headingUserPermissions,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
             _PermissionSwitch(
-              label: 'Can download',
+              label: l10n.permissionDownload,
               value: permissions.download,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(download: value)),
             ),
             _PermissionSwitch(
-              label: 'Can update',
+              label: l10n.permissionUpdate,
               value: permissions.update,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(update: value)),
             ),
             _PermissionSwitch(
-              label: 'Can delete',
+              label: l10n.permissionDelete,
               value: permissions.delete,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(delete: value)),
             ),
             _PermissionSwitch(
-              label: 'Can upload',
+              label: l10n.permissionUpload,
               value: permissions.upload,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(upload: value)),
             ),
             _PermissionSwitch(
-              label: 'Can create eReader devices',
+              label: l10n.permissionCreateEreaderDevices,
               value: permissions.createEreader,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(createEreader: value)),
             ),
             _PermissionSwitch(
-              label: 'Can access explicit content',
+              label: l10n.permissionAccessExplicitContent,
               value: permissions.accessExplicitContent,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(accessExplicitContent: value)),

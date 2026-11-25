@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/util/cast/cast_backend.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/chrome_cast_service.dart';
 
 class ChromecastBackend extends CastBackend {
@@ -23,7 +24,7 @@ class ChromecastBackend extends CastBackend {
     }
 
     if (!await ChromeCastService.ensureInitialized()) {
-      throw StateError('Chromecast is unavailable on this device');
+      throw StateError(currentAppLocalizations().errorChromecastUnavailable);
     }
 
     _initialized = true;
@@ -32,7 +33,7 @@ class ChromecastBackend extends CastBackend {
       GoogleCastSessionManager.instance.currentSessionStream.listen((session) {
         final isConnected = session?.connectionState == GoogleCastConnectState.connected;
         if (!isConnected) {
-          _failPendingLoad('Cast connection was lost', canTranscode: false);
+          _failPendingLoad(currentAppLocalizations().errorCastDeviceGone, canTranscode: false);
         }
 
         connected.add(isConnected);
@@ -53,14 +54,14 @@ class ChromecastBackend extends CastBackend {
             if (value.mediaInformation == null &&
                 value.playerState == CastMediaPlayerState.idle &&
                 value.idleReason == GoogleCastMediaIdleReason.error) {
-              _failPendingLoad('The receiver could not load this audio');
+              _failPendingLoad(currentAppLocalizations().errorCastReceiverLoadFailed);
             }
 
             return;
           }
         } else if (pending != null && !pending.isCompleted) {
           if (value.playerState == CastMediaPlayerState.idle && value.idleReason == GoogleCastMediaIdleReason.error) {
-            _failPendingLoad('The receiver could not load this audio');
+            _failPendingLoad(currentAppLocalizations().errorCastReceiverLoadFailed);
           } else if (value.playerState == CastMediaPlayerState.playing ||
               value.playerState == CastMediaPlayerState.paused) {
             pending.complete();
@@ -159,7 +160,7 @@ class ChromecastBackend extends CastBackend {
     await _initialize();
     final target = _targets[device.id];
     if (target == null) {
-      throw StateError('This Chromecast is no longer available');
+      throw StateError(currentAppLocalizations().errorChromecastGone);
     }
 
     await GoogleCastSessionManager.instance.startSessionWithDevice(target);
@@ -212,7 +213,7 @@ class ChromecastBackend extends CastBackend {
         pending.future.timeout(
           const Duration(seconds: 20),
           onTimeout: () {
-            throw const CastPlaybackException('The receiver did not confirm loading this audio');
+            throw CastPlaybackException(currentAppLocalizations().errorCastReceiverLoadUnconfirmed);
           },
         ),
         GoogleCastRemoteMediaClient.instance.loadMedia(
@@ -237,7 +238,7 @@ class ChromecastBackend extends CastBackend {
 
   @override
   Future<void> stop() async {
-    _failPendingLoad('Cast playback was cancelled', canTranscode: false);
+    _failPendingLoad(currentAppLocalizations().errorCastCancelled, canTranscode: false);
     await GoogleCastRemoteMediaClient.instance.stop();
   }
 
@@ -257,7 +258,7 @@ class ChromecastBackend extends CastBackend {
 
   @override
   Future<void> disconnect() async {
-    _failPendingLoad('Cast playback was cancelled', canTranscode: false);
+    _failPendingLoad(currentAppLocalizations().errorCastCancelled, canTranscode: false);
     _media = null;
     _receiverContentId = null;
     _positionGuardStartedAt = null;

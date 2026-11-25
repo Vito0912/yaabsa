@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/list/playlist_item.dart';
@@ -26,7 +27,7 @@ class PlaylistView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     final libraryId = selectedLibrary.id;
@@ -68,9 +69,9 @@ class PlaylistView extends HookConsumerWidget {
             .toList(growable: false);
 
         return ManagedMultiBookView(
-          createLabel: 'New playlist',
-          emptyTitle: 'No playlists yet.',
-          emptyMessage: 'Create one when you want to queue your next listens.',
+          createLabel: context.l10n.actionCreatePlaylist,
+          emptyTitle: context.l10n.statusNoManagedLists,
+          emptyMessage: context.l10n.promptCreateManagedList,
           emptyIcon: Icons.playlist_play_rounded,
           onCreate: canCreatePlaylists
               ? () => _createPlaylist(
@@ -108,7 +109,7 @@ class PlaylistView extends HookConsumerWidget {
 
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Error loading playlists',
+          title: context.l10n.errorUnableToLoadContent,
           onRetry: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: true),
         );
       },
@@ -143,17 +144,17 @@ Future<void> _showPlaylistActionsSheet({
             if (allowBookSelection)
               ListTile(
                 leading: const Icon(Icons.menu_book_rounded),
-                title: const Text('Edit books'),
+                title: Text(context.l10n.actionEditBooks),
                 onTap: () => Navigator.of(sheetContext).pop(_PlaylistAction.editBooks),
               ),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: const Text('Edit details'),
+              title: Text(context.l10n.actionEditDetails),
               onTap: () => Navigator.of(sheetContext).pop(_PlaylistAction.edit),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline_rounded),
-              title: const Text('Delete playlist'),
+              title: Text(context.l10n.actionDelete),
               onTap: () => Navigator.of(sheetContext).pop(_PlaylistAction.delete),
             ),
           ],
@@ -188,12 +189,12 @@ Future<void> _createPlaylist({
   if (allowBookSelection) {
     await createManagedListEntity(
       context: context,
-      formTitle: 'Create playlist',
-      booksTitle: 'Edit books',
-      createLabel: 'Create',
+      formTitle: context.l10n.actionCreatePlaylist,
+      booksTitle: context.l10n.actionEditBooks,
+      createLabel: context.l10n.actionCreate,
       selectionRequired: false,
       allowEmptyCreation: true,
-      emptyCreationLabel: 'Create empty',
+      emptyCreationLabel: context.l10n.actionCreateEmpty,
       onCreate: ({required name, description, required bookIds}) async {
         final created = await ref
             .read(playlistsProvider(libraryId).notifier)
@@ -206,16 +207,16 @@ Future<void> _createPlaylist({
           _openCreatedPlaylist(context, created);
         }
       },
-      successMessage: 'Playlist created.',
-      errorFallback: 'Could not create playlist.',
+      successMessage: context.l10n.statusNamedEntityCreated(context.l10n.fieldPlaylist),
+      errorFallback: context.l10n.errorNamedEntityCreateFailed(context.l10n.fieldPlaylist),
     );
     return;
   }
 
   final metadata = await showListManagementFormDialog(
     context: context,
-    title: 'Create playlist',
-    confirmLabel: 'Create',
+    title: context.l10n.actionCreatePlaylist,
+    confirmLabel: context.l10n.actionCreate,
   );
   if (!context.mounted || metadata == null) {
     return;
@@ -231,8 +232,8 @@ Future<void> _createPlaylist({
         _openCreatedPlaylist(context, created);
       }
     },
-    successMessage: 'Playlist created.',
-    errorFallback: 'Could not create playlist.',
+    successMessage: context.l10n.statusNamedEntityCreated(context.l10n.fieldPlaylist),
+    errorFallback: context.l10n.errorNamedEntityCreateFailed(context.l10n.fieldPlaylist),
   );
 }
 
@@ -252,8 +253,8 @@ Future<void> _editPlaylistBooks({
   final currentBooks = _playlistBooks(playlist);
   await editManagedListBooks(
     context: context,
-    title: 'Edit books',
-    confirmLabel: 'Save books',
+    title: context.l10n.actionEditBooks,
+    confirmLabel: context.l10n.actionSaveBooks,
     selectionRequired: true,
     initialBooks: currentBooks,
     onSave: (bookIds) => ref
@@ -263,8 +264,8 @@ Future<void> _editPlaylistBooks({
           currentBookIds: currentBooks.map((item) => item.id).toList(growable: false),
           desiredBookIds: bookIds,
         ),
-    successMessage: 'Playlist books updated.',
-    errorFallback: 'Could not update playlist books.',
+    successMessage: context.l10n.statusNamedBooksUpdated(context.l10n.fieldPlaylist),
+    errorFallback: context.l10n.errorNamedBooksUpdateFailed(context.l10n.fieldPlaylist),
   );
 }
 
@@ -276,14 +277,14 @@ Future<void> _editPlaylist({
 }) async {
   await editManagedListDetails(
     context: context,
-    title: 'Edit playlist',
+    title: context.l10n.editNamedEntity(context.l10n.fieldPlaylist),
     initialName: playlist.name,
     initialDescription: playlist.description,
     onSave: ({required name, description}) => ref
         .read(playlistsProvider(libraryId).notifier)
         .updatePlaylist(playlist.id, name: name, description: description),
-    successMessage: 'Playlist updated.',
-    errorFallback: 'Could not update playlist.',
+    successMessage: context.l10n.statusNamedEntityUpdated(context.l10n.fieldPlaylist),
+    errorFallback: context.l10n.errorNamedEntityUpdateFailed(context.l10n.fieldPlaylist),
   );
 }
 
@@ -295,11 +296,11 @@ Future<void> _deletePlaylist({
 }) async {
   await deleteManagedListEntity(
     context: context,
-    title: 'Delete playlist?',
-    message: '"${playlist.name}" will be permanently removed.',
+    title: context.l10n.headingDeleteManagedList,
+    message: context.l10n.deleteNamedEntityMessage(playlist.name),
     onDelete: () => ref.read(playlistsProvider(libraryId).notifier).deletePlaylist(playlist.id),
-    successMessage: 'Playlist deleted.',
-    errorFallback: 'Could not delete playlist.',
+    successMessage: context.l10n.statusNamedEntityDeleted(context.l10n.fieldPlaylist),
+    errorFallback: context.l10n.errorNamedEntityDeleteFailed(context.l10n.fieldPlaylist),
   );
 }
 

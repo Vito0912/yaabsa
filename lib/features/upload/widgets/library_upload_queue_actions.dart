@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryUploadQueueActions extends StatelessWidget {
   const LibraryUploadQueueActions({
@@ -21,17 +22,17 @@ class LibraryUploadQueueActions extends StatelessWidget {
     final clearButton = OutlinedButton.icon(
       onPressed: isUploading ? null : onClear,
       icon: const Icon(Icons.delete_sweep_outlined),
-      label: const Text('Clear queue'),
+      label: Text(context.l10n.actionClearQueue),
     );
     final cancelButton = FilledButton.tonalIcon(
       onPressed: onCancel,
       icon: const Icon(Icons.stop_circle_outlined),
-      label: const Text('Cancel uploads'),
+      label: Text(context.l10n.uploadCancelUploads),
     );
     final startButton = FilledButton.icon(
       onPressed: !isUploading && hasQueuedItems ? onStart : null,
       icon: const Icon(Icons.cloud_upload_rounded),
-      label: const Text('Start upload'),
+      label: Text(context.l10n.uploadStart),
     );
 
     return LayoutBuilder(

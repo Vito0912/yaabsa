@@ -15,18 +15,6 @@ extension LibraryFilterGroupX on LibraryFilterGroup {
     LibraryFilterGroup.tracks => 'tracks',
   };
 
-  String get displayName => switch (this) {
-    LibraryFilterGroup.genres => 'Genres',
-    LibraryFilterGroup.tags => 'Tags',
-    LibraryFilterGroup.series => 'Series',
-    LibraryFilterGroup.authors => 'Authors',
-    LibraryFilterGroup.progress => 'Progress',
-    LibraryFilterGroup.narrators => 'Narrators',
-    LibraryFilterGroup.missing => 'Missing Metadata',
-    LibraryFilterGroup.languages => 'Languages',
-    LibraryFilterGroup.tracks => 'Tracks',
-  };
-
   bool get isBookOnly => switch (this) {
     LibraryFilterGroup.series ||
     LibraryFilterGroup.authors ||

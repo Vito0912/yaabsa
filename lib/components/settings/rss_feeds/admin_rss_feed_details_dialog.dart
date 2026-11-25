@@ -5,6 +5,7 @@ import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void> showAdminRssFeedDetailsDialog({
   required BuildContext context,
@@ -63,16 +64,16 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
   String _entityLabel(String? entityType) {
     final normalized = (entityType ?? '').trim().toLowerCase();
     if (normalized == 'libraryitem') {
-      return 'Item';
+      return context.l10n.entityItem;
     }
     if (normalized == 'series') {
-      return 'Series';
+      return context.l10n.fieldSeries;
     }
     if (normalized == 'collection') {
-      return 'Collection';
+      return context.l10n.fieldCollection;
     }
     if (normalized.isEmpty) {
-      return 'Unknown';
+      return context.l10n.statusUnknown;
     }
     return normalized;
   }
@@ -88,21 +89,21 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
   String _episodeDuration(AdminRssFeedEpisode episode) {
     final durationSeconds = episode.duration;
     if (durationSeconds == null || durationSeconds <= 0) {
-      return 'Unknown';
+      return context.l10n.statusUnknown;
     }
 
-    return formatDurationLong(Duration(seconds: durationSeconds.round()));
+    return formatDurationLong(Duration(seconds: durationSeconds.round()), localizations: context.l10n);
   }
 
   String? _episodeNumberLabel(AdminRssFeedEpisode episode) {
     final season = episode.season?.trim();
     final episodeNumber = episode.episode?.trim();
     if (season != null && season.isNotEmpty && episodeNumber != null && episodeNumber.isNotEmpty) {
-      return 'S$season E$episodeNumber';
+      return context.l10n.labelEpisodeSeasonAndNumber(season, episodeNumber);
     }
 
     if (episodeNumber != null && episodeNumber.isNotEmpty) {
-      return 'E$episodeNumber';
+      return context.l10n.labelEpisodeNumber(episodeNumber);
     }
 
     return null;
@@ -111,7 +112,7 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
   String _episodeTitle(AdminRssFeedEpisode episode) {
     final title = episode.title?.trim();
     if (title == null || title.isEmpty) {
-      return 'Untitled episode';
+      return context.l10n.untitledEpisode;
     }
 
     return title;
@@ -154,7 +155,7 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
     }
 
     final messenger = ScaffoldMessenger.maybeOf(context);
-    messenger?.showSnackBar(const SnackBar(content: Text('Feed URL copied.')));
+    messenger?.showSnackBar(SnackBar(content: Text(context.l10n.statusRssFeedUrlCopied)));
   }
 
   Widget _buildCover() {
@@ -172,6 +173,7 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final metadata = widget.feed.meta;
     final episodes = _sortedEpisodes();
     final episodeCount = widget.feed.episodes.length;
@@ -180,7 +182,7 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
     final hasOwnerEmail = _ownerEmailController.text.trim().isNotEmpty;
 
     return AlertDialog(
-      title: const Text('RSS Feed Details'),
+      title: Text(l10n.headingRssFeedDetails),
       content: SizedBox(
         width: 760,
         child: ConstrainedBox(
@@ -200,7 +202,7 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
                         Text(widget.feed.resolvedTitle, style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 2),
                         Text(
-                          '${_entityLabel(widget.feed.entityType)} • $episodeCount episodes',
+                          l10n.statusRssFeedEntitySummary(_entityLabel(widget.feed.entityType), episodeCount),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
@@ -210,21 +212,26 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
                 ],
               ),
               const SizedBox(height: 12),
-              StyledTextField(label: 'Title', controller: _titleController, readOnly: true),
+              StyledTextField(label: l10n.fieldTitle, controller: _titleController, readOnly: true),
               const SizedBox(height: 10),
               StyledTextField(
-                label: 'Feed URL',
+                label: l10n.fieldFeedUrl,
                 controller: _feedUrlController,
                 readOnly: true,
                 suffixIcon: IconButton(
-                  tooltip: 'Copy feed URL',
+                  tooltip: l10n.actionCopyFeedUrl,
                   onPressed: _feedUrlController.text.trim().isEmpty ? null : _copyFeedUrl,
                   icon: const Icon(Icons.copy_rounded),
                 ),
               ),
               if (hasDescription) ...[
                 const SizedBox(height: 10),
-                StyledTextField(label: 'Description', controller: _descriptionController, readOnly: true, maxLines: 3),
+                StyledTextField(
+                  label: l10n.fieldDescription,
+                  controller: _descriptionController,
+                  readOnly: true,
+                  maxLines: 3,
+                ),
               ],
               if (hasOwnerName || hasOwnerEmail) ...[
                 const SizedBox(height: 10),
@@ -232,12 +239,20 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
                   children: [
                     if (hasOwnerName)
                       Expanded(
-                        child: StyledTextField(label: 'Owner Name', controller: _ownerNameController, readOnly: true),
+                        child: StyledTextField(
+                          label: l10n.fieldOwnerName,
+                          controller: _ownerNameController,
+                          readOnly: true,
+                        ),
                       ),
                     if (hasOwnerName && hasOwnerEmail) const SizedBox(width: 10),
                     if (hasOwnerEmail)
                       Expanded(
-                        child: StyledTextField(label: 'Owner Email', controller: _ownerEmailController, readOnly: true),
+                        child: StyledTextField(
+                          label: l10n.fieldOwnerEmail,
+                          controller: _ownerEmailController,
+                          readOnly: true,
+                        ),
                       ),
                   ],
                 ),
@@ -245,12 +260,15 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
               if (metadata?.preventIndexing == true) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'This feed is marked to prevent indexing.',
+                  l10n.messageRssFeedPreventIndexing,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
                 ),
               ],
               const SizedBox(height: 12),
-              Text('Episodes', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+              Text(
+                l10n.headingEpisodes,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
               Expanded(
                 child: ExpressiveActionTable<AdminRssFeedEpisode>(
@@ -259,7 +277,7 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
                   columns: [
                     ExpressiveTableColumn<AdminRssFeedEpisode>(
                       id: 'episode',
-                      label: 'Episode',
+                      label: l10n.headingEpisode,
                       width: 320,
                       cellBuilder: (context, episode) {
                         final type = episode.episodeType?.trim();
@@ -289,37 +307,39 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
                     ),
                     ExpressiveTableColumn<AdminRssFeedEpisode>(
                       id: 'duration',
-                      label: 'Duration',
+                      label: l10n.fieldDuration,
                       width: 110,
                       alignment: ExpressiveTableCellAlignment.center,
                       cellBuilder: (context, episode) => Text(_episodeDuration(episode)),
                     ),
                     ExpressiveTableColumn<AdminRssFeedEpisode>(
                       id: 'author',
-                      label: 'Author',
+                      label: l10n.fieldAuthor,
                       width: 150,
                       showOnMobile: false,
                       cellBuilder: (context, episode) {
                         final author = episode.author?.trim();
-                        final resolved = author == null || author.isEmpty ? 'Unknown' : author;
+                        final resolved = author == null || author.isEmpty ? l10n.statusUnknown : author;
                         return Text(resolved, maxLines: 1, overflow: TextOverflow.ellipsis);
                       },
                     ),
                     ExpressiveTableColumn<AdminRssFeedEpisode>(
                       id: 'size',
-                      label: 'Size',
+                      label: l10n.fieldSize,
                       width: 80,
                       alignment: ExpressiveTableCellAlignment.end,
                       showOnMobile: false,
                       cellBuilder: (context, episode) {
                         final size = episode.enclosure?.size;
-                        final resolved = size == null || size <= 0 ? 'Unknown' : formatBytes(size);
+                        final resolved = size == null || size <= 0
+                            ? l10n.statusUnknown
+                            : formatBytes(size, localizations: l10n);
                         return Text(resolved, maxLines: 1, overflow: TextOverflow.ellipsis);
                       },
                     ),
                   ],
-                  emptyTitle: 'No episodes in this feed',
-                  emptySubtitle: 'Episodes will appear here when available.',
+                  emptyTitle: l10n.statusNoEpisodesInRssFeed,
+                  emptySubtitle: l10n.messageRssEpisodesAppearHere,
                   padding: EdgeInsets.zero,
                   physics: const AlwaysScrollableScrollPhysics(),
                 ),
@@ -328,7 +348,7 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
           ),
         ),
       ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.actionClose))],
     );
   }
 }

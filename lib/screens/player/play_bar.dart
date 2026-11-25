@@ -21,6 +21,7 @@ import 'package:yaabsa/features/player/widgets/mini_player_cover.dart';
 import 'package:yaabsa/features/player/widgets/mini_player_gradient_surface.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayBar extends ConsumerStatefulWidget {
@@ -109,7 +110,7 @@ class _PlayBarState extends ConsumerState<PlayBar> {
             ],
             Expanded(
               child: MiniPlayerMetadataPresentation(
-                title: currentMedia?.title ?? 'Now playing',
+                title: currentMedia?.title ?? context.l10n.playbackNowPlaying,
                 subtitle: currentMedia?.author,
               ),
             ),
@@ -127,13 +128,13 @@ class _PlayBarState extends ConsumerState<PlayBar> {
               : PlayerActionBar(actions: visibleDesktopActions, hasChapters: chaptersExist, spacing: 6),
           moreActionsButton: mobile
               ? IconButton(
-                  tooltip: 'More player controls',
+                  tooltip: context.l10n.actionMoreActions,
                   onPressed: () => _showMiniActionsSheet(context, actions: actions, hasChapters: chaptersExist),
                   icon: const Icon(Icons.more_horiz_rounded),
                 )
               : visibleDesktopActions.length != actions.length
               ? IconButton(
-                  tooltip: 'More player controls',
+                  tooltip: context.l10n.actionMoreActions,
                   onPressed: () => _showMiniActionsSheet(
                     context,
                     actions: actions.skip(visibleDesktopActions.length).toList(growable: false),
@@ -183,7 +184,7 @@ class _PlayBarState extends ConsumerState<PlayBar> {
                   color: Colors.transparent,
                   child: ListTile(
                     leading: const Icon(Icons.stop_circle_rounded),
-                    title: const Text('Stop playback'),
+                    title: Text(context.l10n.playbackStop),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     tileColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                     onTap: () {

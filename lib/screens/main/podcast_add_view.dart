@@ -16,6 +16,7 @@ import 'package:yaabsa/components/common/textbox_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PodcastAddView extends ConsumerStatefulWidget {
@@ -184,7 +185,7 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
       }
 
       setState(() {
-        _searchError = '$e';
+        _searchError = context.l10n.errorPodcastSearchFailed;
         _searchResults = const <PodcastSearchResult>[];
       });
     } finally {
@@ -203,16 +204,13 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
     required LibraryPodcastTitle? existing,
   }) async {
     if (existing != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('This podcast is already in your library.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastAlreadyInLibrary)));
       return;
     }
 
     final feedUrl = result.feedUrl?.trim();
     if (feedUrl == null || feedUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This result has no RSS feed URL. Try pasting the feed URL directly.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastFeedUrlMissing)));
       return;
     }
 
@@ -236,8 +234,7 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
         if (!mounted) {
           return;
         }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Could not read this RSS feed. Check the URL and try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastFeedUnreadable)));
         return;
       }
 
@@ -259,7 +256,7 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
 
       await runWithLoadingSnackBar<void>(
         context: context,
-        message: 'Creating podcast...',
+        message: context.l10n.statusCreatingPodcast,
         action: () => api.getPodcastApi().createPodcast(request: createRequest),
       );
 
@@ -267,7 +264,8 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added podcast to ${library.name}.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.statusPodcastAdded(library.name))));
 
       await _loadLibraryPodcastTitles(api: api, libraryId: library.id);
       setState(() {
@@ -279,18 +277,16 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
       }
 
       if (e.response?.statusCode == 400) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('This podcast already exists in your library.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastAlreadyInLibrary)));
         return;
       }
 
-      final message = _dioErrorMessage(e);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to create podcast: $message')));
-    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastCreateFailed)));
+    } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to create podcast: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPodcastCreateFailed)));
     } finally {
       if (mounted) {
         setState(() {
@@ -298,23 +294,6 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
         });
       }
     }
-  }
-
-  String _dioErrorMessage(DioException error) {
-    final data = error.response?.data;
-    if (data is Map) {
-      final message = data['message'];
-      if (message is String && message.trim().isNotEmpty) {
-        return message.trim();
-      }
-
-      final errorText = data['error'];
-      if (errorText is String && errorText.trim().isNotEmpty) {
-        return errorText.trim();
-      }
-    }
-
-    return error.message ?? error.toString();
   }
 
   @override
@@ -328,15 +307,15 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
     }
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Select a library to add podcasts.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     if (selectedLibrary.mediaType != 'podcast') {
-      return const Center(child: Text('Switch to a podcast library to use this tab.'));
+      return Center(child: Text(context.l10n.errorPodcastLibraryRequired));
     }
 
     if (!_isAdminType(currentUser.type)) {
-      return const Center(child: Text('Adding podcasts requires an admin account.'));
+      return Center(child: Text(context.l10n.errorAdminAccountRequired));
     }
 
     _ensureLibraryTitlesLoaded(api: api, library: selectedLibrary);
@@ -353,7 +332,12 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
           final result = entry.value;
           final existing = _matchingPodcastForResult(result);
 
-          return PodcastAddResultEntry(id: _resultRowId(result, entry.key), result: result, existing: existing);
+          return PodcastAddResultEntry(
+            id: _resultRowId(result, entry.key),
+            result: result,
+            existing: existing,
+            untitledLabel: context.l10n.statusUntitledPodcast,
+          );
         })
         .toList(growable: false);
 
@@ -371,7 +355,8 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (showCompactTitle) Text('Add Podcasts', style: Theme.of(context).textTheme.headlineSmall),
+              if (showCompactTitle)
+                Text(context.l10n.podcastAddTitle, style: Theme.of(context).textTheme.headlineSmall),
               SizedBox(height: showCompactTitle ? (context.isMobile ? 8 : 12) : 4),
               if (useCompactSearchLayout)
                 Column(
@@ -386,11 +371,11 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                         unawaited(_handleSearch(api: api, library: selectedLibrary));
                       },
                       onChanged: (_) => setState(() {}),
-                      hintText: 'Search podcasts or paste RSS URL',
+                      hintText: context.l10n.podcastSearchHint,
                       suffixIcon: _searchController.text.trim().isEmpty
                           ? null
                           : IconButton(
-                              tooltip: 'Clear',
+                              tooltip: context.l10n.actionClear,
                               onPressed: () {
                                 setState(() {
                                   _searchController.clear();
@@ -406,7 +391,7 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                       SizedBox(
                         width: double.infinity,
                         child: TextboxButton(
-                          label: 'Search',
+                          label: context.l10n.actionSearch,
                           icon: Icons.search_rounded,
                           isLoading: isBusy,
                           onPressed: (!hasFolders || isBusy)
@@ -432,11 +417,11 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                           unawaited(_handleSearch(api: api, library: selectedLibrary));
                         },
                         onChanged: (_) => setState(() {}),
-                        hintText: 'Search podcasts or paste RSS URL',
+                        hintText: context.l10n.podcastSearchHint,
                         suffixIcon: _searchController.text.trim().isEmpty
                             ? null
                             : IconButton(
-                                tooltip: 'Clear',
+                                tooltip: context.l10n.actionClear,
                                 onPressed: () {
                                   setState(() {
                                     _searchController.clear();
@@ -450,7 +435,7 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                     ),
                     const SizedBox(width: 10),
                     TextboxButton(
-                      label: 'Search',
+                      label: context.l10n.actionSearch,
                       icon: Icons.search_rounded,
                       isLoading: isBusy,
                       onPressed: (!hasFolders || isBusy)
@@ -463,12 +448,10 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                 ),
               if (!hasFolders) ...[
                 const SizedBox(height: 12),
-                const Card(
+                Card(
                   child: Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Text(
-                      'This library has no folders configured. Add at least one folder in server settings first.',
-                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: Text(context.l10n.statusPodcastLibraryNoFolders),
                   ),
                 ),
               ],
@@ -478,10 +461,7 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                   color: Theme.of(context).colorScheme.errorContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Text(
-                      'Search failed: $_searchError',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
-                    ),
+                    child: Text(_searchError!, style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer)),
                   ),
                 ),
               ],
@@ -529,12 +509,9 @@ class _EmptyPodcastAddState extends StatelessWidget {
           children: [
             Icon(Icons.podcasts_rounded, size: 32, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 10),
-            const Text('No search results yet', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(context.l10n.statusNoSearchResultsYet, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            const Text(
-              'Search by podcast name, or paste an RSS feed URL to add a podcast directly.',
-              textAlign: TextAlign.center,
-            ),
+            Text(context.l10n.podcastSearchEmptyPrompt, textAlign: TextAlign.center),
           ],
         ),
       ),

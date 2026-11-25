@@ -12,6 +12,7 @@ import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SmartDownloadsSettings extends ConsumerStatefulWidget {
   const SmartDownloadsSettings({super.key});
@@ -36,15 +37,23 @@ class _SmartDownloadsSettingsState extends ConsumerState<SmartDownloadsSettings>
     final notifier = ref.read(smartDownloadManagerProvider.notifier);
 
     return SettingsPageScaffold(
-      title: 'Smart Downloads',
+      title: context.l10n.settingSmartDownloads,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         if (user == null)
-          const Padding(padding: EdgeInsets.all(20), child: Text('Sign in to configure smart downloads.'))
+          Padding(padding: const EdgeInsets.all(20), child: Text(context.l10n.promptSignInToManageSettings))
         else ...[
           if (manager.error != null)
-            Padding(padding: const EdgeInsets.all(16), child: Text('Last reconciliation failed: ${manager.error}')),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                context.l10n.errorOperationFailed(
+                  context.l10n.operationReconcileSmartDownloads,
+                  manager.error.toString(),
+                ),
+              ),
+            ),
           SmartDownloadActionsCard(userId: user.id, isBusy: manager.isReconciling),
           _ProfileSection(
             profiles: manager.profiles,
@@ -65,13 +74,11 @@ class _SmartDownloadsSettingsState extends ConsumerState<SmartDownloadsSettings>
               final shouldDelete = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Remove profile?'),
-                  content: Text(
-                    'Remove “${profile.name}” and delete its managed downloads? Downloads shared with another rule will be kept.',
-                  ),
+                  title: Text(context.l10n.headingRemoveProfile),
+                  content: Text(context.l10n.smartDownloadRemoveProfilePrompt(profile.name)),
                   actions: [
-                    TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
-                    FilledButton(onPressed: () => context.pop(true), child: const Text('Remove')),
+                    TextButton(onPressed: () => context.pop(false), child: Text(context.l10n.actionCancel)),
+                    FilledButton(onPressed: () => context.pop(true), child: Text(context.l10n.actionRemove)),
                   ],
                 ),
               );
@@ -87,7 +94,7 @@ class _SmartDownloadsSettingsState extends ConsumerState<SmartDownloadsSettings>
               icon: manager.isReconciling
                   ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.sync_rounded),
-              label: const Text('Reconcile now'),
+              label: Text(context.l10n.actionReconcileSmartDownloads),
             ),
           ),
         ],
@@ -124,6 +131,8 @@ class _ProfileSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeRuleCount = profiles.where((profile) => profile.enabled).length;
+
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 12, 8, 0),
       child: Padding(
@@ -131,16 +140,16 @@ class _ProfileSection extends StatelessWidget {
         child: Column(
           children: [
             ListTile(
-              title: const Text('Download rules'),
+              title: Text(context.l10n.headingDownloadRules),
               subtitle: Text(
                 profiles.isEmpty
-                    ? 'No automatic download rules yet'
-                    : '${profiles.length} active rule${profiles.length == 1 ? '' : 's'}',
+                    ? context.l10n.statusNoDownloadRules
+                    : context.l10n.smartDownloadRuleCount(activeRuleCount),
               ),
               trailing: FilledButton.tonalIcon(
                 onPressed: isBusy ? null : onAdd,
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Add'),
+                label: Text(context.l10n.actionAdd),
               ),
             ),
             if (profiles.isNotEmpty) const Divider(height: 1),
@@ -149,7 +158,10 @@ class _ProfileSection extends StatelessWidget {
                 leading: Icon(profile.enabled ? Icons.download_done_rounded : Icons.pause_circle_outline_rounded),
                 title: Text(profile.name),
                 subtitle: Text(
-                  '${profile.sources.length} sources · ${profile.policy.targetCount.clamp(1, 150)} items per source',
+                  context.l10n.smartDownloadProfileSummary(
+                    profile.sources.length,
+                    profile.policy.targetCount.clamp(1, 150).toInt(),
+                  ),
                 ),
                 trailing: YaabsaContextMenuButton<String>(
                   onSelected: (value) {
@@ -160,9 +172,9 @@ class _ProfileSection extends StatelessWidget {
                       onDelete(profile);
                     }
                   },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    PopupMenuItem(value: 'delete', child: Text('Remove')),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(value: 'edit', child: Text(context.l10n.actionEdit)),
+                    PopupMenuItem(value: 'delete', child: Text(context.l10n.actionRemove)),
                   ],
                 ),
               ),
@@ -198,7 +210,9 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
   void initState() {
     super.initState();
     final profile = widget.initial;
-    _nameController = TextEditingController(text: profile?.name ?? 'Offline queue');
+    _nameController = TextEditingController(
+      text: profile?.name ?? currentAppLocalizations().smartDownloadDefaultProfileName,
+    );
     _targetController = TextEditingController(text: '${(profile?.policy.targetCount ?? 3).clamp(1, 150)}');
     _ageController = TextEditingController(text: profile?.policy.maxAgeDays?.toString() ?? '');
     _storageController = TextEditingController(
@@ -224,46 +238,46 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.initial == null ? 'New smart-download profile' : 'Edit smart-download profile'),
+      title: Text(widget.initial == null ? context.l10n.headingNewProfile : context.l10n.headingEditProfile),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              StyledTextField(label: 'Name', controller: _nameController),
+              StyledTextField(label: context.l10n.fieldName, controller: _nameController),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Item count per source (1–150)',
+                label: context.l10n.fieldItemsPerSource,
                 controller: _targetController,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Maximum age in days (optional)',
+                label: context.l10n.fieldMaximumAgeDays,
                 controller: _ageController,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Storage budget (MB, optional)',
+                label: context.l10n.fieldStorageBudget(context.l10n.byteUnitMegabytes),
                 controller: _storageController,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Keep finished books for hours',
+                label: context.l10n.fieldKeepFinishedBooksForHours,
                 controller: _deleteAfterController,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               YaabsaDropdownField<String>(
-                label: 'Download types',
+                label: context.l10n.fieldDownloadTypes,
                 value: _downloadType,
-                items: const [
-                  DropdownMenuItem(value: 'audiobook', child: Text('Audiobook/Episodes')),
-                  DropdownMenuItem(value: 'ebook', child: Text('Ebook')),
-                  DropdownMenuItem(value: 'both', child: Text('Both')),
+                items: [
+                  DropdownMenuItem(value: 'audiobook', child: Text(context.l10n.optionAudiobooksAndEpisodes)),
+                  DropdownMenuItem(value: 'ebook', child: Text(context.l10n.optionEbookOnly)),
+                  DropdownMenuItem(value: 'both', child: Text(context.l10n.optionBoth)),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -275,11 +289,11 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
               const SizedBox(height: 8),
               SettingsSwitchPresentation(
                 contentPadding: EdgeInsets.zero,
-                label: 'Enabled',
+                label: context.l10n.statusEnabled,
                 value: _enabled,
                 onChanged: (value) => setState(() => _enabled = value),
               ),
-              const Align(alignment: Alignment.centerLeft, child: Text('Selected sources')),
+              Align(alignment: Alignment.centerLeft, child: Text(context.l10n.headingSelectedSources)),
               for (final source in _sources)
                 Container(
                   margin: const EdgeInsets.only(top: 8),
@@ -291,9 +305,9 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
                   child: ListTile(
                     dense: true,
                     contentPadding: const EdgeInsets.only(left: 12, right: 4),
-                    title: Text(source.displayName ?? '${source.type.name} source'),
+                    title: Text(source.displayName ?? context.l10n.smartDownloadSourceName(source.type.label)),
                     trailing: IconButton(
-                      tooltip: 'Remove source',
+                      tooltip: context.l10n.actionRemove,
                       onPressed: () {
                         setState(() {
                           _sources.remove(source);
@@ -304,14 +318,14 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
                     ),
                   ),
                 ),
-              TextButton.icon(onPressed: _addSource, icon: const Icon(Icons.add), label: const Text('Add source')),
+              TextButton.icon(onPressed: _addSource, icon: const Icon(Icons.add), label: Text(context.l10n.actionAdd)),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        TextButton(onPressed: () => context.pop(), child: Text(context.l10n.actionCancel)),
+        FilledButton(onPressed: _save, child: Text(context.l10n.actionSave)),
       ],
     );
   }

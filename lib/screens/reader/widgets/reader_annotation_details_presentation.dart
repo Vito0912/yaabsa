@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ReaderAnnotationDetailsPresentation extends StatelessWidget {
   const ReaderAnnotationDetailsPresentation({
@@ -18,6 +19,7 @@ class ReaderAnnotationDetailsPresentation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final localizations = context.l10n;
     final resolvedNote = note?.trim() ?? '';
 
     return Center(
@@ -39,7 +41,7 @@ class ReaderAnnotationDetailsPresentation extends StatelessWidget {
                 ),
                 alignment: Alignment.topLeft,
                 child: SelectableText(
-                  resolvedNote.isEmpty ? 'No note added' : resolvedNote,
+                  resolvedNote.isEmpty ? localizations.readerNoNote : resolvedNote,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: resolvedNote.isEmpty ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
                     fontStyle: resolvedNote.isEmpty ? FontStyle.italic : FontStyle.normal,
@@ -50,7 +52,7 @@ class ReaderAnnotationDetailsPresentation extends StatelessWidget {
               Row(
                 children: [
                   YaabsaDeleteIconButton(
-                    tooltip: 'Delete annotation',
+                    tooltip: localizations.actionDeleteAnnotation,
                     onPressed: onDelete,
                     iconSize: 24,
                     buttonSize: 48,
@@ -59,7 +61,7 @@ class ReaderAnnotationDetailsPresentation extends StatelessWidget {
                   const Spacer(),
                   YaabsaActionIconButton(
                     icon: Icons.edit_outlined,
-                    tooltip: 'Edit annotation',
+                    tooltip: localizations.actionEditAnnotation,
                     onPressed: onEdit,
                     tone: YaabsaActionTone.primary,
                     variant: YaabsaActionButtonVariant.outlined,
@@ -69,7 +71,7 @@ class ReaderAnnotationDetailsPresentation extends StatelessWidget {
                     compact: false,
                   ),
                   const SizedBox(width: 8),
-                  FilledButton.tonal(onPressed: onClose, child: const Text('Close')),
+                  FilledButton.tonal(onPressed: onClose, child: Text(localizations.actionClose)),
                 ],
               ),
             ],

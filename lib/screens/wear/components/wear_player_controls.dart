@@ -8,6 +8,7 @@ import 'package:yaabsa/screens/wear/components/wear_playback_progress.dart';
 import 'package:yaabsa/ui/components/wear/wear_volume_control.dart';
 import 'package:yaabsa/screens/wear/wear_settings_screen.dart';
 import 'package:yaabsa/ui/components/wear/wear_player_controls.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 export 'package:yaabsa/ui/components/wear/wear_player_controls.dart' show wearPrimaryControlSize;
 
@@ -29,7 +30,7 @@ class WearPlayerHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              failed ? 'Playback failed. Tap play to retry.' : media.title,
+              failed ? context.l10n.errorWearPlaybackFailed : media.title,
               maxLines: lines,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,

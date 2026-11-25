@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 @immutable
 class LibraryFolderEditorEntry {
@@ -41,7 +42,7 @@ class LibraryFolderListEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Folders', style: Theme.of(context).textTheme.titleSmall),
+        Text(context.l10n.headingFolders, style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         if (folders.isEmpty)
           Container(
@@ -52,7 +53,7 @@ class LibraryFolderListEditor extends StatelessWidget {
               border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.34)),
             ),
             child: Text(
-              'No folders added yet.',
+              context.l10n.statusNoFoldersAdded,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           )
@@ -76,13 +77,13 @@ class LibraryFolderListEditor extends StatelessWidget {
                       title: Text(folder.path, overflow: TextOverflow.ellipsis),
                       subtitle: folder.isExisting
                           ? Text(
-                              'Existing folder',
+                              context.l10n.statusExistingFolder,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: colorScheme.onSurfaceVariant),
                             )
                           : null,
                       trailing: IconButton(
-                        tooltip: 'Remove folder',
+                        tooltip: context.l10n.actionRemove,
                         onPressed: enabled ? () => onRemoveFolderPressed(folder) : null,
                         icon: const Icon(Icons.close_rounded),
                       ),
@@ -92,7 +93,7 @@ class LibraryFolderListEditor extends StatelessWidget {
             ],
           ),
         StyledTextField(
-          label: 'Add folder path',
+          label: context.l10n.fieldAddFolderPath,
           controller: newFolderPathController,
           hintText: '/media/audiobooks',
           enabled: enabled,
@@ -113,13 +114,13 @@ class LibraryFolderListEditor extends StatelessWidget {
               icon: isBrowsing
                   ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.folder_open_rounded),
-              label: const Text('Browse server folders'),
+              label: Text(context.l10n.browseServerFolders),
             ),
             const Spacer(),
             FilledButton.icon(
               onPressed: enabled ? onAddFolderPressed : null,
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Add folder'),
+              label: Text(context.l10n.actionAddFolder),
             ),
           ],
         ),

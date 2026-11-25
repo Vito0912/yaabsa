@@ -1,11 +1,12 @@
-import 'package:yaabsa/ui/components/inputs/search_field.dart';
-
 import 'dart:async';
 
 import 'package:foliate_reader/foliate_reader.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 const _maxEpubSearchResults = 300;
 
@@ -152,7 +153,7 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
 
       setState(() {
         _searching = false;
-        _error = 'Could not search this book. Please try again.';
+        _error = context.l10n.readerSearchFailed;
       });
     } finally {
       if (_activeEpubSearch == generation) {
@@ -161,24 +162,24 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
     }
   }
 
-  String get _emptyMessage {
+  String _emptyMessage(AppLocalizations localizations) {
     if (_error != null) {
       return _error!;
     }
 
     if (_query.isEmpty) {
-      return 'Find a passage anywhere in this book.';
+      return localizations.readerSearchEmptyPrompt;
     }
 
     if (!_hasSearched && !_searching) {
-      return 'Type at least two characters, or press Search.';
+      return localizations.readerSearchMinimumPrompt;
     }
 
     if (_searching) {
-      return 'Looking for “$_query”';
+      return localizations.readerSearchQueryPrompt(_query);
     }
 
-    return 'No matches found. Try another word or phrase.';
+    return localizations.readerNoSearchMatches;
   }
 
   Future<void> _openResult(int index) async {
@@ -209,7 +210,7 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Could not open this result. Please try again.';
+          _error = context.l10n.readerSearchOpenFailed;
         });
       }
     } finally {
@@ -270,11 +271,13 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
     final pdfMatches = widget.pdfSearcher?.matches;
     final resultCount = pdfMatches?.length ?? _epubResults.length;
     final insets = MediaQuery.viewInsetsOf(context);
-    var resultLabel = '$resultCount ${resultCount == 1 ? 'result' : 'results'}';
+    final localizations = context.l10n;
+    final numberFormatter = NumberFormat.decimalPattern(Localizations.localeOf(context).toString());
+    var resultLabel = localizations.readerSearchResultCount(resultCount);
     if (_searching) {
-      resultLabel = 'Searching the book…';
+      resultLabel = localizations.readerSearchLoading;
     } else if (pdfMatches == null && resultCount >= _maxEpubSearchResults) {
-      resultLabel = 'First $resultCount results. Refine your search.';
+      resultLabel = localizations.readerSearchFirstResults(resultCount);
     }
 
     return Padding(
@@ -287,9 +290,9 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
               padding: const EdgeInsets.fromLTRB(24, 0, 12, 12),
               child: Row(
                 children: [
-                  Expanded(child: Text('Search in book', style: theme.textTheme.titleLarge)),
+                  Expanded(child: Text(localizations.actionSearchInBook, style: theme.textTheme.titleLarge)),
                   IconButton(
-                    tooltip: 'Close search',
+                    tooltip: localizations.actionClose,
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -310,11 +313,11 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
 
                   FocusScope.of(context).unfocus();
                 },
-                hintText: 'Find a word or phrase',
+                hintText: localizations.readerSearchHint,
                 suffixIcon: _queryController.text.isEmpty
                     ? null
                     : IconButton(
-                        tooltip: 'Clear search',
+                        tooltip: localizations.actionClear,
                         icon: const Icon(Icons.close_rounded),
                         onPressed: () {
                           _queryController.clear();
@@ -329,11 +332,7 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    resultLabel,
-                    style: theme.textTheme.labelLarge,
-                    semanticsLabel: _searching ? 'Searching the book' : '$resultCount results found',
-                  ),
+                  child: Text(resultLabel, style: theme.textTheme.labelLarge, semanticsLabel: resultLabel),
                 ),
               ),
             Expanded(
@@ -342,7 +341,7 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
                       child: Padding(
                         padding: const EdgeInsets.all(24),
                         child: Text(
-                          _emptyMessage,
+                          _emptyMessage(localizations),
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                         ),
@@ -358,9 +357,9 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
 
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                          leading: Text('${index + 1}', style: theme.textTheme.labelLarge),
+                          leading: Text(numberFormatter.format(index + 1), style: theme.textTheme.labelLarge),
                           title: _buildExcerpt(excerpt),
-                          subtitle: match == null ? null : Text('Page ${match.pageNumber}'),
+                          subtitle: match == null ? null : Text(localizations.readerPageNumber(match.pageNumber)),
                           trailing: const Icon(Icons.arrow_forward_rounded, size: 20),
                           onTap: () => unawaited(_openResult(index)),
                         );

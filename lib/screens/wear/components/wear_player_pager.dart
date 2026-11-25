@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/wear/components/wear_activity_scope.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearPlayerPager extends StatefulWidget {
   const WearPlayerPager({required this.background, required this.player, required this.actionsBuilder, super.key});
@@ -109,7 +110,9 @@ class _WearPlayerPagerState extends State<WearPlayerPager> {
               right: 0,
               bottom: 7,
               child: Semantics(
-                label: _page == 0 ? 'Player, page 1 of 2' : 'Item actions, page 2 of 2',
+                label: _page == 0
+                    ? context.l10n.accessibilityPageAnnouncement(context.l10n.playbackTitle, 1, 2)
+                    : context.l10n.accessibilityPageAnnouncement(context.l10n.actionMore, 2, 2),
                 child: ExcludeSemantics(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

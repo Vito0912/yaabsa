@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart' show WidgetBuilder;
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:yaabsa/util/reader/reader_speech_audio.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 typedef ReaderSpeechProgress = void Function(int start, int end);
 typedef ReaderSpeechEngineFactory = ReaderSpeechEngine Function();
@@ -48,6 +49,7 @@ class ReaderSpeechEngineRegistration {
     required this.id,
     required this.label,
     required this.create,
+    this.localizedLabel,
     this.settingsBuilder,
     this.showStandardVoiceSettings = true,
     this.voiceSettingKey = SettingKeys.readerTtsVoice,
@@ -58,6 +60,7 @@ class ReaderSpeechEngineRegistration {
 
   final String id;
   final String label;
+  final String Function()? localizedLabel;
   final ReaderSpeechEngineFactory create;
   final WidgetBuilder? settingsBuilder;
   final bool showStandardVoiceSettings;
@@ -65,13 +68,23 @@ class ReaderSpeechEngineRegistration {
   final String languageSettingKey;
   final List<String> playbackSettingKeys;
   final ReaderSpeechAudioGenerator Function()? createAudioGenerator;
+
+  String get displayLabel {
+    final localizer = localizedLabel;
+    if (localizer != null) {
+      return localizer();
+    }
+
+    return label;
+  }
 }
 
 class ReaderSpeechEngines {
   static final _engines = <String, ReaderSpeechEngineRegistration>{
     'system': ReaderSpeechEngineRegistration(
       id: 'system',
-      label: 'Device voices',
+      label: '',
+      localizedLabel: () => currentAppLocalizations().readerDeviceVoices,
       create: SystemReaderSpeechEngine.new,
     ),
   };
@@ -92,7 +105,7 @@ class ReaderSpeechEngines {
     final engine = _engines[id];
 
     if (engine == null) {
-      throw StateError('The selected speech provider is unavailable');
+      throw StateError(currentAppLocalizations().errorReaderSpeechProviderUnavailable);
     }
 
     return engine;
@@ -195,7 +208,7 @@ class SystemReaderSpeechEngine implements ReaderSpeechEngine, ReaderSpeechVolume
       await Future.any<void>([
         _tts.speak(request.text).then((result) {
           if (result == 0) {
-            throw StateError('The device could not start speech');
+            throw StateError(currentAppLocalizations().errorDeviceSpeechUnavailable);
           }
         }),
         cancellation.future,

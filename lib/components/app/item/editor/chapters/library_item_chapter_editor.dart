@@ -15,6 +15,7 @@ import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_persis
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_list.dart';
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_tools.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -165,7 +166,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _message = 'No server connection available.';
+        _message = context.l10n.errorConnectionUnavailable;
       });
       return false;
     }
@@ -201,7 +202,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
       await widget.onSaved(updated);
       if (mounted) {
         setState(() {
-          _message = 'Chapters saved.';
+          _message = context.l10n.statusChaptersSaved;
         });
       }
       return true;
@@ -209,14 +210,16 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
       if (mounted) {
         setState(() {
           _conflict = true;
-          _message = 'Chapters or audio tracks changed on the server. Reload before saving.';
+          _message = context.l10n.statusChapterSaveConflict;
         });
       }
       return false;
     } catch (error) {
       if (mounted && !_cancelToken.isCancelled) {
         setState(() {
-          _message = listManagementErrorMessage(error, fallback: 'Could not save chapters. $error');
+          final l10n = context.l10n;
+          final fallback = l10n.errorOperationFailed(l10n.operationSaveChapters, error.toString());
+          _message = listManagementErrorMessage(error, fallback: fallback);
         });
       }
       return false;
@@ -257,13 +260,13 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     return showListManagementDeleteDialog(
       context: context,
       title: title,
-      message: 'This replaces the current chapter draft. Changes take effect when you save.',
-      confirmLabel: 'Replace',
+      message: context.l10n.warningReplaceChapterDraft,
+      confirmLabel: context.l10n.actionReplace,
     );
   }
 
   Future<void> _fromTracks() async {
-    final confirmed = await _confirmReplace('Create chapters from audio tracks?');
+    final confirmed = await _confirmReplace(context.l10n.confirmCreateChaptersFromTracks);
     if (!mounted || !confirmed) {
       return;
     }
@@ -295,7 +298,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     if (!mounted || choice == null) {
       return;
     }
-    if (_draft.hasChanges && !await _confirmReplace('Replace unsaved chapter edits?')) {
+    if (_draft.hasChanges && !await _confirmReplace(context.l10n.confirmReplaceUnsavedChapterEdits)) {
       return;
     }
     if (!mounted) {
@@ -315,9 +318,9 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
   Future<void> _reset() async {
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Discard chapter edits?',
-      message: 'Restore the chapters currently stored on the server.',
-      confirmLabel: 'Discard edits',
+      title: context.l10n.confirmDiscardChapterEdits,
+      message: context.l10n.promptRestoreChapterDraft,
+      confirmLabel: context.l10n.actionDiscardEdits,
     );
     if (!mounted || !confirmed) {
       return;
@@ -327,13 +330,17 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
       return;
     }
     final api = ref.read(absApiProvider);
+    if (api == null) {
+      setState(() {
+        _message = context.l10n.errorConnectionUnavailable;
+      });
+      return;
+    }
+
     setState(() {
       _saving = true;
     });
     try {
-      if (api == null) {
-        throw StateError('No server connection available.');
-      }
       final fresh = await loadChapterEditorItem(api: api, itemId: widget.item.id, cancelToken: _cancelToken);
       if (!mounted) {
         return;
@@ -348,7 +355,9 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
       await widget.onSaved(fresh);
     } catch (error) {
       if (mounted && !_cancelToken.isCancelled) {
-        _message = listManagementErrorMessage(error, fallback: 'Could not reload chapters. $error');
+        final l10n = context.l10n;
+        final fallback = l10n.errorOperationFailed(l10n.operationReloadChapters, error.toString());
+        _message = listManagementErrorMessage(error, fallback: fallback);
       }
     } finally {
       if (mounted) {
@@ -374,7 +383,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     } catch (error) {
       if (mounted) {
         setState(() {
-          _message = 'Could not preview this chapter.';
+          _message = context.l10n.errorChapterPreviewUnavailable;
         });
       }
     }

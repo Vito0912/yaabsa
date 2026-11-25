@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum PlayerComponentType { cover, mediaInfo, seekBar, controls, utilities, subtitles, chapters, queue }
 
@@ -14,14 +15,14 @@ enum PlayerLayoutScreenSize {
   tablet,
   desktop;
 
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case PlayerLayoutScreenSize.mobile:
-        return 'Mobile';
+        return l10n.deviceMobile;
       case PlayerLayoutScreenSize.tablet:
-        return 'Tablet';
+        return l10n.deviceTablet;
       case PlayerLayoutScreenSize.desktop:
-        return 'Desktop';
+        return l10n.deviceDesktop;
     }
   }
 
@@ -42,14 +43,14 @@ enum PlayerMetadataTextAlign {
   center,
   end;
 
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case PlayerMetadataTextAlign.start:
-        return 'Start';
+        return l10n.textAlignmentStart;
       case PlayerMetadataTextAlign.center:
-        return 'Center';
+        return l10n.alignmentCenter;
       case PlayerMetadataTextAlign.end:
-        return 'End';
+        return l10n.alignmentEnd;
     }
   }
 
@@ -96,14 +97,14 @@ enum PlayerCoverFitMode {
   width,
   fill;
 
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case PlayerCoverFitMode.height:
-        return 'Fill Height';
+        return l10n.playerCoverFitHeight;
       case PlayerCoverFitMode.width:
-        return 'Fill Width';
+        return l10n.playerCoverFitWidth;
       case PlayerCoverFitMode.fill:
-        return 'Fill Box';
+        return l10n.playerCoverFitBox;
     }
   }
 
@@ -139,14 +140,14 @@ enum PlayerSeekTimePlacement {
   below,
   underAppBar;
 
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case PlayerSeekTimePlacement.inline:
-        return 'Inline';
+        return l10n.playerSeekTimeInline;
       case PlayerSeekTimePlacement.below:
-        return 'Below Seek Bar';
+        return l10n.playerSeekTimeBelowSeekBar;
       case PlayerSeekTimePlacement.underAppBar:
-        return 'Under App Bar';
+        return l10n.playerSeekTimeUnderAppBar;
     }
   }
 
@@ -171,24 +172,24 @@ enum PlayerSeekTimePlacement {
 }
 
 extension PlayerComponentTypeX on PlayerComponentType {
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case PlayerComponentType.cover:
-        return 'Cover';
+        return l10n.playerComponentCover;
       case PlayerComponentType.mediaInfo:
-        return 'Media Info';
+        return l10n.playerComponentMediaInfo;
       case PlayerComponentType.seekBar:
-        return 'Seek Bar';
+        return l10n.playerComponentSeekBar;
       case PlayerComponentType.controls:
-        return 'Controls';
+        return l10n.playerComponentControls;
       case PlayerComponentType.utilities:
-        return 'Utilities';
+        return l10n.playerComponentUtilities;
       case PlayerComponentType.subtitles:
-        return 'Subtitles';
+        return l10n.playerComponentSubtitles;
       case PlayerComponentType.chapters:
-        return 'Chapters';
+        return l10n.navChapters;
       case PlayerComponentType.queue:
-        return 'Queue';
+        return l10n.headingQueue;
     }
   }
 
@@ -209,20 +210,20 @@ extension PlayerComponentTypeX on PlayerComponentType {
 }
 
 extension PlayerUtilityTypeX on PlayerUtilityType {
-  String get label {
+  String label(AppLocalizations l10n) {
     switch (this) {
       case PlayerUtilityType.sleepTimer:
-        return 'Sleep Timer';
+        return l10n.playbackSleepTimer;
       case PlayerUtilityType.speed:
-        return 'Playback Speed';
+        return l10n.playbackSpeed;
       case PlayerUtilityType.bookmarks:
-        return 'Bookmarks';
+        return l10n.navBookmarks;
       case PlayerUtilityType.chapter:
-        return 'Chapters';
+        return l10n.navChapters;
       case PlayerUtilityType.volume:
-        return 'Volume';
+        return l10n.fieldVolume;
       case PlayerUtilityType.queue:
-        return 'Queue';
+        return l10n.headingQueue;
     }
   }
 

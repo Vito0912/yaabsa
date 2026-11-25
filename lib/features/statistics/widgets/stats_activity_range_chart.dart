@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/ui/components/cards/surface_card.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class StatsActivityRangeChart extends StatefulWidget {
   const StatsActivityRangeChart({super.key, required this.activity, this.referenceDate, this.initialRange = 30});
@@ -43,16 +44,16 @@ class _StatsActivityRangeChartState extends State<StatsActivityRangeChart> {
           style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         Text(
-          'Total over the last $_selectedRange days',
+          context.l10n.statsTotalOverDays(_selectedRange),
           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       ],
     );
     final rangeSelector = SegmentedButton<int>(
-      segments: const [
-        ButtonSegment(value: 7, label: Text('7d')),
-        ButtonSegment(value: 30, label: Text('30d')),
-        ButtonSegment(value: 365, label: Text('1y')),
+      segments: [
+        ButtonSegment(value: 7, label: Text(context.l10n.durationCompactDays(7))),
+        ButtonSegment(value: 30, label: Text(context.l10n.durationCompactDays(30))),
+        ButtonSegment(value: 365, label: Text(context.l10n.durationCompactYears(1))),
       ],
       selected: <int>{_selectedRange},
       showSelectedIcon: false,
@@ -108,9 +109,9 @@ class _StatsActivityRangeChartState extends State<StatsActivityRangeChart> {
           spacing: 18,
           runSpacing: 6,
           children: [
-            _ChartCaption(label: 'Daily average', value: formatListeningSeconds(average)),
-            _ChartCaption(label: 'Peak day', value: formatListeningSeconds(peak)),
-            _ChartCaption(label: 'Range', value: '${_shortDate(start)} – ${_shortDate(end)}'),
+            _ChartCaption(label: context.l10n.statsDailyAverage, value: formatListeningSeconds(average)),
+            _ChartCaption(label: context.l10n.statsPeakDay, value: formatListeningSeconds(peak)),
+            _ChartCaption(label: context.l10n.fieldRange, value: context.l10n.statsDateRange(start, end)),
           ],
         ),
       ],
@@ -172,7 +173,7 @@ class _SevenDayBarChart extends StatelessWidget {
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final date = start.add(Duration(days: group.x));
               return BarTooltipItem(
-                '${_fullDate(date)}\n${formatListeningSeconds(rod.toY)}',
+                context.l10n.statsDateAndListeningTime(date, formatListeningSeconds(rod.toY)),
                 Theme.of(context).textTheme.labelSmall ?? const TextStyle(),
               );
             },
@@ -248,7 +249,10 @@ class _ListeningLineChart extends StatelessWidget {
             getTooltipItems: (spots) => [
               for (final spot in spots)
                 LineTooltipItem(
-                  '${_fullDate(start.add(Duration(days: spot.x.round())))}\n${formatListeningSeconds(spot.y)}',
+                  context.l10n.statsDateAndListeningTime(
+                    start.add(Duration(days: spot.x.round())),
+                    formatListeningSeconds(spot.y),
+                  ),
                   Theme.of(context).textTheme.labelSmall ?? const TextStyle(),
                 ),
             ],
@@ -279,7 +283,7 @@ FlTitlesData _chartTitles(
         getTitlesWidget: (value, meta) => SideTitleWidget(
           meta: meta,
           space: 6,
-          child: Text(_axisLabel(value), style: Theme.of(context).textTheme.labelSmall),
+          child: Text(formatCompactTimeAxis(value), style: Theme.of(context).textTheme.labelSmall),
         ),
       ),
     ),
@@ -301,7 +305,7 @@ FlTitlesData _chartTitles(
           }
 
           final date = start.add(Duration(days: index));
-          final label = showWeekday ? _weekdayLabel(date.weekday) : '${date.month}/${date.day}';
+          final label = showWeekday ? formatCompactWeekday(date) : formatShortDate(date);
           return SideTitleWidget(
             meta: meta,
             space: 8,
@@ -344,20 +348,4 @@ double _axisInterval(double peak) {
   if (peak <= 14400) return 3600;
   if (peak <= 28800) return 7200;
   return 14400;
-}
-
-String _axisLabel(double seconds) {
-  if (seconds <= 0) return '0';
-  if (seconds < 3600) return '${(seconds / 60).round()}m';
-  return '${(seconds / 3600).round()}h';
-}
-
-String _weekdayLabel(int weekday) => const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][weekday - 1];
-
-String _shortDate(DateTime value) => '${value.month}/${value.day}';
-
-String _fullDate(DateTime value) {
-  final month = value.month.toString().padLeft(2, '0');
-  final day = value.day.toString().padLeft(2, '0');
-  return '${value.year}-$month-$day';
 }

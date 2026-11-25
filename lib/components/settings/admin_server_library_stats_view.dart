@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerLibraryStatsView extends ConsumerStatefulWidget {
@@ -37,11 +39,15 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
   }
 
   Future<void> _loadStatsForLibrary(String libraryId, {bool forceRefresh = false}) async {
-    if (!forceRefresh && _statsByLibraryId.containsKey(libraryId)) return;
+    if (!forceRefresh && _statsByLibraryId.containsKey(libraryId)) {
+      return;
+    }
+
+    final l10n = currentAppLocalizations();
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      setState(() => _errorMessage = 'No active server connection is available.');
+      setState(() => _errorMessage = l10n.errorConnectionUnavailable);
       return;
     }
 
@@ -55,17 +61,19 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
     try {
       final response = await api.getLibraryApi().getLibraryStats(libraryId);
       final stats = response.data ?? const LibraryStats();
-      if (!mounted || requestUserId != _activeUserId) return;
+      if (!mounted || requestUserId != _activeUserId) {
+        return;
+      }
 
       setState(() => _statsByLibraryId[libraryId] = stats);
-    } catch (error) {
+    } catch (_) {
       if (!mounted ||
           requestUserId != _activeUserId ||
           requestGeneration != _requestGeneration ||
           _activeLibraryId != libraryId) {
         return;
       }
-      setState(() => _errorMessage = 'The statistics for this library could not be loaded. $error');
+      setState(() => _errorMessage = l10n.statsLibraryLoadError);
     } finally {
       if (mounted && requestGeneration == _requestGeneration) {
         setState(() => _loadingLibraryId = null);
@@ -74,6 +82,8 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
   }
 
   List<AdminLibraryStatsRankedEntry> _buildGenreEntries(BuildContext context, LibraryStats stats) {
+    final l10n = context.l10n;
+    final percentageFormat = NumberFormat.percentPattern(l10n.localeName)..maximumFractionDigits = 0;
     final totalItems = stats.totalItems ?? 0;
     return stats.genresWithCount
         .where((genre) => genre.genre.trim().isNotEmpty)
@@ -81,7 +91,7 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
           (genre) => AdminLibraryStatsRankedEntry(
             label: genre.genre,
             value: genre.count.toDouble(),
-            trailing: '${_percentOfTotal(genre.count, totalItems)}%',
+            trailing: percentageFormat.format(totalItems <= 0 ? 0 : genre.count / totalItems),
             onTap: () {
               final filter = LibraryFilter.grouped(LibraryFilterGroup.genres, genre.genre).queryValue;
               unawaited(openLibraryWithFilter(context, ref, filter: filter));
@@ -92,13 +102,15 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
   }
 
   List<AdminLibraryStatsRankedEntry> _buildAuthorEntries(BuildContext context, LibraryStats stats) {
+    final numberFormat = NumberFormat.decimalPattern(context.l10n.localeName);
+
     return stats.authorsWithCount
         .where((author) => author.name.trim().isNotEmpty)
         .map(
           (author) => AdminLibraryStatsRankedEntry(
             label: author.name,
             value: author.count.toDouble(),
-            trailing: '${author.count}',
+            trailing: numberFormat.format(author.count),
             onTap: author.id.trim().isEmpty ? null : () => context.push('/author/${Uri.encodeComponent(author.id)}'),
           ),
         )
@@ -106,13 +118,15 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
   }
 
   List<AdminLibraryStatsRankedEntry> _buildLongestItemEntries(BuildContext context, LibraryStats stats) {
+    final l10n = context.l10n;
+
     return stats.longestItems
         .where((item) => item.title.trim().isNotEmpty)
         .map(
           (item) => AdminLibraryStatsRankedEntry(
             label: item.title,
             value: item.duration,
-            trailing: formatDurationLong(Duration(seconds: item.duration.round())),
+            trailing: formatDurationLong(Duration(seconds: item.duration.round()), localizations: l10n),
             onTap: item.id.trim().isEmpty ? null : () => context.push('/item/${item.id}'),
           ),
         )
@@ -120,41 +134,42 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
   }
 
   List<AdminLibraryStatsRankedEntry> _buildLargestItemEntries(BuildContext context, LibraryStats stats) {
+    final l10n = context.l10n;
+
     return stats.largestItems
         .where((item) => item.title.trim().isNotEmpty)
         .map(
           (item) => AdminLibraryStatsRankedEntry(
             label: item.title,
             value: item.size.toDouble(),
-            trailing: formatBytes(item.size),
+            trailing: formatBytes(item.size, localizations: l10n),
             onTap: item.id.trim().isEmpty ? null : () => context.push('/item/${item.id}'),
           ),
         )
         .toList(growable: false);
   }
 
-  int _percentOfTotal(int value, int total) => total <= 0 ? 0 : ((value / total) * 100).round();
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentUserAsync = ref.watch(currentUserProvider);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const StatsMessage(
+          return StatsMessage(
             icon: Icons.person_off_outlined,
-            title: 'Sign in to view library statistics',
-            message: 'An active admin account is required.',
+            title: l10n.navLibraryStats,
+            message: l10n.promptSignInToViewLibraryStatistics,
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const StatsMessage(
+          return StatsMessage(
             icon: Icons.admin_panel_settings_outlined,
-            title: 'Admin access required',
-            message: 'Library-wide statistics are only available to administrators.',
+            title: l10n.errorAdminRequired,
+            message: l10n.errorAdminLibraryStatistics,
           );
         }
 
@@ -168,10 +183,10 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
         }
 
         if (selectedLibrary == null) {
-          return const StatsMessage(
+          return StatsMessage(
             icon: Icons.video_library_outlined,
-            title: 'Choose a library',
-            message: 'Use the library switcher in the app bar to select a library to inspect.',
+            title: l10n.navLibraries,
+            message: l10n.errorNoLibrarySelected,
           );
         }
 
@@ -202,12 +217,12 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
               if (_errorMessage case final message?)
                 StatsMessage(
                   icon: Icons.cloud_off_rounded,
-                  title: 'Unable to load library statistics',
+                  title: l10n.statsLibraryLoadError,
                   message: message,
                   action: FilledButton.tonalIcon(
                     onPressed: () => unawaited(_loadStatsForLibrary(libraryId, forceRefresh: true)),
                     icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Try again'),
+                    label: Text(l10n.actionRetry),
                   ),
                 )
               else if (stats == null)
@@ -217,10 +232,10 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
                 )
               else ...[
                 StatsSection(
-                  title: 'Library overview',
+                  title: l10n.statsLibraryOverview,
                   icon: Icons.space_dashboard_rounded,
                   trailing: IconButton.filled(
-                    tooltip: 'Refresh library statistics',
+                    tooltip: l10n.actionRefresh,
                     onPressed: isLoading ? null : () => unawaited(_loadStatsForLibrary(libraryId, forceRefresh: true)),
                     icon: const Icon(Icons.refresh_rounded),
                   ),
@@ -230,29 +245,29 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
                 _LibraryRankingsGrid(
                   sections: [
                     AdminLibraryStatsRankedSection(
-                      title: 'Top genres',
+                      title: l10n.headingTopGenres,
                       icon: Icons.sell_rounded,
                       entries: _buildGenreEntries(context, stats),
-                      emptyMessage: 'No genre information is available.',
+                      emptyMessage: l10n.statsNoGenreInformation,
                     ),
                     if (isBookLibrary)
                       AdminLibraryStatsRankedSection(
-                        title: 'Top authors',
+                        title: l10n.headingTopAuthors,
                         icon: Icons.people_alt_rounded,
                         entries: _buildAuthorEntries(context, stats),
-                        emptyMessage: 'No author information is available.',
+                        emptyMessage: l10n.statsNoAuthorInformation,
                       ),
                     AdminLibraryStatsRankedSection(
-                      title: 'Longest items',
+                      title: l10n.statsLongestItems,
                       icon: Icons.timelapse_rounded,
                       entries: _buildLongestItemEntries(context, stats),
-                      emptyMessage: 'No item duration information is available.',
+                      emptyMessage: l10n.statsNoItemDurationInformation,
                     ),
                     AdminLibraryStatsRankedSection(
-                      title: 'Largest items',
+                      title: l10n.statsLargestItems,
                       icon: Icons.storage_rounded,
                       entries: _buildLargestItemEntries(context, stats),
-                      emptyMessage: 'No item size information is available.',
+                      emptyMessage: l10n.statsNoItemSizeInformation,
                     ),
                   ],
                 ),
@@ -267,8 +282,8 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
       ),
       error: (error, _) => StatsMessage(
         icon: Icons.person_off_outlined,
-        title: 'Unable to load the active user',
-        message: error.toString(),
+        title: l10n.errorOperationFailed(l10n.operationLoadUser, l10n.errorUnknown),
+        message: l10n.errorUnknown,
       ),
     );
   }

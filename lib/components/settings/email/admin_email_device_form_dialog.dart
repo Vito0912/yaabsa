@@ -6,6 +6,7 @@ import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/settings/email/admin_email_device_availability.dart';
 import 'package:yaabsa/components/settings/email/admin_email_settings_validation.dart';
 import 'package:yaabsa/ui/components/dialogs/dialog_actions.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<AdminEmailEreaderDevice?> showAdminEmailDeviceFormDialog({
   required BuildContext context,
@@ -74,7 +75,7 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
   }
 
   String? _validateName(String value) {
-    final validationError = AdminEmailSettingsValidation.validateDeviceName(value);
+    final validationError = AdminEmailSettingsValidation.validateDeviceName(value, context.l10n);
     if (validationError != null) {
       return validationError;
     }
@@ -90,7 +91,7 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
     });
 
     if (duplicate) {
-      return 'Device name already exists.';
+      return context.l10n.errorDeviceNameAlreadyExists;
     }
 
     return null;
@@ -101,7 +102,7 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
       return null;
     }
     if (_selectedUserIds.isEmpty) {
-      return 'Select at least one user for specific-user access.';
+      return context.l10n.errorSelectAtLeastOneUserForSpecificAccess;
     }
     return null;
   }
@@ -112,7 +113,7 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
         _nameError = _validateName(_nameController.text);
       }
       if (_emailError != null) {
-        _emailError = AdminEmailSettingsValidation.validateDeviceEmail(_emailController.text);
+        _emailError = AdminEmailSettingsValidation.validateDeviceEmail(_emailController.text, context.l10n);
       }
       if (_usersError != null) {
         _usersError = _validateSpecificUsers();
@@ -135,7 +136,7 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
 
   void _submit() {
     final nameError = _validateName(_nameController.text);
-    final emailError = AdminEmailSettingsValidation.validateDeviceEmail(_emailController.text);
+    final emailError = AdminEmailSettingsValidation.validateDeviceEmail(_emailController.text, context.l10n);
     final usersError = _validateSpecificUsers();
 
     setState(() {
@@ -165,12 +166,13 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final sortedUsers = _sortedUsers;
     final showSpecificUsers =
         normalizeAdminEmailAvailabilityOption(_availabilityOption) == adminEmailAvailabilitySpecificUsers;
 
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit E-Mail Device' : 'Add E-Mail Device'),
+      title: Text(_isEditing ? l10n.headingEditEreaderDevice : l10n.headingAddEreaderDevice),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -179,25 +181,25 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               StyledTextField(
-                label: 'Device Name',
+                label: l10n.fieldDeviceName,
                 controller: _nameController,
-                hintText: 'Kindle',
+                hintText: l10n.exampleEreaderDeviceName,
                 errorText: _nameError,
                 onChanged: (_) => _handleTextChanged(),
               ),
               const SizedBox(height: 10),
               StyledTextField(
-                label: 'Device Email',
+                label: l10n.fieldDeviceEmail,
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                hintText: 'kindle@kindle.com',
+                hintText: l10n.exampleEreaderDeviceEmail,
                 errorText: _emailError,
                 onChanged: (_) => _handleTextChanged(),
               ),
               const SizedBox(height: 10),
               YaabsaExpressiveDropdownField<String>(
                 value: normalizeAdminEmailAvailabilityOption(_availabilityOption),
-                decoration: yaabsaFieldDecoration(context, label: 'Accessible By'),
+                decoration: yaabsaFieldDecoration(context, label: l10n.fieldAccessibleBy),
                 options: [
                   for (final option in adminEmailAvailabilityOptions)
                     YaabsaDropdownOption<String>(value: option, label: adminEmailAvailabilityLabel(option)),
@@ -217,11 +219,11 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
               ),
               if (showSpecificUsers) ...[
                 const SizedBox(height: 10),
-                Text('Allowed Users', style: Theme.of(context).textTheme.labelLarge),
+                Text(l10n.fieldAllowedUsers, style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 6),
                 if (sortedUsers.isEmpty)
                   Text(
-                    'No users available.',
+                    l10n.statusNoUsersAvailable,
                     style: Theme.of(context).textTheme.bodySmall
                         ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   )
@@ -264,7 +266,7 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
       ),
       actions: [
         YaabsaDialogActions(
-          actionLabel: _isEditing ? 'Save Device' : 'Add Device',
+          actionLabel: _isEditing ? l10n.actionSave : l10n.actionAdd,
           actionIcon: _isEditing ? Icons.save_outlined : Icons.add_rounded,
           onAction: _submit,
           onCancel: () => Navigator.of(context).pop(),

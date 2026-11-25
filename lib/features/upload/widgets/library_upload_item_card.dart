@@ -5,6 +5,7 @@ import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/util/byte_format.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryUploadItemCard extends StatefulWidget {
   const LibraryUploadItemCard({
@@ -101,13 +102,13 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final minimumInlineContentWidth = _minimumInlineContentWidth * textScale;
     final titleField = StyledTextField(
-      label: 'Title',
+      label: context.l10n.fieldTitle,
       controller: _titleController,
       enabled: widget.enabled,
       onChanged: (value) => widget.onChanged(widget.item.copyWith(title: value, clearMessage: true)),
     );
     final removeButton = YaabsaDeleteIconButton(
-      tooltip: 'Remove upload item',
+      tooltip: context.l10n.actionRemove,
       onPressed: widget.enabled ? widget.onRemove : null,
     );
 
@@ -166,7 +167,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Suggested metadata', style: Theme.of(context).textTheme.labelLarge),
+                        Text(context.l10n.uploadSuggestedMetadata, style: Theme.of(context).textTheme.labelLarge),
                         const SizedBox(height: 2),
                         Text(
                           widget.item.pendingMetadata!.title,
@@ -188,13 +189,13 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                   ),
                   YaabsaActionIconButton(
                     icon: Icons.check_rounded,
-                    tooltip: 'Accept metadata suggestion',
+                    tooltip: context.l10n.actionAccept,
                     onPressed: widget.enabled ? widget.onAcceptPendingMetadata : null,
                     tone: YaabsaActionTone.primary,
                   ),
                   YaabsaActionIconButton(
                     icon: Icons.close_rounded,
-                    tooltip: 'Reject metadata suggestion',
+                    tooltip: context.l10n.actionReject,
                     onPressed: widget.enabled ? widget.onRejectPendingMetadata : null,
                   ),
                 ],
@@ -205,14 +206,14 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
           LayoutBuilder(
             builder: (context, constraints) {
               final authorField = _buildAutocompleteField(
-                label: 'Author',
+                label: context.l10n.fieldAuthor,
                 controller: _authorController,
                 focusNode: _authorFocusNode,
                 suggestions: widget.authorSuggestions,
                 onChanged: (value) => widget.onChanged(widget.item.copyWith(author: value, clearMessage: true)),
               );
               final seriesField = _buildAutocompleteField(
-                label: 'Series',
+                label: context.l10n.fieldSeries,
                 controller: _seriesController,
                 focusNode: _seriesFocusNode,
                 suggestions: widget.seriesSuggestions,
@@ -245,7 +246,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
               });
             },
             icon: Icon(_isFileListExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
-            label: Text('Files (${widget.item.uploadFiles.length})'),
+            label: Text(context.l10n.fileCount(widget.item.uploadFiles.length)),
           ),
           if (_isFileListExpanded)
             ConstrainedBox(
@@ -284,7 +285,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
     return OutlinedButton.icon(
       onPressed: widget.canFetchMetadata ? widget.onFetchMetadata : null,
       icon: const Icon(Icons.cloud_download_outlined),
-      label: const Text('Fetch metadata'),
+      label: Text(context.l10n.uploadFetchMetadata),
     );
   }
 

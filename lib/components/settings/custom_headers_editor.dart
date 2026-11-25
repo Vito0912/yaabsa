@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class CustomHeadersEditor extends StatelessWidget {
   const CustomHeadersEditor({
@@ -26,13 +27,13 @@ class CustomHeadersEditor extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Headers are sent with requests to this server. Avoid sharing values that contain secrets.',
+          context.l10n.messageCustomHeadersSentWithRequests,
           style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 14),
         if (headers.isEmpty)
           Text(
-            'No custom headers configured.',
+            context.l10n.statusNoCustomHeadersConfigured,
             style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
           )
         else
@@ -45,7 +46,7 @@ class CustomHeadersEditor extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: enabled ? onAdd : null,
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Add custom header'),
+            label: Text(context.l10n.actionAddCustomHeader),
           ),
         ),
       ],
@@ -90,11 +91,14 @@ class _HeaderCard extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Edit header',
+            tooltip: context.l10n.actionEdit,
             onPressed: enabled ? () => onEdit(entry.key) : null,
             icon: const Icon(Icons.edit_outlined),
           ),
-          YaabsaDeleteIconButton(tooltip: 'Remove header', onPressed: enabled ? () => onRemove(entry.key) : null),
+          YaabsaDeleteIconButton(
+            tooltip: context.l10n.actionRemove,
+            onPressed: enabled ? () => onRemove(entry.key) : null,
+          ),
         ],
       ),
     );

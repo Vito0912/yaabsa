@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PagedListFooter extends StatelessWidget {
   const PagedListFooter({super.key, required this.loading, required this.onLoadMore, this.error});
@@ -18,7 +19,7 @@ class PagedListFooter extends StatelessWidget {
             : TextButton.icon(
                 onPressed: onLoadMore,
                 icon: Icon(error == null ? Icons.expand_more_rounded : Icons.refresh_rounded),
-                label: Text(error == null ? 'Load more' : 'Could not load more. Retry'),
+                label: Text(error == null ? context.l10n.actionLoadMore : context.l10n.errorLoadMoreRetry),
               ),
       ),
     );

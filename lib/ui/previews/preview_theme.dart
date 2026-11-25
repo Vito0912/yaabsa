@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:yaabsa/ui/theme/app_theme.dart';
 import 'package:yaabsa/ui/theme/theme_selection.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Widget yaabsaPreviewLight(Widget child) => YaabsaPreviewApp(child: child);
 
@@ -20,7 +20,9 @@ class YaabsaPreviewApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
+      localizationsDelegates: yaabsaLocalizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
       theme: buildAppThemeData(
         brightness: brightness,
         preset: AppThemePreset.yaabsa,

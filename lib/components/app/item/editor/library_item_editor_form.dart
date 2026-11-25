@@ -13,6 +13,7 @@ import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/inputs/rich_text_quill_field.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemEditorForm extends StatefulWidget {
@@ -179,8 +180,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         if (!mounted) {
           return;
         }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Release date must be a valid date in the format YYYY-MM-DD.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.validationReleaseDateFormat)));
         return;
       }
 
@@ -189,8 +189,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         if (!mounted) {
           return;
         }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Feed URL must be a valid HTTP or HTTPS URL.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.validationFeedUrl)));
         return;
       }
     }
@@ -207,7 +206,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No changes to save.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusNoChangesToSave)));
       return;
     }
 
@@ -280,27 +279,27 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
           }
 
           return AlertDialog(
-            title: const Text('Series number'),
+            title: Text(context.l10n.fieldSeriesNumber),
             content: StyledTextField(
               controller: controller,
               autofocus: true,
               textInputAction: TextInputAction.done,
               onSubmitted: complete,
-              label: 'Sequence',
-              hintText: 'e.g. 1,2.5,03 (no spaces)',
+              label: context.l10n.fieldSequence,
+              hintText: context.l10n.hintSeriesSequence,
             ),
             actions: [
               TextButton(
                 onPressed: () {
                   complete(initialValue);
                 },
-                child: const Text('Skip'),
+                child: Text(context.l10n.actionSkip),
               ),
               FilledButton(
                 onPressed: () {
                   complete(controller.text);
                 },
-                child: const Text('Save'),
+                child: Text(context.l10n.actionSave),
               ),
             ],
           );
@@ -310,9 +309,8 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
       return value;
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Could not open the series sequence prompt. Please try again.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.errorSeriesSequencePromptUnavailable)));
       }
       return null;
     } finally {
@@ -486,7 +484,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
               OutlinedButton.icon(
                 onPressed: widget.isSaving ? null : widget.onClose,
                 icon: const Icon(Icons.close_rounded),
-                label: const Text('Close'),
+                label: Text(context.l10n.actionClose),
               ),
               const Spacer(),
               FilledButton.icon(
@@ -494,7 +492,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
                 icon: widget.isSaving
                     ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
-                label: Text(widget.isSaving ? 'Saving...' : 'Save'),
+                label: Text(widget.isSaving ? context.l10n.statusSaving : context.l10n.actionSave),
               ),
               const SizedBox(width: 8),
               FilledButton.icon(
@@ -502,7 +500,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
                 icon: widget.isSaving
                     ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
-                label: Text(widget.isSaving ? 'Saving...' : 'Save & Close'),
+                label: Text(widget.isSaving ? context.l10n.statusSaving : context.l10n.actionSaveAndClose),
               ),
             ],
           ),
@@ -518,32 +516,41 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     required List<String> publisherSuggestions,
   }) {
     final fields = <Widget>[
-      StyledTextField(label: 'Title', controller: _titleController),
-      if (!isPodcast) StyledTextField(label: 'Subtitle', controller: _subtitleController),
-      if (isPodcast) StyledTextField(label: 'Author', controller: _podcastAuthorController),
+      StyledTextField(label: context.l10n.fieldTitle, controller: _titleController),
+      if (!isPodcast) StyledTextField(label: context.l10n.fieldSubtitle, controller: _subtitleController),
+      if (isPodcast) StyledTextField(label: context.l10n.fieldAuthor, controller: _podcastAuthorController),
       if (!isPodcast)
         StyledTextField(
-          label: 'Published year',
+          label: context.l10n.fieldPublishedYear,
           controller: _publishedYearController,
           keyboardType: TextInputType.number,
         ),
       if (!isPodcast)
         StyledTextField(
-          label: 'Publisher',
+          label: context.l10n.fieldPublisher,
           controller: _publisherController,
           hintText: publisherSuggestions.isEmpty ? null : publisherSuggestions.first,
         ),
-      if (isPodcast) StyledTextField(label: 'Release date', controller: _releaseDateController, hintText: 'YYYY-MM-DD'),
+      if (isPodcast)
+        StyledTextField(
+          label: context.l10n.fieldReleaseDate,
+          controller: _releaseDateController,
+          hintText: context.l10n.dateFormatIso,
+        ),
       StyledTextField(
-        label: 'Language',
+        label: context.l10n.fieldLanguage,
         controller: _languageController,
         hintText: languageSuggestions.isEmpty ? null : languageSuggestions.first,
       ),
-      if (!isPodcast) StyledTextField(label: 'ISBN', controller: _isbnController),
-      if (!isPodcast) StyledTextField(label: 'ASIN', controller: _asinController),
+      if (!isPodcast) StyledTextField(label: context.l10n.fieldIsbn, controller: _isbnController),
+      if (!isPodcast) StyledTextField(label: context.l10n.fieldAsin, controller: _asinController),
       if (isPodcast)
-        StyledTextField(label: 'Feed URL', controller: _feedUrlController, hintText: 'https://example.com/feed.xml'),
-      if (isPodcast) StyledTextField(label: 'iTunes ID', controller: _itunesIdController),
+        StyledTextField(
+          label: context.l10n.fieldFeedUrl,
+          controller: _feedUrlController,
+          hintText: context.l10n.hintPodcastFeedUrlExample,
+        ),
+      if (isPodcast) StyledTextField(label: context.l10n.fieldItunesId, controller: _itunesIdController),
       if (isPodcast)
         LibraryItemEditorPodcastTypeField(
           value: _podcastTypeValue,
@@ -573,7 +580,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Metadata', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15)),
+        Text(context.l10n.headingMetadata, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15)),
         const SizedBox(height: 4),
         _ResponsiveEditorFields(children: fields),
       ],
@@ -596,13 +603,13 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
           _ResponsiveEditorFields(
             children: [
               StringChipListInput(
-                label: 'Authors',
+                label: context.l10n.fieldAuthors,
                 values: _authors.map((entry) => entry.name).toList(growable: false),
                 suggestions: authorsSuggestions.map((entry) => entry.name).toList(growable: false),
                 onChanged: (next) => _updateAuthorsFromNames(next, authorsSuggestions),
               ),
               StringChipListInput(
-                label: 'Narrators',
+                label: context.l10n.fieldNarrators,
                 values: _narrators,
                 suggestions: narratorsSuggestions,
                 onChanged: (next) {
@@ -618,17 +625,17 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
           children: [
             if (!isPodcast)
               StringChipListInput(
-                label: 'Series',
+                label: context.l10n.fieldSeries,
                 values: _series.map((entry) => entry.name).toList(growable: false),
                 suggestions: seriesSuggestions.map((entry) => entry.name).toList(growable: false),
-                hintText: 'Add series',
+                hintText: context.l10n.hintAddSeries,
                 chipLabelBuilder: _seriesChipLabel,
                 onChipTap: _editSeriesSequenceByName,
                 onTryAdd: _prepareSeriesValue,
                 onChanged: (next) => _updateSeriesFromNames(next, seriesSuggestions),
               ),
             StringChipListInput(
-              label: 'Genres',
+              label: context.l10n.fieldGenres,
               values: _genres,
               suggestions: genresSuggestions,
               onChanged: (next) {
@@ -638,7 +645,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
               },
             ),
             StringChipListInput(
-              label: 'Tags',
+              label: context.l10n.fieldTags,
               values: _tags,
               suggestions: tagsSuggestions,
               onChanged: (next) {
@@ -655,10 +662,10 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
 
   Widget _buildDescriptionSection(BuildContext context) {
     return RichTextQuillField(
-      label: 'Description',
+      label: context.l10n.fieldDescription,
       controller: _descriptionController,
       editorHeight: context.isDesktop ? 250 : 200,
-      placeholder: 'Write a formatted description...',
+      placeholder: context.l10n.fieldDescriptionHint,
     );
   }
 }
@@ -708,8 +715,9 @@ class _MetadataFlagsField extends StatelessWidget {
         spacing: 12,
         runSpacing: 4,
         children: [
-          _InlineSwitchField(label: 'Explicit', value: explicit, onChanged: onExplicitChanged),
-          if (showAbridged) _InlineSwitchField(label: 'Abridged', value: abridged, onChanged: onAbridgedChanged),
+          _InlineSwitchField(label: context.l10n.fieldExplicit, value: explicit, onChanged: onExplicitChanged),
+          if (showAbridged)
+            _InlineSwitchField(label: context.l10n.fieldAbridged, value: abridged, onChanged: onAbridgedChanged),
         ],
       ),
     );

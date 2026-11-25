@@ -6,6 +6,7 @@ import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/wear/wear_scroll_view.dart';
 import 'package:yaabsa/ui/components/wear/wear_swipe_to_dismiss.dart';
 import 'package:yaabsa/ui/components/wear/wear_page_header.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearSignInScreen extends ConsumerStatefulWidget {
   const WearSignInScreen({super.key});
@@ -49,11 +50,11 @@ class _WearSignInScreenState extends ConsumerState<WearSignInScreen> {
         body: AutofillGroup(
           child: WearScrollView(
             children: [
-              const WearPageHeader(title: 'Sign in'),
+              WearPageHeader(title: context.l10n.actionSignIn),
               TextField(
                 controller: _server,
                 enabled: !loading,
-                decoration: const InputDecoration(labelText: 'Server address', hintText: 'https://'),
+                decoration: InputDecoration(labelText: context.l10n.fieldServerAddress, hintText: 'https://'),
                 keyboardType: TextInputType.url,
                 autocorrect: false,
                 enableSuggestions: false,
@@ -63,7 +64,7 @@ class _WearSignInScreenState extends ConsumerState<WearSignInScreen> {
               TextField(
                 controller: _username,
                 enabled: !loading,
-                decoration: const InputDecoration(labelText: 'Username'),
+                decoration: InputDecoration(labelText: context.l10n.fieldUsername),
                 autofillHints: const [AutofillHints.username],
                 autocorrect: false,
                 enableSuggestions: false,
@@ -73,7 +74,7 @@ class _WearSignInScreenState extends ConsumerState<WearSignInScreen> {
               TextField(
                 controller: _password,
                 enabled: !loading,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(labelText: context.l10n.fieldPassword),
                 autofillHints: const [AutofillHints.password],
                 obscureText: true,
                 autocorrect: false,
@@ -108,9 +109,9 @@ class _WearSignInScreenState extends ConsumerState<WearSignInScreen> {
                         dimension: 20,
                         child: YaabsaCircularProgressIndicator(strokeWidth: 2, size: 20),
                       )
-                    : const Text('Sign in'),
+                    : Text(context.l10n.actionSignIn),
               ),
-              TextButton(onPressed: loading ? null : _addHeader, child: const Text('Add server header')),
+              TextButton(onPressed: loading ? null : _addHeader, child: Text(context.l10n.actionAdd)),
               for (final name in _headers.keys)
                 TextButton(
                   onPressed: loading
@@ -120,7 +121,7 @@ class _WearSignInScreenState extends ConsumerState<WearSignInScreen> {
                             _headers.remove(name);
                           });
                         },
-                  child: Text('Remove $name', maxLines: 2, overflow: TextOverflow.ellipsis),
+                  child: Text(context.l10n.removeNamedItem(name), maxLines: 2, overflow: TextOverflow.ellipsis),
                 ),
             ],
           ),

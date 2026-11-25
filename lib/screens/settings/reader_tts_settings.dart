@@ -10,6 +10,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ReaderTtsSettings extends ConsumerStatefulWidget {
   const ReaderTtsSettings({super.key, this.showTitle = true});
@@ -73,7 +74,7 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
           _isLoadingTts = false;
 
           if (languages.isEmpty) {
-            _ttsError = 'No speech voices are available. Check your device speech settings.';
+            _ttsError = currentAppLocalizations().readerSpeechVoicesUnavailable;
           }
         });
       }
@@ -81,7 +82,7 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
       if (mounted && generation == _loadGeneration) {
         setState(() {
           _isLoadingTts = false;
-          _ttsError = 'Speech is unavailable. Check your speech provider or device settings.';
+          _ttsError = currentAppLocalizations().errorReaderSpeechProviderUnavailable;
         });
       }
     }
@@ -90,6 +91,8 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
   @override
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
+    final localizations = context.l10n;
+    final speechRates = const [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 
     ref.watch(globalSettingByKeyProvider(SettingKeys.readerTtsEngine));
     ref.listen(globalSettingByKeyProvider(SettingKeys.readerTtsEngine), (previous, next) {
@@ -102,21 +105,21 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
     final registration = ReaderSpeechEngines.registration(selectedId);
 
     return SettingsPageScaffold(
-      title: 'Read aloud',
+      title: localizations.readerReadAloud,
       showEmbeddedTitle: widget.showTitle,
       embedded: true,
       showEmbeddedBackButton: widget.showTitle && canPop,
       children: [
         SettingsNavigationSection(
-          title: '',
+          title: localizations.readerReadAloud,
           showSectionTitle: false,
           topPadding: 0,
           settings: [
             SettingDropdown<String>(
-              label: 'Speech provider',
-              description: 'Choose which service reads your book',
+              label: localizations.readerSpeechProvider,
+              description: localizations.readerSpeechProviderDescription,
               values: ReaderSpeechEngines.available.map((engine) => engine.id).toList(),
-              valueLabels: ReaderSpeechEngines.available.map((engine) => engine.label).toList(),
+              valueLabels: ReaderSpeechEngines.available.map((engine) => engine.displayLabel).toList(),
               settingKey: SettingKeys.readerTtsEngine,
             ),
             if (registration.settingsBuilder != null) registration.settingsBuilder!(context),
@@ -125,16 +128,16 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
                 leading: const Icon(Icons.info_outline),
                 title: Text(_ttsError!),
                 trailing: IconButton(
-                  tooltip: 'Reload voices',
+                  tooltip: localizations.actionRefresh,
                   icon: const Icon(Icons.refresh),
                   onPressed: _loadTtsInfo,
                 ),
               ),
             SettingSlider<double>(
-              label: 'Speech Rate',
-              description: 'Adjust the TTS speech rate multiplier',
-              values: const [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0],
-              valueLabels: const ['0.5x', '0.75x', '1.0x (Normal)', '1.25x', '1.5x', '1.75x', '2.0x'],
+              label: localizations.readerSpeechRate,
+              description: localizations.readerSpeechRateDescription,
+              values: speechRates,
+              valueLabels: speechRates.map(localizations.playbackSpeedMultiplier).toList(),
               settingKey: SettingKeys.readerTtsRate,
             ),
             if (registration.showStandardVoiceSettings && _isLoadingTts)
@@ -143,8 +146,8 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
               )
             else if (registration.showStandardVoiceSettings) ...[
               SettingDropdown<String>(
-                label: 'TTS Language',
-                description: 'Select the language for text-to-speech',
+                label: localizations.readerSpeechLanguage,
+                description: localizations.readerSpeechLanguageDescription,
                 values: _languages.isNotEmpty ? _languages : const ['en-US'],
                 valueLabels: _languages.isNotEmpty ? _languages : const ['en-US'],
                 settingKey: registration.languageSettingKey,
@@ -161,26 +164,36 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
                       .toList();
 
                   final values = ['', ...filteredVoices.map((v) => v['name']!)];
-                  final displayLabels = <String>['System Default'];
+                  final displayLabels = <String>[context.l10n.optionSystemDefault];
                   int voiceIndex = 1;
 
                   for (final voice in filteredVoices) {
                     final name = voice['name']!;
                     final isLocal = name.toLowerCase().endsWith('local');
                     final isNetwork = name.toLowerCase().endsWith('network');
-                    final typeLabel = isLocal ? ' (Local)' : (isNetwork ? ' (Network)' : '');
+                    String? typeLabel;
+                    if (isLocal) {
+                      typeLabel = context.l10n.readerSpeechLocalVoice;
+                    } else if (isNetwork) {
+                      typeLabel = context.l10n.readerSpeechNetworkVoice;
+                    }
 
                     if (name.toLowerCase().contains('-x-')) {
-                      displayLabels.add('Voice $voiceIndex$typeLabel');
+                      final numberedVoice = context.l10n.readerSpeechNumberedVoice(voiceIndex);
                       voiceIndex++;
+                      displayLabels.add(
+                        typeLabel == null
+                            ? numberedVoice
+                            : context.l10n.readerSpeechVoiceType(numberedVoice, typeLabel),
+                      );
                     } else {
-                      displayLabels.add('$name$typeLabel');
+                      displayLabels.add(typeLabel == null ? name : context.l10n.readerSpeechVoiceType(name, typeLabel));
                     }
                   }
 
                   return SettingDropdown<String>(
-                    label: 'TTS Voice',
-                    description: 'Select a specific voice for text-to-speech',
+                    label: context.l10n.fieldVoice,
+                    description: context.l10n.readerSpeechVoiceDescription,
                     values: values,
                     valueLabels: displayLabels,
                     settingKey: registration.voiceSettingKey,

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SettingsEditorHeader extends StatelessWidget {
   const SettingsEditorHeader({super.key, required this.title, required this.onReset, this.topPadding = 20});
@@ -21,7 +22,11 @@ class SettingsEditorHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          TextButton.icon(onPressed: onReset, icon: const Icon(Icons.restart_alt_rounded), label: const Text('Reset')),
+          TextButton.icon(
+            onPressed: onReset,
+            icon: const Icon(Icons.restart_alt_rounded),
+            label: Text(context.l10n.actionReset),
+          ),
         ],
       ),
     );

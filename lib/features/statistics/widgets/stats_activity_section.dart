@@ -5,6 +5,7 @@ import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_activity_heatmap.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_activity_range_chart.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class StatsActivitySection extends StatelessWidget {
   const StatsActivitySection({super.key, required this.activityAsync, required this.onRefresh});
@@ -23,7 +24,7 @@ class StatsActivitySection extends StatelessWidget {
           children: [
             StatsActivityRangeChart(activity: activity),
             const SizedBox(height: 24),
-            Text('Listening consistency', style: Theme.of(context).textTheme.titleMedium),
+            Text(context.l10n.headingListeningConsistency, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             StatsActivityHeatmap(activity: activity, days: 365),
           ],
@@ -31,14 +32,14 @@ class StatsActivitySection extends StatelessWidget {
       },
       loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, _) => StatsMessage(
-        title: 'Failed to load listening activity.',
+        title: context.l10n.statsActivityUnavailable,
         message: error.toString(),
         messageMaxLines: 2,
         icon: Icons.cloud_off_rounded,
         action: OutlinedButton.icon(
           onPressed: onRefresh,
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Retry Activity'),
+          label: Text(context.l10n.actionRetry),
         ),
       ),
     );

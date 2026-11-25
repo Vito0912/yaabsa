@@ -6,6 +6,7 @@ import 'package:wear_plus/wear_plus.dart';
 import 'package:yaabsa/ui/components/wear/wear_ambient_view.dart';
 import 'package:yaabsa/ui/components/wear/wear_fixed_view.dart';
 import 'package:yaabsa/ui/components/wear/wear_swipe_to_dismiss.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearVolumeControl extends StatefulWidget {
   const WearVolumeControl({required this.volume, required this.onChanged, super.key});
@@ -56,7 +57,7 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
                             }),
                             IconButton.filled(
                               onPressed: () => Navigator.of(context).pop(),
-                              tooltip: 'Done',
+                              tooltip: context.l10n.actionDone,
                               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                               icon: const Icon(Icons.check, size: 22),
                             ),
@@ -121,7 +122,7 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
   Widget _vBtn(IconData i, VoidCallback f) => IconButton(
     icon: Icon(i, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.70), size: 26),
     onPressed: f,
-    tooltip: i == Icons.remove_circle_outline ? 'Decrease volume' : 'Increase volume',
+    tooltip: i == Icons.remove_circle_outline ? context.l10n.actionDecreaseVolume : context.l10n.actionIncreaseVolume,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
   );

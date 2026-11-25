@@ -11,6 +11,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemFileMenu extends ConsumerStatefulWidget {
   const LibraryItemFileMenu({
@@ -40,6 +41,7 @@ class _LibraryItemFileMenuState extends ConsumerState<LibraryItemFileMenu> {
   }
 
   Future<void> _download() async {
+    final l10n = context.l10n;
     final user = ref.read(currentUserProvider).value;
     final api = ref.read(absApiProvider);
     final item = ref.read(libraryItemProvider(widget.itemId)).value;
@@ -59,31 +61,32 @@ class _LibraryItemFileMenuState extends ConsumerState<LibraryItemFileMenu> {
       filename: widget.metadata.filename,
     );
     if (destination != null) {
-      _showMessage('File saved.');
+      _showMessage(l10n.statusFileSaved);
     }
   }
 
   Future<void> _delete() async {
+    final l10n = context.l10n;
     if (ref.read(currentUserProvider).value?.permissions.delete != true) {
       return;
     }
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Delete file?',
-      message: 'Permanently delete "${widget.metadata.filename}" from the server? This cannot be undone.',
-      confirmLabel: 'Delete file',
+      title: l10n.headingDeleteFile,
+      message: l10n.promptDeleteServerFilePermanently(widget.metadata.filename),
+      confirmLabel: l10n.actionDelete,
     );
     if (!mounted || !confirmed || ref.read(currentUserProvider).value?.permissions.delete != true) {
       return;
     }
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No server connection available.');
+      throw StateError(l10n.errorConnectionUnavailable);
     }
 
     final deleted = await api.getLibraryItemApi().deleteLibraryFile(widget.itemId, widget.fileIno);
     if (!deleted) {
-      throw StateError('Could not delete the file.');
+      throw StateError(l10n.errorDeleteServerFileFailed);
     }
     if (!mounted) {
       return;
@@ -96,21 +99,31 @@ class _LibraryItemFileMenuState extends ConsumerState<LibraryItemFileMenu> {
       }
       final updated = response.data;
       if (updated == null) {
-        throw StateError('Could not refresh item details.');
+        await _invalidateItemCache();
+      } else {
+        await processLibraryItemUpdate(container: ref.container, item: updated, source: 'item.file.delete');
       }
-      await processLibraryItemUpdate(container: ref.container, item: updated, source: 'item.file.delete');
     } catch (_) {
-      if (mounted) {
-        await invalidateCachedLibraryItemEntries(container: ref.container, itemId: widget.itemId);
-        if (mounted) {
-          ref.invalidate(libraryItemProvider(widget.itemId));
-        }
-      }
+      await _invalidateItemCache();
     }
-    _showMessage('File deleted.');
+    _showMessage(l10n.statusFileDeleted);
+  }
+
+  Future<void> _invalidateItemCache() async {
+    if (!mounted) {
+      return;
+    }
+
+    await invalidateCachedLibraryItemEntries(container: ref.container, itemId: widget.itemId);
+    if (!mounted) {
+      return;
+    }
+
+    ref.invalidate(libraryItemProvider(widget.itemId));
   }
 
   Future<void> _act(String action) async {
+    final l10n = context.l10n;
     if (_busy) {
       return;
     }
@@ -136,7 +149,7 @@ class _LibraryItemFileMenuState extends ConsumerState<LibraryItemFileMenu> {
         await _delete();
       }
     } catch (error) {
-      _showMessage(listManagementErrorMessage(error, fallback: 'Could not complete the file action. $error'));
+      _showMessage(l10n.errorCompleteFileActionFailed(error.toString()));
     } finally {
       if (mounted) {
         setState(() {
@@ -167,14 +180,14 @@ class _LibraryItemFileMenuState extends ConsumerState<LibraryItemFileMenu> {
     }
 
     return YaabsaContextMenuButton<String>(
-      tooltip: 'File actions',
+      tooltip: context.l10n.headingFileActions,
       icon: const Icon(Icons.more_vert_rounded),
       onSelected: _act,
       itemBuilder: (context) {
         return [
-          if (canDownload) const PopupMenuItem(value: 'download', child: Text('Download')),
-          if (canDelete) const PopupMenuItem(value: 'delete', child: Text('Delete file')),
-          if (canViewInfo) const PopupMenuItem(value: 'info', child: Text('More info')),
+          if (canDownload) PopupMenuItem(value: 'download', child: Text(context.l10n.actionDownload)),
+          if (canDelete) PopupMenuItem(value: 'delete', child: Text(context.l10n.actionDelete)),
+          if (canViewInfo) PopupMenuItem(value: 'info', child: Text(context.l10n.actionMoreInfo)),
         ];
       },
     );

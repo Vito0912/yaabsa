@@ -3,6 +3,7 @@ import 'package:yaabsa/ui/theme/app_theme.dart';
 import 'package:yaabsa/ui/theme/theme_selection.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'input_previews.dart';
 import 'admin_previews.dart';
@@ -213,6 +214,9 @@ class _UiLabState extends State<UiLab> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: yaabsaLocalizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
       theme: buildAppThemeData(
         brightness: brightness,
         preset: AppThemePreset.yaabsa,

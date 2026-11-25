@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/dialogs/dialog_actions.dart';
 
 class UploadPathConflictDialog extends StatelessWidget {
@@ -9,14 +10,14 @@ class UploadPathConflictDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Path check issues found'),
+      title: Text(context.l10n.uploadPathIssuesTitle),
       content: SizedBox(
         width: 520,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Some items have destination conflicts or path-check errors. Continue anyway?'),
+            Text(context.l10n.uploadPathIssuesPrompt),
             const SizedBox(height: 8),
             Flexible(
               child: ListView.builder(

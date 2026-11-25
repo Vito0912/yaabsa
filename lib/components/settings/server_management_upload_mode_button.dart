@@ -4,6 +4,7 @@ import 'package:yaabsa/components/settings/settings_button.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ServerManagementUploadModeButton extends ConsumerWidget {
   const ServerManagementUploadModeButton({
@@ -31,20 +32,20 @@ class ServerManagementUploadModeButton extends ConsumerWidget {
           defaultSettings[SettingKeys.serverManagementUploadItems] as bool? ?? false,
         );
         final enabled = canUploadItems && uploadItemsEnabled && hasSelectedLibrary;
-        final disabledReason = !canUploadItems
-            ? 'Requires upload permission.'
-            : !uploadItemsEnabled
-            ? 'Enable "Upload items" first.'
-            : !hasSelectedLibrary
-            ? 'Select a library before opening upload mode.'
-            : null;
+        final l10n = context.l10n;
+        String? disabledReason;
+        if (!canUploadItems) {
+          disabledReason = l10n.messageUploadPermissionRequired;
+        } else if (!uploadItemsEnabled) {
+          disabledReason = l10n.messageEnableUploadActionsFirst;
+        } else if (!hasSelectedLibrary) {
+          disabledReason = l10n.messageSelectLibraryBeforeUpload;
+        }
 
         return SettingButton(
-          label: 'Open upload',
-          description: enabled
-              ? null
-              : disabledReason ?? 'Upload mode requires upload permission and enabled upload actions.',
-          buttonText: 'Open',
+          label: l10n.headingUploadMode,
+          description: enabled ? null : disabledReason,
+          buttonText: l10n.actionOpen,
           buttonIcon: Icons.cloud_upload_outlined,
           onPressed: enabled ? onPressed : null,
         );

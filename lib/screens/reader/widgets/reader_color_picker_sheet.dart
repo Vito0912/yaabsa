@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ReaderColorPickerSheet extends StatelessWidget {
   const ReaderColorPickerSheet({super.key, required this.title, required this.colors, required this.onColorSelected});
@@ -23,7 +24,7 @@ class ReaderColorPickerSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Colors:',
+            context.l10n.readerColors,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),

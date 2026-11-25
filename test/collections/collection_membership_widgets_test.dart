@@ -10,6 +10,7 @@ import 'package:yaabsa/components/app/item/item_detail_components.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_actions.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/util/collection_membership.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'collection_test_support.dart';
 
@@ -29,6 +30,8 @@ Future<void> mount(WidgetTester tester, ProviderContainer container) async {
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Consumer(
             builder: (context, ref, _) => Column(
@@ -125,6 +128,8 @@ void main() {
     for (var i = 0; i < states.length; i++) {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: Builder(
               builder: (context) => ItemMetadataCard(
@@ -179,7 +184,11 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
       ),
     );
     await tester.pumpAndSettle();

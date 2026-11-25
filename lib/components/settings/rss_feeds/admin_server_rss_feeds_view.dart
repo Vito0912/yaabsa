@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
@@ -12,6 +13,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerRssFeedsView extends ConsumerStatefulWidget {
   const AdminServerRssFeedsView({super.key});
@@ -44,6 +46,10 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
   }
 
   void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) {
       return;
@@ -82,6 +88,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
   }
 
   Future<void> _loadFeeds({bool showLoading = true}) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (!mounted) {
@@ -90,7 +97,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
 
       setState(() {
         _isLoading = false;
-        _errorMessage = 'No active API client.';
+        _errorMessage = l10n.errorNoActiveApiClient;
       });
       return;
     }
@@ -121,7 +128,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to load RSS feeds.');
+        _errorMessage = listManagementErrorMessage(error, fallback: l10n.errorLoadRssFeedsFailed);
       });
     } finally {
       if (mounted) {
@@ -157,16 +164,16 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
   String _entityLabel(String? entityType) {
     final normalized = (entityType ?? '').trim().toLowerCase();
     if (normalized == 'libraryitem') {
-      return 'Item';
+      return context.l10n.entityItem;
     }
     if (normalized == 'series') {
-      return 'Series';
+      return context.l10n.fieldSeries;
     }
     if (normalized == 'collection') {
-      return 'Collection';
+      return context.l10n.fieldCollection;
     }
     if (normalized.isEmpty) {
-      return 'Unknown';
+      return context.l10n.statusUnknown;
     }
     return normalized;
   }
@@ -227,16 +234,11 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
 
   String _formatTimestamp(int? milliseconds) {
     if (milliseconds == null || milliseconds <= 0) {
-      return 'Unknown';
+      return context.l10n.statusUnknown;
     }
 
     final local = DateTime.fromMillisecondsSinceEpoch(milliseconds).toLocal();
-    final year = local.year.toString().padLeft(4, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final day = local.day.toString().padLeft(2, '0');
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    return '$year-$month-$day $hour:$minute';
+    return DateFormat.yMd(context.l10n.localeName).add_Hm().format(local);
   }
 
   List<AdminRssFeed> _filteredFeeds(Map<String, AdminRssFeedMinified> minifiedById) {
@@ -284,11 +286,12 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
       return;
     }
 
+    final l10n = context.l10n;
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Close RSS feed?',
-      message: 'Close "${feed.resolvedTitle}"?',
-      confirmLabel: 'Close Feed',
+      title: l10n.headingCloseRssFeed,
+      message: l10n.promptCloseRssFeed(feed.resolvedTitle),
+      confirmLabel: l10n.actionClose,
     );
 
     if (!confirmed) {
@@ -297,7 +300,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -306,7 +309,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
     try {
       final success = await api.getAdminApi().closeFeed(feed.id);
       if (!success) {
-        _showMessage('Failed to close RSS feed.');
+        _showMessage(l10n.errorCloseRssFeedFailed);
         return;
       }
 
@@ -319,10 +322,10 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
         _minifiedFeeds = _minifiedFeeds.where((entry) => entry.id != feed.id).toList(growable: false);
       });
 
-      _showMessage('RSS feed closed.');
+      _showMessage(l10n.statusRssFeedClosed);
       unawaited(_loadFeeds(showLoading: false));
     } catch (error) {
-      _showMessage(listManagementErrorMessage(error, fallback: 'Failed to close RSS feed.'));
+      _showMessage(listManagementErrorMessage(error, fallback: l10n.errorCloseRssFeedFailed));
     } finally {
       if (mounted) {
         _setBusy(feed.id, false);
@@ -379,7 +382,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
     return [
       ExpressiveTableColumn<AdminRssFeed>(
         id: 'feed',
-        label: 'Feed',
+        label: context.l10n.fieldRssFeed,
         width: 320,
         cellBuilder: (context, feed) => _buildFeedTitleCell(feed, minifiedById),
         mobileCellBuilder: (context, feed) {
@@ -405,30 +408,31 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
       ),
       ExpressiveTableColumn<AdminRssFeed>(
         id: 'entity',
-        label: 'Entity',
+        label: context.l10n.fieldEntity,
         width: 100,
         cellBuilder: (context, feed) =>
             Text(_entityLabel(feed.entityType), maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
       ExpressiveTableColumn<AdminRssFeed>(
         id: 'episodes',
-        label: 'Episodes',
+        label: context.l10n.headingEpisodes,
         width: 92,
-        cellBuilder: (context, feed) => Text('${feed.episodes.length}'),
+        cellBuilder: (context, feed) =>
+            Text(NumberFormat.decimalPattern(context.l10n.localeName).format(feed.episodes.length)),
       ),
       ExpressiveTableColumn<AdminRssFeed>(
         id: 'author',
-        label: 'Author',
+        label: context.l10n.fieldAuthor,
         width: 160,
         cellBuilder: (context, feed) {
           final author = feed.meta?.author?.trim() ?? minifiedById[feed.id]?.meta?.author?.trim();
-          final resolved = author == null || author.isEmpty ? 'Unknown' : author;
+          final resolved = author == null || author.isEmpty ? context.l10n.statusUnknown : author;
           return Text(resolved, maxLines: 1, overflow: TextOverflow.ellipsis);
         },
       ),
       ExpressiveTableColumn<AdminRssFeed>(
         id: 'updated',
-        label: 'Updated',
+        label: context.l10n.dateUpdated,
         width: 154,
         showOnMobile: false,
         alignment: ExpressiveTableCellAlignment.end,
@@ -438,16 +442,19 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
   }
 
   Widget _buildToolbar({required bool compact, required int totalCount, required int filteredCount}) {
-    final summaryText = filteredCount == totalCount ? '$totalCount feeds' : '$filteredCount of $totalCount feeds';
+    final l10n = context.l10n;
+    final summaryText = filteredCount == totalCount
+        ? l10n.statusRssFeedCount(totalCount)
+        : l10n.statusRssFeedFilteredCount(filteredCount, totalCount);
 
     if (compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           StyledTextField(
-            label: 'Search RSS feeds',
+            label: l10n.fieldSearchRssFeeds,
             controller: _searchController,
-            hintText: 'Filter by title, URL, or author',
+            hintText: l10n.hintSearchRssFeeds,
             prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
@@ -467,7 +474,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
                 ),
               ),
               IconButton.filledTonal(
-                tooltip: 'Refresh',
+                tooltip: l10n.actionRefresh,
                 onPressed: _isLoading ? null : () => unawaited(_loadFeeds(showLoading: true)),
                 icon: const Icon(Icons.refresh_rounded),
               ),
@@ -481,9 +488,9 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
       children: [
         Expanded(
           child: StyledTextField(
-            label: 'Search RSS feeds',
+            label: l10n.fieldSearchRssFeeds,
             controller: _searchController,
-            hintText: 'Filter by title, URL, author, or entity',
+            hintText: l10n.hintSearchRssFeeds,
             prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
@@ -503,13 +510,14 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
         OutlinedButton.icon(
           onPressed: _isLoading ? null : () => unawaited(_loadFeeds(showLoading: true)),
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Refresh'),
+          label: Text(l10n.actionRefresh),
         ),
       ],
     );
   }
 
   Widget _buildErrorCard() {
+    final l10n = context.l10n;
     final message = _errorMessage;
     if (message == null || message.isEmpty) {
       return const SizedBox.shrink();
@@ -526,7 +534,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: () => unawaited(_loadFeeds(showLoading: true)), child: const Text('Retry')),
+            TextButton(onPressed: () => unawaited(_loadFeeds(showLoading: true)), child: Text(l10n.actionRetry)),
           ],
         ),
       ),
@@ -540,16 +548,16 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage RSS feeds.'),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Text(context.l10n.promptSignInForAdminAccess),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Text(context.l10n.errorAdminRequired),
           );
         }
 
@@ -592,15 +600,17 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
                     actions: [
                       ExpressiveTableAction<AdminRssFeed>(
                         icon: Icons.delete_outline_rounded,
-                        tooltip: 'Close feed',
+                        tooltip: context.l10n.actionCloseRssFeed,
                         tone: ExpressiveTableActionTone.danger,
                         onPressed: _closeFeed,
                       ),
                     ],
-                    emptyTitle: _searchQuery.trim().isEmpty ? 'No RSS feeds found' : 'No matches for your search',
+                    emptyTitle: _searchQuery.trim().isEmpty
+                        ? context.l10n.statusNoRssFeedsFound
+                        : context.l10n.statusNoRssFeedsMatchSearch,
                     emptySubtitle: _searchQuery.trim().isEmpty
-                        ? 'Feeds will appear here.'
-                        : 'Try a different title, URL, or author filter.',
+                        ? context.l10n.messageRssFeedsAppearHere
+                        : context.l10n.hintAdjustRssFeedSearch,
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: EdgeInsets.zero,
                     topActions: _buildToolbar(
@@ -621,7 +631,10 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          context.l10n.errorLoadAdminUserData(error.toString()),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

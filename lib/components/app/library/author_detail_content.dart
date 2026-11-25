@@ -7,6 +7,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
 class AuthorDetailContent extends ConsumerWidget {
@@ -17,6 +18,7 @@ class AuthorDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final books = author.libraryItems;
     final seriesGroups = author.series.where((series) => series.items.isNotEmpty).toList(growable: false);
 
@@ -26,10 +28,7 @@ class AuthorDetailContent extends ConsumerWidget {
           padding: EdgeInsets.fromLTRB(gridLayout.horizontalPadding, 8, gridLayout.horizontalPadding, 16),
           children: [
             if (seriesGroups.isNotEmpty)
-              _SectionHeader(
-                title: 'Series',
-                subtitle: '${seriesGroups.length} ${seriesGroups.length == 1 ? 'series' : 'series groups'}',
-              ),
+              _SectionHeader(title: l10n.fieldSeries, subtitle: l10n.seriesCount(seriesGroups.length)),
             if (seriesGroups.isNotEmpty) const SizedBox(height: 8),
             if (seriesGroups.isNotEmpty)
               ...seriesGroups.map(
@@ -38,10 +37,10 @@ class AuthorDetailContent extends ConsumerWidget {
                   child: _AuthorSeriesGroupSection(series: series, api: api),
                 ),
               ),
-            _SectionHeader(title: 'Books', subtitle: '${books.length} ${books.length == 1 ? 'book' : 'books'}'),
+            _SectionHeader(title: l10n.fieldBooks, subtitle: l10n.bookCount(books.length)),
             const SizedBox(height: 8),
             if (books.isEmpty)
-              const _SectionEmptyState(message: 'No books found for this author.')
+              _SectionEmptyState(message: l10n.statusNoBooksForAuthor)
             else
               _LibraryItemGrid(items: books, api: api, crossAxisCount: gridLayout.crossAxisCount),
           ],
@@ -75,9 +74,9 @@ class _AuthorSeriesGroupSection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text('$itemCount ${itemCount == 1 ? 'book' : 'books'}', style: Theme.of(context).textTheme.bodySmall),
+            Text(context.l10n.bookCount(itemCount), style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(width: 8),
-            TextButton(onPressed: () => context.push('/series/${series.id}'), child: const Text('Open Series')),
+            TextButton(onPressed: () => context.push('/series/${series.id}'), child: Text(context.l10n.actionOpen)),
           ],
         ),
         const SizedBox(height: 8),

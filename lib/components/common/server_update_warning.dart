@@ -4,6 +4,7 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/server_update_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum ServerUpdateWarningVariant { mobile, sidebarCollapsed, sidebarTablet, sidebarDesktop }
 
@@ -17,16 +18,16 @@ class ServerUpdateWarning extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Server Update Available'),
-        content: Text('A new update (version $latestVersion) is available for your Audiobookshelf server.'),
+        title: Text(context.l10n.serverUpdateAvailableTitle),
+        content: Text(context.l10n.serverUpdateAvailableMessage(latestVersion)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionClose)),
           TextButton(
             onPressed: () {
               ref.read(serverUpdateStateProvider.notifier).dismiss();
               Navigator.of(context).pop();
             },
-            child: const Text('Dismiss Warning'),
+            child: Text(context.l10n.actionDismissWarning),
           ),
         ],
       ),
@@ -167,7 +168,7 @@ class ServerUpdateWarning extends ConsumerWidget {
                 Icon(Icons.system_update_rounded, size: 22, color: colorScheme.error),
                 const SizedBox(height: 2),
                 Text(
-                  'Update $latestVersion',
+                  context.l10n.serverUpdateAvailableShort(latestVersion),
                   style: TextStyle(color: colorScheme.error, fontSize: 11),
                   textAlign: TextAlign.center,
                   maxLines: 2,
@@ -180,7 +181,7 @@ class ServerUpdateWarning extends ConsumerWidget {
 
       case ServerUpdateWarningVariant.sidebarCollapsed:
         return Tooltip(
-          message: 'Server update available: $latestVersion',
+          message: context.l10n.serverUpdateAvailableMessage(latestVersion),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: IconButton(

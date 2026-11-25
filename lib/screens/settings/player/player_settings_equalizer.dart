@@ -9,6 +9,7 @@ import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart'
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -58,18 +59,18 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
   @override
   Widget build(BuildContext context) {
     final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    final l10n = context.l10n;
+
     if (!isAndroid) {
-      return const SettingsPageScaffold(
-        title: 'Equalizer',
+      return SettingsPageScaffold(
+        title: l10n.navEqualizer,
         embedded: true,
         showEmbeddedBackButton: true,
         embeddedBackFallbackRoute: PlayerSettings.routeName,
         children: [
           Padding(
             padding: EdgeInsets.all(24.0),
-            child: Center(
-              child: Text('Equalizer is not available on this device/platform.', textAlign: TextAlign.center),
-            ),
+            child: Center(child: Text(l10n.errorEqualizerUnavailableOnDevice, textAlign: TextAlign.center)),
           ),
         ],
       );
@@ -80,7 +81,7 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
     final equalizer = audioHandler.equalizer;
 
     return SettingsPageScaffold(
-      title: 'Equalizer',
+      title: l10n.navEqualizer,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
@@ -95,7 +96,7 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SettingsSwitchPresentation(
-                  label: 'Enable Equalizer',
+                  label: l10n.settingEnableEqualizer,
                   value: equalizerEnabled,
                   enabled: !unavailable,
                   onChanged: (newValue) => ref
@@ -113,13 +114,13 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
                           const Icon(Icons.equalizer_rounded, size: 64, color: Colors.grey),
                           const SizedBox(height: 16),
                           Text(
-                            'Equalizer is currently disabled',
+                            l10n.statusEqualizerDisabled,
                             style: Theme.of(context).textTheme.titleMedium,
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'Enable the equalizer above to adjust its bands while listening.',
+                          Text(
+                            l10n.promptEnableEqualizerToAdjustBands,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.grey),
                           ),
@@ -137,13 +138,13 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
                           const Icon(Icons.equalizer_rounded, size: 64, color: Colors.orange),
                           const SizedBox(height: 16),
                           Text(
-                            'Equalizer unavailable',
+                            l10n.statusEqualizerUnavailable,
                             style: Theme.of(context).textTheme.titleMedium,
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'This device could not apply the equalizer to the current audio session. Playback will continue without it and it will be retried for a later session.',
+                          Text(
+                            l10n.messageEqualizerWillRetry,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.grey),
                           ),
@@ -167,13 +168,13 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
                                 const Icon(Icons.play_circle_outline, size: 64, color: Colors.grey),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No Active Playback Session',
+                                  l10n.statusNoActivePlaybackSession,
                                   style: Theme.of(context).textTheme.titleMedium,
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
-                                  'Please start playing an item to configure the equalizer band gains.',
+                                Text(
+                                  l10n.promptStartPlaybackToConfigureEqualizer,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: Colors.grey),
                                 ),
@@ -200,6 +201,8 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
     AndroidEqualizer equalizer,
     bool equalizerEnabled,
   ) {
+    final l10n = context.l10n;
+
     return FutureBuilder<AndroidEqualizerParameters>(
       future: equalizer.parameters,
       builder: (context, snapshot) {
@@ -214,16 +217,19 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
           return Padding(
             padding: const EdgeInsets.all(24.0),
             child: Center(
-              child: Text('Error loading equalizer parameters: ${snapshot.error}', textAlign: TextAlign.center),
+              child: Text(
+                l10n.errorOperationFailed(l10n.operationLoadEqualizerParameters, l10n.errorUnknown),
+                textAlign: TextAlign.center,
+              ),
             ),
           );
         }
 
         final params = snapshot.data;
         if (params == null || params.bands.isEmpty) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.all(24.0),
-            child: Center(child: Text('No equalizer bands found', textAlign: TextAlign.center)),
+            child: Center(child: Text(l10n.statusNoEqualizerBands, textAlign: TextAlign.center)),
           );
         }
 
@@ -263,11 +269,24 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: YaabsaDropdownField<String>(
-                label: 'Equalizer Preset',
+                label: context.l10n.settingEqualizerPreset,
                 value: currentPreset,
                 items: [
-                  ...equalizerPresets.keys.map((preset) => DropdownMenuItem(value: preset, child: Text(preset))),
-                  const DropdownMenuItem(value: 'Custom', child: Text('Custom')),
+                  ...equalizerPresets.keys.map(
+                    (preset) => DropdownMenuItem(
+                      value: preset,
+                      child: Text(switch (preset) {
+                        'Flat' => context.l10n.equalizerPresetFlat,
+                        'Narration' => context.l10n.equalizerPresetNarration,
+                        'Classical' => context.l10n.equalizerPresetClassical,
+                        'Dance' => context.l10n.equalizerPresetDance,
+                        'Heavy Metal' => context.l10n.equalizerPresetHeavyMetal,
+                        'Rock' => context.l10n.equalizerPresetRock,
+                        _ => preset,
+                      }),
+                    ),
+                  ),
+                  DropdownMenuItem(value: 'Custom', child: Text(context.l10n.optionCustom)),
                 ],
                 onChanged: (newPreset) {
                   if (newPreset != null) {
@@ -376,11 +395,13 @@ class EqualizerBandSlider extends StatelessWidget {
     required this.onChangeEnd,
   });
 
-  String _formatFrequency(double hertz) {
+  String _formatFrequency(BuildContext context, double hertz) {
+    final l10n = context.l10n;
     if (hertz >= 1000) {
-      return '${(hertz / 1000).toStringAsFixed(1).replaceAll('.0', '')} kHz';
+      return l10n.equalizerFrequencyKilohertz(hertz / 1000);
     }
-    return '${hertz.toInt()} Hz';
+
+    return l10n.equalizerFrequencyHertz(hertz.toInt());
   }
 
   @override
@@ -389,7 +410,7 @@ class EqualizerBandSlider extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${currentGain > 0 ? '+' : ''}${currentGain.toStringAsFixed(1)} dB',
+          context.l10n.equalizerGain(currentGain > 0 ? '+' : '', currentGain),
           style: Theme.of(context).textTheme.bodySmall
               ?.copyWith(fontWeight: FontWeight.w500, color: enabled ? null : Theme.of(context).disabledColor),
         ),
@@ -415,7 +436,7 @@ class EqualizerBandSlider extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          _formatFrequency(band.centerFrequency),
+          _formatFrequency(context, band.centerFrequency),
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(fontWeight: FontWeight.bold, color: enabled ? null : Theme.of(context).disabledColor),
         ),

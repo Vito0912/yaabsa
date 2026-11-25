@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ListeningSessionsPaginationControls extends StatelessWidget {
   const ListeningSessionsPaginationControls({
@@ -42,7 +43,7 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
 
       return YaabsaActionIconButton(
         icon: previous ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
-        tooltip: previous ? 'Previous page' : 'Next page',
+        tooltip: previous ? context.l10n.paginationPreviousPage : context.l10n.paginationNextPage,
         enabled: !isLoading && onPressed != null,
         iconSize: 20,
         buttonSize: 48,
@@ -79,9 +80,9 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
           final compact = constraints.maxWidth < 760;
 
           if (compact) {
-            final pageSizeLabel = Text('Per page:', style: Theme.of(context).textTheme.bodyMedium);
+            final pageSizeLabel = Text(context.l10n.paginationPerPage, style: Theme.of(context).textTheme.bodyMedium);
             final pageSizeLabelPainter = TextPainter(
-              text: TextSpan(text: 'Per page:', style: Theme.of(context).textTheme.bodyMedium),
+              text: TextSpan(text: context.l10n.paginationPerPage, style: Theme.of(context).textTheme.bodyMedium),
               textDirection: Directionality.of(context),
               textScaler: MediaQuery.textScalerOf(context),
               maxLines: 1,
@@ -107,8 +108,12 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 4,
                   children: [
-                    Text('Total: $total', maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text('Page $currentPage of $clampedPages', maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(context.l10n.paginationTotal(total), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                      context.l10n.paginationPage(currentPage, clampedPages),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -136,12 +141,15 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(child: Text('Total: $total', overflow: TextOverflow.ellipsis)),
-              Text('Per page:', style: Theme.of(context).textTheme.bodyMedium),
+              Expanded(child: Text(context.l10n.paginationTotal(total), overflow: TextOverflow.ellipsis)),
+              Text(context.l10n.paginationPerPage, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(width: 6),
               buildPerPageSelector(),
               const SizedBox(width: 12),
-              Text('Page $currentPage of $clampedPages', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                context.l10n.paginationPage(currentPage, clampedPages),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(width: 8),
               buildPageAction(previous: true),
               const SizedBox(width: 4),

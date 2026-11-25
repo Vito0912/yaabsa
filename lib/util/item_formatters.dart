@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/extensions.dart';
 
 bool hasText(String? value) => value != null && value.trim().isNotEmpty;
@@ -13,33 +15,44 @@ String formatDurationShort(Duration duration) {
   return duration.toHhMmString();
 }
 
-String formatDurationLong(Duration duration) {
+String formatDurationLong(Duration duration, {AppLocalizations? localizations}) {
+  final l10n = localizations ?? currentAppLocalizations();
   if (duration.inHours > 0) {
     final minutes = duration.inMinutes.remainder(60);
     if (minutes == 0) {
-      return '${duration.inHours} hr';
+      return l10n.durationHours(duration.inHours);
     }
-    return '${duration.inHours} hr $minutes min';
+    return l10n.durationHoursMinutes(duration.inHours, minutes);
   }
   if (duration.inMinutes == 0) {
-    final seconds = duration.inSeconds;
-    return '$seconds sec';
+    return l10n.durationSeconds(duration.inSeconds);
   }
-  return '${duration.inMinutes} min';
+  return l10n.durationMinutes(duration.inMinutes);
 }
 
-String formatBytes(int bytes) {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  double size = bytes.toDouble();
-  int unitIndex = 0;
+String formatBytes(int bytes, {AppLocalizations? localizations}) {
+  final l10n = localizations ?? currentAppLocalizations();
+  final units = [
+    l10n.byteUnitBytes,
+    l10n.byteUnitKilobytes,
+    l10n.byteUnitMegabytes,
+    l10n.byteUnitGigabytes,
+    l10n.byteUnitTerabytes,
+  ];
+  var size = bytes.toDouble();
+  var unitIndex = 0;
 
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex++;
   }
 
-  final formatted = size >= 100 ? size.toStringAsFixed(0) : size.toStringAsFixed(2);
-  return '$formatted ${units[unitIndex]}';
+  final decimalDigits = size >= 100 ? 0 : 2;
+  final formatted = NumberFormat.decimalPatternDigits(
+    locale: l10n.localeName,
+    decimalDigits: decimalDigits,
+  ).format(size);
+  return l10n.byteSize(formatted, units[unitIndex]);
 }
 
 Duration chapterDuration(double startSeconds, double endSeconds) {

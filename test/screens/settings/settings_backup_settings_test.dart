@@ -9,6 +9,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_backup_settings.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/settings_backup.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   late _BackupSettingsManager manager;
@@ -34,7 +35,11 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(home: Scaffold(body: SettingsBackupSettings())),
+        child: const MaterialApp(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SettingsBackupSettings()),
+        ),
       ),
     );
     await tester.pumpAndSettle();

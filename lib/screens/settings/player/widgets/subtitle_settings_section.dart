@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -16,33 +17,33 @@ class SubtitleSettingsSection extends ConsumerWidget {
     return currentUser.when(
       data: (user) {
         if (user == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Text('No active user. Sign in to configure subtitle settings.'),
+            child: Text(context.l10n.promptSignInToManageSettings),
           );
         }
 
         return SettingsNavigationSection(
-          title: 'Subtitles',
+          title: context.l10n.playerComponentSubtitles,
           topPadding: 0,
           settings: [
             SettingSwitchTile(
               userId: user.id,
               settingKey: SettingKeys.subtitlesEnabled,
-              label: 'Enable subtitles',
-              subtitle: 'Show subtitle tracks (.srt and .vtt) during playback when available',
+              label: context.l10n.settingEnableSubtitles,
+              subtitle: context.l10n.settingEnableSubtitlesDescription,
             ),
             SettingSwitchTile(
               userId: user.id,
               settingKey: SettingKeys.subtitleSpeakerHighlighting,
-              label: 'Highlight speaker labels',
-              subtitle: 'Highlight speaker names',
+              label: context.l10n.settingHighlightSpeakerLabels,
+              subtitle: context.l10n.settingHighlightSpeakerLabelsDescription,
             ),
             SettingSwitchTile(
               userId: user.id,
               settingKey: SettingKeys.subtitleReadAlong,
-              label: 'Enable read along',
-              subtitle: 'Highlight currently spoken words (requires WebVTT subtitle with cue timestamp)',
+              label: context.l10n.settingEnableReadAlong,
+              subtitle: context.l10n.settingEnableReadAlongDescription,
             ),
           ],
         );
@@ -54,7 +55,7 @@ class SubtitleSettingsSection extends ConsumerWidget {
       error: (error, _) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Text(
-          'Unable to load subtitle settings: $error',
+          context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString()),
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
       ),

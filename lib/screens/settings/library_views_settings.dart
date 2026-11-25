@@ -5,6 +5,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryViewsSettings extends ConsumerWidget {
   const LibraryViewsSettings({super.key});
@@ -16,16 +17,16 @@ class LibraryViewsSettings extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Library Views',
+      title: context.l10n.settingLibraryViews,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         currentUser.when(
           data: (user) {
             if (user == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure library views.'),
+                child: Text(context.l10n.promptSignInToManageSettings),
               );
             }
 
@@ -41,8 +42,10 @@ class LibraryViewsSettings extends ConsumerWidget {
             padding: EdgeInsets.all(16),
             child: Center(child: YaabsaCircularProgressIndicator()),
           ),
-          error: (error, _) =>
-              Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load library view settings: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString())),
+          ),
         ),
       ],
     );

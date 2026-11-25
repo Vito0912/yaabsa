@@ -9,6 +9,7 @@ import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 typedef ChapterAddOptions = ({String title, int count, double start, double interval});
 typedef ChapterLookupChoice = ({List<ChapterEditorValue> chapters, bool titlesOnly});
@@ -19,12 +20,15 @@ Future<String?> showChapterUnsavedDialog(BuildContext context) {
     builder: (context) {
       return AlertDialog(
         contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        title: const Text('Save chapter changes?'),
-        content: const Text('Your chapter edits have not been saved.'),
+        title: Text(context.l10n.confirmSaveChapterChanges),
+        content: Text(context.l10n.warningChapterEditsNotSaved),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop('cancel'), child: const Text('Keep editing')),
-          TextButton(onPressed: () => Navigator.of(context).pop('discard'), child: const Text('Discard')),
-          FilledButton(onPressed: () => Navigator.of(context).pop('save'), child: const Text('Save')),
+          TextButton(onPressed: () => Navigator.of(context).pop('cancel'), child: Text(context.l10n.actionKeepEditing)),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('discard'),
+            child: Text(context.l10n.actionDiscardEdits),
+          ),
+          FilledButton(onPressed: () => Navigator.of(context).pop('save'), child: Text(context.l10n.actionSave)),
         ],
       );
     },
@@ -68,7 +72,7 @@ class _ChapterAddDialog extends StatefulWidget {
 
 class _ChapterAddDialogState extends State<_ChapterAddDialog> {
   final _form = GlobalKey<FormState>();
-  final _title = TextEditingController(text: 'Chapter {n}');
+  late final _title = TextEditingController(text: currentAppLocalizations().chapterTitlePatternExample);
   final _count = TextEditingController(text: '1');
   final _interval = TextEditingController(text: '60');
   late final _start = TextEditingController(text: formatChapterTime(widget.initialStart));
@@ -99,7 +103,7 @@ class _ChapterAddDialogState extends State<_ChapterAddDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      title: const Text('Add chapters'),
+      title: Text(context.l10n.actionAddChapters),
       content: SizedBox(
         width: 400,
         child: SingleChildScrollView(
@@ -111,36 +115,39 @@ class _ChapterAddDialogState extends State<_ChapterAddDialog> {
                 StyledTextFormField(
                   controller: _title,
                   autofocus: true,
-                  label: 'Title',
-                  helperText: 'Use {n} for chapter numbers',
-                  validator: (value) => value == null || value.trim().isEmpty ? 'Enter a title' : null,
+                  label: context.l10n.fieldTitle,
+                  helperText: context.l10n.hintChapterTitlePattern,
+                  validator: (value) => value == null || value.trim().isEmpty ? context.l10n.errorEnterTitle : null,
                 ),
                 const SizedBox(height: 12),
                 StyledTextFormField(
                   controller: _count,
                   keyboardType: TextInputType.number,
-                  label: 'Number of chapters',
+                  label: context.l10n.fieldChapterCount,
                   validator: (value) {
                     final count = int.tryParse(value ?? '');
-                    return count == null || count < 1 || count > 5000 ? 'Enter 1 to 5000' : null;
+                    return count == null || count < 1 || count > 5000 ? context.l10n.errorChapterCountRange : null;
                   },
                 ),
                 const SizedBox(height: 12),
                 StyledTextFormField(
                   controller: _start,
-                  label: 'Start',
-                  helperText: 'HH:MM:SS or seconds',
-                  validator: (value) => parseChapterTime(value ?? '') == null ? 'Enter a valid start' : null,
+                  label: context.l10n.fieldStartTime,
+                  helperText: context.l10n.hintChapterTimeFormat,
+                  validator: (value) =>
+                      parseChapterTime(value ?? '') == null ? context.l10n.errorValidChapterStart : null,
                 ),
                 const SizedBox(height: 12),
                 StyledTextFormField(
                   controller: _interval,
-                  label: 'Seconds between chapters',
+                  label: context.l10n.fieldChapterIntervalSeconds,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   onFieldSubmitted: (_) => _submit(),
                   validator: (value) {
                     final interval = double.tryParse(value ?? '');
-                    return interval == null || !interval.isFinite || interval <= 0 ? 'Enter a positive interval' : null;
+                    return interval == null || !interval.isFinite || interval <= 0
+                        ? context.l10n.errorPositiveInterval
+                        : null;
                   },
                 ),
               ],
@@ -149,8 +156,8 @@ class _ChapterAddDialogState extends State<_ChapterAddDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: _submit, child: const Text('Add')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
+        FilledButton(onPressed: _submit, child: Text(context.l10n.actionAdd)),
       ],
     );
   }
@@ -179,7 +186,7 @@ class _ChapterShiftDialogState extends State<_ChapterShiftDialog> {
     final value = double.tryParse(_amount.text);
     if (value == null || !value.isFinite || value == 0) {
       setState(() {
-        _error = 'Enter a positive or negative number of seconds';
+        _error = context.l10n.errorChapterTimeShiftRequired;
       });
       return;
     }
@@ -191,7 +198,7 @@ class _ChapterShiftDialogState extends State<_ChapterShiftDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      title: const Text('Shift chapter times'),
+      title: Text(context.l10n.headingShiftChapterTimes),
       content: SizedBox(
         width: 400,
         child: Column(
@@ -200,16 +207,16 @@ class _ChapterShiftDialogState extends State<_ChapterShiftDialog> {
           children: [
             Text(
               widget.selectedCount > 0
-                  ? 'Shift ${widget.selectedCount} selected chapters. The chapter at zero stays in place.'
-                  : 'Shift all chapters after the chapter at zero.',
+                  ? context.l10n.promptShiftSelectedChapters(widget.selectedCount)
+                  : context.l10n.promptShiftAllChapters,
             ),
             const SizedBox(height: 12),
             StyledTextField(
               controller: _amount,
               autofocus: true,
               keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
-              label: 'Seconds',
-              hintText: '-10 or 10',
+              label: context.l10n.fieldSeconds,
+              hintText: context.l10n.hintChapterTimeShift,
               errorText: _error,
               onSubmitted: (_) => _submit(),
             ),
@@ -217,8 +224,8 @@ class _ChapterShiftDialogState extends State<_ChapterShiftDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: _submit, child: const Text('Apply')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
+        FilledButton(onPressed: _submit, child: Text(context.l10n.actionApply)),
       ],
     );
   }
@@ -281,13 +288,19 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
           final startMs = jsonDoubleFromDynamic(entry['startOffsetMs']);
           final title = jsonStringFromDynamic(entry['title']);
           if (startMs == null || !startMs.isFinite || startMs < 0 || title == null) {
-            throw const FormatException('The lookup returned invalid chapter data.');
+            setState(() {
+              _error = context.l10n.errorInvalidChapterLookupData;
+            });
+            return;
           }
           chapters.add((start: startMs / 1000, title: title));
         }
       }
       if (chapters.isEmpty) {
-        throw StateError('No chapters found for this ASIN and region.');
+        setState(() {
+          _error = context.l10n.statusNoChaptersFoundForSearch;
+        });
+        return;
       }
 
       setState(() {
@@ -300,7 +313,9 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
         return;
       }
       setState(() {
-        _error = listManagementErrorMessage(error, fallback: 'Could not look up chapters. $error');
+        final l10n = context.l10n;
+        final fallback = l10n.errorOperationFailed(l10n.operationLookupChapters, error.toString());
+        _error = listManagementErrorMessage(error, fallback: fallback);
       });
     } finally {
       if (mounted) {
@@ -316,7 +331,7 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
     final chapters = _chapters;
     return AlertDialog(
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      title: const Text('Find chapters'),
+      title: Text(context.l10n.actionFindChapters),
       content: SizedBox(
         width: 520,
         child: SingleChildScrollView(
@@ -332,7 +347,7 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
                       controller: _asin,
                       enabled: !_loading,
                       autofocus: true,
-                      label: 'ASIN',
+                      label: context.l10n.fieldAsin,
                       onSubmitted: (_) => _search(),
                     ),
                   ),
@@ -342,7 +357,7 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
                     child: YaabsaDropdownField<String>(
                       value: _region,
                       enabled: !_loading,
-                      label: 'Region',
+                      label: context.l10n.fieldRegion,
                       items: [
                         for (final region in const ['US', 'CA', 'UK', 'AU', 'FR', 'DE', 'JP', 'IT', 'IN', 'ES'])
                           DropdownMenuItem(value: region, child: Text(region)),
@@ -362,15 +377,20 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
               OutlinedButton.icon(
                 onPressed: _loading ? null : _search,
                 icon: const Icon(Icons.search_rounded),
-                label: Text(_loading ? 'Searching...' : 'Search'),
+                label: Text(_loading ? context.l10n.statusSearching : context.l10n.actionSearch),
               ),
               if (_loading) const YaabsaLinearProgressIndicator(),
               if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               if (chapters != null) ...[
                 const SizedBox(height: 12),
-                Text('${chapters.length} chapters found. Current book: ${widget.chapterCount} chapters.'),
+                Text(context.l10n.chapterLookupSummary(chapters.length, widget.chapterCount)),
                 if (_runtime != null)
-                  Text('Found duration: ${formatChapterTime(_runtime!)}. Book: ${formatChapterTime(widget.duration)}.'),
+                  Text(
+                    context.l10n.chapterDurationComparison(
+                      formatChapterTime(_runtime!),
+                      formatChapterTime(widget.duration),
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: math.min(240, chapters.length * 48).toDouble(),
@@ -391,8 +411,8 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
                 if (chapters.length == widget.chapterCount && widget.chapterCount > 0)
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Apply titles only'),
-                    subtitle: const Text('Keep existing chapter times'),
+                    title: Text(context.l10n.optionApplyChapterTitlesOnly),
+                    subtitle: Text(context.l10n.descriptionKeepChapterTimes),
                     value: _titlesOnly,
                     onChanged: (value) {
                       setState(() {
@@ -406,12 +426,12 @@ class _ChapterLookupDialogState extends ConsumerState<_ChapterLookupDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
         FilledButton(
           onPressed: chapters == null || _loading
               ? null
               : () => Navigator.of(context).pop<ChapterLookupChoice>((chapters: chapters, titlesOnly: _titlesOnly)),
-          child: const Text('Apply to draft'),
+          child: Text(context.l10n.actionApplyToDraft),
         ),
       ],
     );

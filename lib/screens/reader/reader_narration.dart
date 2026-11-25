@@ -137,9 +137,9 @@ extension _ReaderNarration on _ReaderState {
         chapterTitles: chapterTitles,
         cover: _api?.getLibraryItemApi().getCoverUri(item.id, item: item),
       );
-    } catch (error) {
+    } catch (_) {
       if (mounted && !_isDisposed) {
-        _showSnackBar('Unable to start narration: $error');
+        _showSnackBar(context.l10n.errorReaderNarrationUnavailable);
       }
     } finally {
       _readerSetState(() => _isPreparingNarration = false);

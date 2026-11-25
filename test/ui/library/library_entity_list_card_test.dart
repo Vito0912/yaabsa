@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/features/library/widgets/library_entity_list_card.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('library entity row presents shared details and activation', (tester) async {
@@ -8,6 +9,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Column(
             children: [

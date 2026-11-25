@@ -10,6 +10,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_author_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
@@ -49,7 +50,7 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
       icon: _isRunning
           ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
           : const Icon(Icons.cleaning_services_outlined),
-      label: Text(_isRunning ? 'Checking Authors...' : 'Remove Authors Without Books'),
+      label: Text(_isRunning ? context.l10n.statusCheckingAuthors : context.l10n.actionRemoveAuthorsWithoutBooks),
     );
   }
 
@@ -58,6 +59,8 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
       return;
     }
 
+    final l10n = context.l10n;
+
     setState(() {
       _isRunning = true;
     });
@@ -65,7 +68,7 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
     final messenger = ScaffoldMessenger.of(context);
     final api = ref.read(absApiProvider);
     if (api == null) {
-      messenger.showSnackBar(const SnackBar(content: Text('You are offline. Please reconnect and try again.')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.errorConnectionUnavailable)));
       if (mounted) {
         setState(() {
           _isRunning = false;
@@ -75,7 +78,7 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
     }
 
     final progress = ValueNotifier<_AuthorCleanupProgress>(
-      const _AuthorCleanupProgress(title: 'Scanning Authors', message: 'Preparing to load authors...'),
+      _AuthorCleanupProgress(title: l10n.statusScanningAuthors, message: l10n.statusPreparingToLoadAuthors),
     );
     var progressDialogOpen = false;
 
@@ -107,7 +110,7 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
 
     try {
       openProgressDialog();
-      final authorsWithoutBooks = await _loadAuthorsWithoutBooks(progress: progress);
+      final authorsWithoutBooks = await _loadAuthorsWithoutBooks(progress: progress, localizations: l10n);
 
       closeProgressDialog();
       if (!mounted) {
@@ -132,8 +135,8 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
       for (var index = 0; index < total; index++) {
         final author = authorsWithoutBooks[index];
         progress.value = _AuthorCleanupProgress(
-          title: 'Deleting Authors',
-          message: 'Deleting ${author.name} (${index + 1}/$total)...',
+          title: l10n.statusDeletingAuthors,
+          message: l10n.statusDeletingAuthorProgress(author.name, index + 1, total),
           completed: index + 1,
           total: total,
         );
@@ -155,18 +158,20 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
       await ref.read(libraryAuthorsProvider(widget.libraryId).notifier).refresh(withLoading: false);
 
       final failedCount = failedAuthors.length;
-      final message = StringBuffer('Deleted $deletedCount author(s) without books.');
+      final messages = <String>[l10n.statusDeletedAuthorsWithoutBooks(deletedCount)];
       if (failedCount > 0) {
-        final preview = failedAuthors.take(4).map((author) => author.name).join(', ');
-        final suffix = failedCount > 4 ? ', ...' : '';
-        message.write(' $failedCount failed: $preview$suffix');
+        final previewNames = failedAuthors.take(4).map((author) => author.name).join(', ');
+        final failureNames = failedCount > 4
+            ? l10n.authorNamesWithMoreCount(previewNames, failedCount - 4)
+            : previewNames;
+        messages.add(l10n.errorDeleteAuthorsWithoutBooksFailed(failedCount, failureNames));
       }
 
-      messenger.showSnackBar(SnackBar(content: Text(message.toString())));
+      messenger.showSnackBar(SnackBar(content: Text(messages.join(' '))));
     } catch (error) {
       closeProgressDialog();
       if (mounted) {
-        messenger.showSnackBar(SnackBar(content: Text('Could not remove authors without books: $error')));
+        messenger.showSnackBar(SnackBar(content: Text(l10n.errorRemoveAuthorsWithoutBooksFailed(error.toString()))));
       }
     } finally {
       progress.dispose();
@@ -182,19 +187,22 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('No Authors To Remove'),
-        content: const Text('No authors with 0 books were found.'),
-        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Close'))],
+        title: Text(dialogContext.l10n.headingNoAuthorsToRemove),
+        content: Text(dialogContext.l10n.statusNoAuthorsWithoutBooks),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(dialogContext.l10n.actionClose)),
+        ],
       ),
     );
   }
 
   Future<List<LibraryAuthor>> _loadAuthorsWithoutBooks({
     required ValueNotifier<_AuthorCleanupProgress> progress,
+    required AppLocalizations localizations,
   }) async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw Exception('User not authenticated or API not available.');
+      throw StateError(localizations.errorConnectionUnavailable);
     }
 
     final resultById = <String, LibraryAuthor>{};
@@ -203,8 +211,8 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
 
     while (true) {
       progress.value = _AuthorCleanupProgress(
-        title: 'Scanning Authors',
-        message: 'Loading page ${page + 1} (size $_authorCleanupPageSize)...',
+        title: localizations.statusScanningAuthors,
+        message: localizations.statusLoadingAuthorsPage(page + 1, _authorCleanupPageSize),
       );
 
       final response = await api.getLibraryApi().getLibraryAuthors(
@@ -233,8 +241,8 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
       }
 
       progress.value = _AuthorCleanupProgress(
-        title: 'Scanning Authors',
-        message: 'Checked $scannedAuthors author(s), found ${resultById.length} with 0 books.',
+        title: localizations.statusScanningAuthors,
+        message: localizations.statusScannedAuthorsAndFoundEmptyAuthors(scannedAuthors, resultById.length),
       );
 
       final reachedEndByCount = payload.total > 0 && scannedAuthors >= payload.total;
@@ -257,14 +265,14 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text('Delete ${authors.length} Author${authors.length == 1 ? '' : 's'}?'),
+          title: Text(dialogContext.l10n.headingDeleteAuthorsWithoutBooks(authors.length)),
           content: SizedBox(
             width: 460,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('These authors have 0 books and will be removed permanently:'),
+                Text(dialogContext.l10n.confirmDeleteAuthorsWithoutBooks),
                 const SizedBox(height: 10),
                 Container(
                   constraints: const BoxConstraints(maxHeight: 260),
@@ -278,10 +286,13 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(dialogContext.l10n.actionCancel),
+            ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text('Delete ${authors.length}'),
+              child: Text(dialogContext.l10n.actionDeleteAuthorsCount(authors.length)),
             ),
           ],
         );
@@ -311,9 +322,11 @@ class _AuthorCleanupProgressDialog extends StatelessWidget {
     return ValueListenableBuilder<_AuthorCleanupProgress>(
       valueListenable: progress,
       builder: (context, value, _) {
-        final hasBoundedProgress = value.total != null && value.total! > 0;
-        final progressValue = hasBoundedProgress && value.completed != null
-            ? value.completed!.clamp(0, value.total!) / value.total!
+        final completedCount = value.completed;
+        final totalCount = value.total;
+        final hasBoundedProgress = totalCount != null && totalCount > 0;
+        final progressValue = hasBoundedProgress && completedCount != null
+            ? completedCount.clamp(0, totalCount) / totalCount
             : null;
 
         return AlertDialog(
@@ -330,9 +343,9 @@ class _AuthorCleanupProgressDialog extends StatelessWidget {
                   YaabsaLinearProgressIndicator(value: progressValue, minHeight: 6)
                 else
                   const SizedBox(width: 22, height: 22, child: YaabsaCircularProgressIndicator(strokeWidth: 2.4)),
-                if (hasBoundedProgress && value.completed != null) ...[
+                if (hasBoundedProgress && completedCount != null) ...[
                   const SizedBox(height: 10),
-                  Text('${value.completed}/${value.total}'),
+                  Text(context.l10n.progressPosition(completedCount, totalCount)),
                 ],
               ],
             ),
@@ -382,12 +395,10 @@ class _AuthorDeletionPreviewListState extends State<_AuthorDeletionPreviewList> 
           return ListTile(
             dense: true,
             title: Text(author.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-            trailing: Text(_bookCountLabel(author.numBooks)),
+            trailing: Text(context.l10n.bookCount(author.numBooks)),
           );
         },
       ),
     );
   }
 }
-
-String _bookCountLabel(int numBooks) => '$numBooks ${numBooks == 1 ? 'book' : 'books'}';

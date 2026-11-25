@@ -7,6 +7,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast.dart';
@@ -16,63 +17,63 @@ part 'cache_storage.dart';
 const List<CacheRouteDefinition> cacheRouteDefinitions = [
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteLibraries,
-    label: 'Libraries list',
+    labelKey: CacheRouteLabel.librariesList,
     pathPattern: '/api/libraries',
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteLibraryById,
-    label: 'Library details',
+    labelKey: CacheRouteLabel.libraryDetails,
     pathPattern: '/api/libraries/{uuidv4}',
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteLibraryItems,
-    label: 'Library items',
+    labelKey: CacheRouteLabel.libraryItems,
     pathPattern: '/api/libraries/{uuidv4}/items',
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteItemById,
-    label: 'Item details',
+    labelKey: CacheRouteLabel.itemDetails,
     pathPattern: '/api/items/{uuidv4}',
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteItemChild,
-    label: 'Item nested resource',
+    labelKey: CacheRouteLabel.itemResource,
     pathPattern: '/api/items/{uuidv4}/{uuidv4}',
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteLibraryFilterData,
-    label: 'Library filter data',
+    labelKey: CacheRouteLabel.libraryFilterData,
     pathPattern: '/api/libraries/{uuidv4}/filterdata',
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteLibrarySeries,
-    label: 'Library series',
+    labelKey: CacheRouteLabel.librarySeries,
     pathPattern: '/api/libraries/{uuidv4}/series',
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRoutePlaylists,
-    label: 'Playlists',
+    labelKey: CacheRouteLabel.playlists,
     pathPattern: '/api/playlists',
     additionalPathPatterns: ['/api/libraries/{uuidv4}/playlists', '/api/playlists/{uuidv4}'],
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteCollections,
-    label: 'Collections',
+    labelKey: CacheRouteLabel.collections,
     pathPattern: '/api/collections',
     additionalPathPatterns: ['/api/libraries/{uuidv4}/collections', '/api/collections/{uuidv4}'],
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteMe,
-    label: 'Current user profile',
+    labelKey: CacheRouteLabel.currentUserProfile,
     pathPattern: '/api/me',
     cacheDuration: Duration(days: 1),
     aggressiveCache: true,
@@ -298,7 +299,7 @@ class CacheInterceptor extends Interceptor {
 
 class CacheRouteDefinition {
   final String settingKey;
-  final String label;
+  final CacheRouteLabel labelKey;
   final String pathPattern;
   final List<String> additionalPathPatterns;
   final Duration cacheDuration;
@@ -306,12 +307,28 @@ class CacheRouteDefinition {
 
   const CacheRouteDefinition({
     required this.settingKey,
-    required this.label,
+    required this.labelKey,
     required this.pathPattern,
     this.additionalPathPatterns = const [],
     required this.cacheDuration,
     this.aggressiveCache = false,
   });
+
+  String get label {
+    final l10n = currentAppLocalizations();
+    return switch (labelKey) {
+      CacheRouteLabel.librariesList => l10n.cacheLibrariesList,
+      CacheRouteLabel.libraryDetails => l10n.cacheLibraryDetails,
+      CacheRouteLabel.libraryItems => l10n.libraryItems,
+      CacheRouteLabel.itemDetails => l10n.cacheItemDetails,
+      CacheRouteLabel.itemResource => l10n.cacheItemResource,
+      CacheRouteLabel.libraryFilterData => l10n.cacheLibraryFilterData,
+      CacheRouteLabel.librarySeries => l10n.cacheLibrarySeries,
+      CacheRouteLabel.playlists => l10n.navPlaylists,
+      CacheRouteLabel.collections => l10n.navCollections,
+      CacheRouteLabel.currentUserProfile => l10n.cacheCurrentUserProfile,
+    };
+  }
 
   bool matches(String path) {
     return [pathPattern, ...additionalPathPatterns].any((pattern) => _matchesPattern(pattern, path));
@@ -336,4 +353,17 @@ class CacheRouteDefinition {
 
     return true;
   }
+}
+
+enum CacheRouteLabel {
+  librariesList,
+  libraryDetails,
+  libraryItems,
+  itemDetails,
+  itemResource,
+  libraryFilterData,
+  librarySeries,
+  playlists,
+  collections,
+  currentUserProfile,
 }

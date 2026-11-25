@@ -8,14 +8,15 @@ import 'package:yaabsa/components/app/item/match/quick_match_preview_dialog.dart
 import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
   required BuildContext context,
   required String mediaType,
   List<LibraryItem> previewItems = const <LibraryItem>[],
-  String title = 'Quick match',
+  String? title,
   String? description,
-  String confirmLabel = 'Run quick match',
+  String? confirmLabel,
   String? initialProvider,
   bool initialOverrideCover = true,
   bool initialOverrideDetails = true,
@@ -26,9 +27,9 @@ Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
       return QuickMatchOptionsDialog(
         mediaType: mediaType,
         previewItems: previewItems,
-        title: title,
+        title: title ?? context.l10n.actionQuickMatch,
         description: description,
-        confirmLabel: confirmLabel,
+        confirmLabel: confirmLabel ?? context.l10n.actionRunQuickMatch,
         initialProvider: initialProvider,
         initialOverrideCover: initialOverrideCover,
         initialOverrideDetails: initialOverrideDetails,
@@ -152,23 +153,23 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
               const SizedBox(height: 12),
             ],
             providersAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
+              loading: () => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2)),
-                    SizedBox(width: 10),
-                    Text('Loading providers...'),
+                    const SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2)),
+                    const SizedBox(width: 10),
+                    Text(context.l10n.statusLoadingMetadataProviders),
                   ],
                 ),
               ),
               error: (error, _) => Text(
-                'Could not load metadata providers: $error',
+                context.l10n.errorLoadMetadataProvidersFailed,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
               data: (loadedProviders) {
                 if (loadedProviders.isEmpty) {
-                  return const Text('No metadata providers are available for this media type.');
+                  return Text(context.l10n.statusNoProvidersForMediaType);
                 }
 
                 return ManualMatchProviderDropdown(
@@ -186,9 +187,9 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
             const SizedBox(height: 8),
             SettingsSwitchPresentation(
               value: _overrideDetails,
-              label: 'Overwrite current metadata',
+              label: context.l10n.settingOverwriteCurrentMetadata,
               contentPadding: EdgeInsets.zero,
-              description: 'Replace existing title, author, description, and related fields.',
+              description: context.l10n.settingOverwriteCurrentMetadataDescription,
               onChanged: (value) {
                 setState(() {
                   _overrideDetails = value;
@@ -197,9 +198,9 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
             ),
             SettingsSwitchPresentation(
               value: _overrideCover,
-              label: 'Overwrite cover image',
+              label: context.l10n.settingOverwriteCoverImage,
               contentPadding: EdgeInsets.zero,
-              description: 'Replace current cover artwork when a match provides one.',
+              description: context.l10n.settingOverwriteCoverImageDescription,
               onChanged: (value) {
                 setState(() {
                   _overrideCover = value;
@@ -212,7 +213,7 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
               runSpacing: 8,
               alignment: WrapAlignment.end,
               children: [
-                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
                 OutlinedButton.icon(
                   onPressed: canPreview
                       ? () async {
@@ -233,12 +234,10 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
                         }
                       : null,
                   icon: const Icon(Icons.preview_rounded),
-                  label: const Text('Preview'),
+                  label: Text(context.l10n.actionPreview),
                 ),
                 Tooltip(
-                  message: _selectedProviders.length > 1
-                      ? 'Quick match only supports a single provider. Use Preview to run multiple providers.'
-                      : '',
+                  message: _selectedProviders.length > 1 ? context.l10n.hintQuickMatchSingleProviderOnly : '',
                   child: FilledButton(
                     onPressed: canSubmit
                         ? () {

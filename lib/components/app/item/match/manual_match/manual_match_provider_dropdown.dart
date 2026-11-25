@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManualMatchProviderDropdown extends StatelessWidget {
   const ManualMatchProviderDropdown({
@@ -10,18 +11,18 @@ class ManualMatchProviderDropdown extends StatelessWidget {
     required this.selectedProviderValues,
     required this.onSelectionChanged,
     this.enabled = true,
-    this.labelText = 'Providers',
+    this.labelText,
   });
 
   final List<SearchProviderOption> providers;
   final Set<String> selectedProviderValues;
   final ValueChanged<Set<String>> onSelectionChanged;
   final bool enabled;
-  final String labelText;
+  final String? labelText;
 
-  String _selectedLabel() {
+  String _selectedLabel(BuildContext context) {
     if (selectedProviderValues.isEmpty) {
-      return 'Select providers';
+      return context.l10n.actionSelectProviders;
     }
 
     final selectedTexts = providers
@@ -29,7 +30,7 @@ class ManualMatchProviderDropdown extends StatelessWidget {
         .map((provider) => provider.text)
         .toList(growable: false);
     if (selectedTexts.isEmpty) {
-      return 'Select providers';
+      return context.l10n.actionSelectProviders;
     }
 
     return selectedTexts.join(', ');
@@ -61,10 +62,10 @@ class ManualMatchProviderDropdown extends StatelessWidget {
       child: InputDecorator(
         decoration: yaabsaFieldDecoration(
           context,
-          label: labelText,
+          label: labelText ?? context.l10n.fieldMetadataProviders,
         ).copyWith(suffixIcon: const Icon(Icons.arrow_drop_down_rounded), enabled: enabled),
         child: Text(
-          _selectedLabel(),
+          _selectedLabel(context),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyMedium,
@@ -133,9 +134,9 @@ class _ProviderSelectionSheetState extends State<_ProviderSelectionSheet> {
     return Column(
       children: [
         ListTile(
-          title: const Text('Select providers'),
+          title: Text(context.l10n.actionSelectProviders),
           trailing: IconButton(
-            tooltip: 'Close',
+            tooltip: context.l10n.actionClose,
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.close_rounded),
           ),
@@ -171,11 +172,11 @@ class _ProviderSelectionSheetState extends State<_ProviderSelectionSheet> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(Set<String>.from(_selected)),
-                child: const Text('Apply'),
+                child: Text(context.l10n.actionApply),
               ),
             ],
           ),

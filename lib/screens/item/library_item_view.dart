@@ -13,6 +13,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/screens/item/library_item_book_view.dart';
 import 'package:yaabsa/screens/item/library_item_podcast_view.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
@@ -99,10 +100,10 @@ class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
         final isNotFound = _isNotFoundError(error);
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: isNotFound ? 'Item not found' : 'Unable to load item',
+          title: isNotFound ? context.l10n.errorItemNotFound : context.l10n.errorUnableToLoadContent,
           message: isNotFound
-              ? 'This item may have been moved or deleted.'
-              : 'Please try again. If the issue persists, check your server connection.',
+              ? context.l10n.statusItemMayHaveMovedOrBeenDeleted
+              : context.l10n.errorRetryCheckConnection,
           showDownloadsShortcut: !isNotFound,
           onRetry: () async {
             ref.invalidate(libraryItemProvider(widget.itemId, episodeId: widget.initialEpisodeId));

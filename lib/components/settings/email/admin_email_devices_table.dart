@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/admin_email_settings.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/settings/email/admin_email_device_availability.dart';
+import 'package:yaabsa/util/l10n.dart';
+import 'package:intl/intl.dart';
 
 class AdminEmailDevicesTable extends StatelessWidget {
   const AdminEmailDevicesTable({
@@ -21,44 +23,50 @@ class AdminEmailDevicesTable extends StatelessWidget {
   final bool loading;
   final Widget? topActions;
 
-  String _accessLabel(AdminEmailEreaderDevice device) {
+  String _accessLabel(BuildContext context, AdminEmailEreaderDevice device) {
     final normalizedAvailability = normalizeAdminEmailAvailabilityOption(device.availabilityOption);
     if (normalizedAvailability == adminEmailAvailabilitySpecificUsers) {
-      return '${adminEmailAvailabilityLabel(normalizedAvailability)} (${device.users.length})';
+      return context.l10n.emailDeviceAccessWithUserCount(
+        adminEmailAvailabilityLabel(normalizedAvailability),
+        device.users.length,
+      );
     }
     return adminEmailAvailabilityLabel(normalizedAvailability);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return ExpressiveActionTable<AdminEmailEreaderDevice>(
       rows: devices,
       columns: [
         ExpressiveTableColumn<AdminEmailEreaderDevice>(
           id: 'name',
-          label: 'Device',
+          label: l10n.fieldDevice,
           width: 180,
           cellBuilder: (context, device) => Text(device.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<AdminEmailEreaderDevice>(
           id: 'email',
-          label: 'Email',
+          label: l10n.fieldEmail,
           width: 240,
           cellBuilder: (context, device) => Text(device.email, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<AdminEmailEreaderDevice>(
           id: 'access',
-          label: 'Accessible By',
+          label: l10n.fieldAccessibleBy,
           width: 160,
-          cellBuilder: (context, device) => Text(_accessLabel(device), maxLines: 1, overflow: TextOverflow.ellipsis),
+          cellBuilder: (context, device) =>
+              Text(_accessLabel(context, device), maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<AdminEmailEreaderDevice>(
           id: 'users',
-          label: 'Users',
+          label: l10n.labelUsers,
           width: 80,
           showOnMobile: false,
           alignment: ExpressiveTableCellAlignment.end,
-          cellBuilder: (context, device) => Text('${device.users.length}'),
+          cellBuilder: (context, device) =>
+              Text(NumberFormat.decimalPattern(l10n.localeName).format(device.users.length)),
         ),
       ],
       topActions: topActions,
@@ -69,20 +77,20 @@ class AdminEmailDevicesTable extends StatelessWidget {
       actions: [
         ExpressiveTableAction<AdminEmailEreaderDevice>(
           icon: Icons.edit_outlined,
-          tooltip: 'Edit device',
+          tooltip: l10n.actionEdit,
           tone: ExpressiveTableActionTone.primary,
           onPressed: onEdit,
         ),
         ExpressiveTableAction<AdminEmailEreaderDevice>(
           icon: Icons.delete_outline_rounded,
-          tooltip: 'Delete device',
+          tooltip: l10n.actionDelete,
           tone: ExpressiveTableActionTone.danger,
           onPressed: onDelete,
         ),
       ],
       loading: loading,
-      emptyTitle: 'No e-reader devices found',
-      emptySubtitle: 'Add at least one destination to enable send-to-device email delivery.',
+      emptyTitle: l10n.statusNoEreaderDevicesFound,
+      emptySubtitle: l10n.messageAddEreaderDeviceDestination,
     );
   }
 }

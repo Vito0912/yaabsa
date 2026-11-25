@@ -9,6 +9,7 @@ import 'package:yaabsa/screens/player/components/bookmark_card.dart';
 import 'package:yaabsa/screens/player/components/bookmark_title_dialog.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayerBookmarksSheet extends ConsumerStatefulWidget {
@@ -71,16 +72,16 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       }
 
       if (savedBookmark == null) {
-        messenger.showSnackBar(const SnackBar(content: Text('Failed to update bookmark.')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.errorBookmarkUpdateFailed)));
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('Bookmark updated.')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.statusBookmarkUpdated)));
     } catch (_) {
       if (!mounted) {
         return;
       }
-      messenger.showSnackBar(const SnackBar(content: Text('Could not update bookmark right now.')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.errorBookmarkUpdateFailed)));
     } finally {
       if (mounted) {
         setState(() {
@@ -95,16 +96,14 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.delete_outline_rounded),
-        title: const Text('Delete bookmark?'),
-        content: Text(
-          'Remove the bookmark at ${Duration(seconds: bookmark.time).toHhMmString()}? This can’t be undone.',
-        ),
+        title: Text(context.l10n.confirmDeleteBookmarks(1)),
+        content: Text(context.l10n.confirmDeleteBookmarkAt(Duration(seconds: bookmark.time).toHhMmString())),
         actions: <Widget>[
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.l10n.actionCancel)),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
-            child: const Text('Delete'),
+            child: Text(context.l10n.actionDelete),
           ),
         ],
       ),
@@ -129,16 +128,16 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       }
 
       if (!deleted) {
-        messenger.showSnackBar(const SnackBar(content: Text('Failed to delete bookmark.')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.errorBookmarkDeleteFailed)));
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('Bookmark deleted.')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.statusBookmarkDeleted)));
     } catch (_) {
       if (!mounted) {
         return;
       }
-      messenger.showSnackBar(const SnackBar(content: Text('Could not delete bookmark right now.')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.errorBookmarkDeleteFailed)));
     } finally {
       if (mounted) {
         setState(() {
@@ -179,13 +178,13 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.delete_outline_rounded),
-        title: Text('Delete $count ${count == 1 ? 'bookmark' : 'bookmarks'}?'),
+        title: Text(context.l10n.confirmDeleteBookmarks(count)),
         actions: <Widget>[
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.l10n.actionCancel)),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
-            child: const Text('Delete'),
+            child: Text(context.l10n.actionDelete),
           ),
         ],
       ),
@@ -214,12 +213,10 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       if (!mounted) {
         return;
       }
-      messenger.showSnackBar(
-        SnackBar(content: Text('$deletedCount ${deletedCount == 1 ? 'bookmark' : 'bookmarks'} deleted.')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.statusBookmarksDeleted(deletedCount))));
     } catch (_) {
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(content: Text('Could not delete all selected bookmarks.')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.errorBookmarkDeleteFailed)));
       }
     } finally {
       if (mounted) {
@@ -253,7 +250,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
               children: <Widget>[
                 Icon(Icons.bookmarks_rounded, color: colorScheme.primary),
                 const SizedBox(width: 10),
-                Expanded(child: Text('Bookmarks', style: Theme.of(context).textTheme.headlineSmall)),
+                Expanded(child: Text(context.l10n.navBookmarks, style: Theme.of(context).textTheme.headlineSmall)),
                 BookmarkAddButton(itemId: widget.itemId),
               ],
             ),
@@ -270,14 +267,14 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
             Row(
               children: <Widget>[
                 IconButton(onPressed: _isBulkDeleting ? null : _clearSelection, icon: const Icon(Icons.close_rounded)),
-                Expanded(child: Text('${_selectedTimes.length} selected')),
+                Expanded(child: Text(context.l10n.selectedCount(_selectedTimes.length))),
                 FilledButton.icon(
                   onPressed: _isBulkDeleting ? null : () => _deleteSelectedBookmarks(bookmarks),
                   style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
                   icon: _isBulkDeleting
                       ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.delete_outline_rounded),
-                  label: const Text('Delete'),
+                  label: Text(context.l10n.actionDelete),
                 ),
               ],
             ),
@@ -294,10 +291,10 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                         children: <Widget>[
                           Icon(Icons.bookmark_add_outlined, size: 48, color: colorScheme.onSurfaceVariant),
                           const SizedBox(height: 12),
-                          Text('No bookmarks yet', style: Theme.of(context).textTheme.titleMedium),
+                          Text(context.l10n.statusNoBookmarksYet, style: Theme.of(context).textTheme.titleMedium),
                           const SizedBox(height: 4),
                           Text(
-                            'Save a note at the current playback position to find it again later.',
+                            context.l10n.hintSaveBookmarkToFindAgain,
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),

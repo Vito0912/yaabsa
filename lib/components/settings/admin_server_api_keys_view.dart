@@ -13,6 +13,7 @@ import 'package:yaabsa/components/settings/api_keys/admin_api_key_table.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerApiKeysView extends ConsumerStatefulWidget {
   const AdminServerApiKeysView({super.key});
@@ -142,11 +143,12 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
   }
 
   Future<void> _loadApiKeysData({bool showLoading = true}) async {
+    final l10n = currentAppLocalizations();
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'No active API client.';
+        _errorMessage = l10n.errorNoActiveApiClient;
       });
       return;
     }
@@ -178,7 +180,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
       }
 
       setState(() {
-        _errorMessage = 'Failed to load API keys: $error';
+        _errorMessage = l10n.errorLoadApiKeys;
       });
     } finally {
       if (mounted) {
@@ -198,15 +200,16 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
     await showDialog<void>(
       context: context,
       builder: (context) {
+        final l10n = context.l10n;
         return AlertDialog(
-          title: const Text('API Key Created'),
+          title: Text(l10n.headingApiKeyCreated),
           content: SizedBox(
             width: 560,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Copy this API key now. For security reasons it is only shown once.'),
+                Text(l10n.messageApiKeyShownOnce),
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -224,17 +227,17 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.actionClose)),
             FilledButton.icon(
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: createdToken));
                 if (!context.mounted) {
                   return;
                 }
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('API key copied.')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.statusApiKeyCopied)));
               },
               icon: const Icon(Icons.copy_rounded),
-              label: const Text('Copy'),
+              label: Text(l10n.actionCopy),
             ),
           ],
         );
@@ -243,13 +246,14 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
   }
 
   Future<void> _createApiKey({required String currentUserId, required bool isRootUser}) async {
+    final l10n = currentAppLocalizations();
     if (_isCreating) {
       return;
     }
 
     final owners = _availableOwners(isRootUser: isRootUser);
     if (owners.isEmpty) {
-      _showMessage('No eligible users available to own an API key.');
+      _showMessage(l10n.errorNoEligibleApiKeyOwners);
       return;
     }
 
@@ -263,7 +267,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -281,12 +285,12 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
         _upsertApiKey(createdApiKey);
       }
 
-      _showMessage('API key created successfully.');
+      _showMessage(l10n.statusApiKeyCreated);
       if (createdApiKey != null) {
         await _showCreatedKeyDialog(createdApiKey);
       }
     } catch (error) {
-      final message = listManagementErrorMessage(error, fallback: 'Failed to create API key.');
+      final message = listManagementErrorMessage(error, fallback: l10n.errorCreateApiKey);
       _showMessage(message);
     } finally {
       if (mounted) {
@@ -298,21 +302,22 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
   }
 
   Future<void> _editApiKey(AdminApiKey apiKey, {required bool isRootUser}) async {
+    final l10n = currentAppLocalizations();
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
     final owners = _availableOwners(isRootUser: isRootUser);
     if (owners.isEmpty) {
-      _showMessage('No eligible users available to own an API key.');
+      _showMessage(l10n.errorNoEligibleApiKeyOwners);
       return;
     }
 
     final isRootOwnedKey = (apiKey.user?.type ?? '').trim().toLowerCase() == 'root';
     if (!isRootUser && isRootOwnedKey) {
-      _showMessage('Root-owned API keys can only be edited by root users.');
+      _showMessage(l10n.errorRootOwnedApiKeyEditRestricted);
       return;
     }
 
@@ -331,9 +336,9 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
         _upsertApiKey(updatedApiKey);
       }
 
-      _showMessage('API key updated successfully.');
+      _showMessage(l10n.statusApiKeyUpdated);
     } catch (error) {
-      final message = listManagementErrorMessage(error, fallback: 'Failed to update API key.');
+      final message = listManagementErrorMessage(error, fallback: l10n.errorUpdateApiKey);
       _showMessage(message);
     } finally {
       _setBusyRow(apiKey.id, false);
@@ -341,16 +346,17 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
   }
 
   Future<void> _deleteApiKey(AdminApiKey apiKey) async {
+    final l10n = currentAppLocalizations();
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Delete API key?',
-      message: 'Delete API key "${apiKey.name}"? This action cannot be undone.',
+      title: l10n.headingDeleteApiKey,
+      message: l10n.promptDeleteApiKey(apiKey.name),
     );
 
     if (!confirmed) {
@@ -361,14 +367,14 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
     try {
       final deleted = await api.getAdminApi().deleteApiKey(apiKey.id);
       if (!deleted) {
-        _showMessage('Failed to delete API key.');
+        _showMessage(l10n.errorDeleteApiKey);
         return;
       }
 
       _removeApiKey(apiKey.id);
-      _showMessage('API key deleted.');
+      _showMessage(l10n.statusApiKeysDeleted(1));
     } catch (error) {
-      final message = listManagementErrorMessage(error, fallback: 'Failed to delete API key.');
+      final message = listManagementErrorMessage(error, fallback: l10n.errorDeleteApiKey);
       _showMessage(message);
     } finally {
       _setBusyRow(apiKey.id, false);
@@ -386,6 +392,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
   }
 
   Future<void> _bulkDeleteSelectedApiKeys() async {
+    final l10n = currentAppLocalizations();
     final api = ref.read(absApiProvider);
     if (api == null || _isBulkDeleting || _selectedApiKeyIds.isEmpty) {
       return;
@@ -399,12 +406,13 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final l10n = context.l10n;
         return AlertDialog(
-          title: const Text('Delete Selected API Keys'),
-          content: Text('Delete ${selectedKeys.length} selected API key(s)? This action cannot be undone.'),
+          title: Text(l10n.headingDeleteSelectedApiKeys),
+          content: Text(l10n.promptDeleteSelectedApiKeys(selectedKeys.length)),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.actionCancel)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.actionDelete)),
           ],
         );
       },
@@ -452,12 +460,10 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
 
     final messenger = ScaffoldMessenger.of(context);
     if (deletedCount > 0) {
-      messenger.showSnackBar(SnackBar(content: Text('Deleted $deletedCount API key(s).')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.statusApiKeysDeleted(deletedCount))));
     }
     if (failedIds.isNotEmpty) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete ${failedIds.length} API key(s). Check logs for details.')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.errorDeleteApiKeysFailed(failedIds.length))));
     }
   }
 
@@ -467,6 +473,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
     required bool isRootUser,
     required bool canCreate,
   }) {
+    final l10n = context.l10n;
     final addButtonEnabled = !_isLoading && !_isCreating && canCreate;
 
     if (compact) {
@@ -474,8 +481,8 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           StyledTextField(
-            label: 'Search API keys',
-            hintText: 'Filter by name or owner',
+            label: l10n.searchApiKeys,
+            hintText: l10n.filterApiKeysByNameOrOwner,
             prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
@@ -489,13 +496,13 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton.filledTonal(
-                tooltip: 'Refresh',
+                tooltip: l10n.actionRefresh,
                 onPressed: _isLoading ? null : () => unawaited(_loadApiKeysData(showLoading: true)),
                 icon: const Icon(Icons.refresh_rounded),
               ),
               const SizedBox(width: 6),
               IconButton.filled(
-                tooltip: 'Add API key',
+                tooltip: l10n.actionAddApiKey,
                 onPressed: addButtonEnabled
                     ? () => _createApiKey(currentUserId: currentUserId, isRootUser: isRootUser)
                     : null,
@@ -513,8 +520,8 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
       children: [
         Expanded(
           child: StyledTextField(
-            label: 'Search API keys',
-            hintText: 'Filter by name, owner, or status',
+            label: l10n.searchApiKeys,
+            hintText: l10n.filterApiKeysByNameOwnerOrStatus,
             prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
@@ -528,7 +535,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
         OutlinedButton.icon(
           onPressed: _isLoading ? null : () => unawaited(_loadApiKeysData(showLoading: true)),
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Refresh'),
+          label: Text(l10n.actionRefresh),
         ),
         const SizedBox(width: 10),
         FilledButton.icon(
@@ -538,13 +545,14 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
           icon: _isCreating
               ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.add_rounded),
-          label: const Text('Add API Key'),
+          label: Text(l10n.actionAddApiKey),
         ),
       ],
     );
   }
 
   Widget _buildErrorCard() {
+    final l10n = context.l10n;
     final message = _errorMessage;
     if (message == null || message.isEmpty) {
       return const SizedBox.shrink();
@@ -561,7 +569,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: () => unawaited(_loadApiKeysData(showLoading: true)), child: const Text('Retry')),
+            TextButton(onPressed: () => unawaited(_loadApiKeysData(showLoading: true)), child: Text(l10n.actionRetry)),
           ],
         ),
       ),
@@ -570,22 +578,17 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage API keys.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.promptSignInForAdminAccess));
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -620,11 +623,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                   margin: const EdgeInsets.only(bottom: 10),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    child: Text(
-                      isRootUser
-                          ? 'No server users are available yet.'
-                          : 'No eligible non-root users available to assign API keys.',
-                    ),
+                    child: Text(isRootUser ? l10n.statusNoServerUsers : l10n.errorNoEligibleApiKeyOwners),
                   ),
                 ),
               if (_selectedApiKeyIds.isNotEmpty)
@@ -632,7 +631,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Row(
                     children: [
-                      Text('${_selectedApiKeyIds.length} selected'),
+                      Text(l10n.selectedCount(_selectedApiKeyIds.length)),
                       const Spacer(),
                       FilledButton.icon(
                         onPressed: _isBulkDeleting
@@ -647,7 +646,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                                 child: YaabsaCircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.delete_outline_rounded),
-                        label: const Text('Delete Selected'),
+                        label: Text(l10n.actionDeleteSelected),
                       ),
                     ],
                   ),
@@ -683,7 +682,10 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          l10n.errorOperationFailed(l10n.operationLoadUser, l10n.errorUnknown),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

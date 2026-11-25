@@ -1,6 +1,7 @@
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class BookmarkTitleDialog extends StatefulWidget {
   const BookmarkTitleDialog({super.key, required this.bookmarkTime, this.initialText = ''});
@@ -81,19 +82,19 @@ class _BookmarkTitleDialogState extends State<BookmarkTitleDialog> {
               textCapitalization: TextCapitalization.sentences,
               minLines: 4,
               maxLines: 8,
-              label: 'Note',
-              hintText: 'What do you want to remember?',
+              label: context.l10n.fieldNote,
+              hintText: context.l10n.hintBookmarkNote,
               alignLabelWithHint: true,
             ),
           ],
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
         FilledButton.icon(
           onPressed: isValid ? _submit : null,
           icon: Icon(widget.isEditing ? Icons.check_rounded : Icons.add_rounded),
-          label: Text(widget.isEditing ? 'Save' : 'Add bookmark'),
+          label: Text(widget.isEditing ? context.l10n.actionSave : context.l10n.actionAddBookmark),
         ),
       ],
     );

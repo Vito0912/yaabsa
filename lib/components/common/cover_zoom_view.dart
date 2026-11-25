@@ -5,6 +5,7 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Map<String, String> normalizeImageRequestHeaders(Map<String, dynamic>? headers) {
   if (headers == null || headers.isEmpty) {
@@ -152,7 +153,7 @@ class _CoverZoomView extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.actionClose,
                   onPressed: () => Navigator.of(context).maybePop(),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.black.withValues(alpha: 0.4),

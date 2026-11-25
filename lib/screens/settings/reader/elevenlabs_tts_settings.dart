@@ -1,5 +1,3 @@
-import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
-
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -9,9 +7,11 @@ import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/reader/elevenlabs/elevenlabs_speech_api.dart';
-import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 class ElevenLabsTtsSettings extends ConsumerStatefulWidget {
   const ElevenLabsTtsSettings({super.key, required this.api});
@@ -76,7 +76,7 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
 
       setState(() {
         _loadingKey = false;
-        _keyError = 'Could not read secure storage. Unlock your keyring and try again';
+        _keyError = context.l10n.errorSecureStorageUnavailable;
       });
     }
   }
@@ -122,7 +122,7 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
       }
     } catch (_) {
       if (mounted) {
-        setState(() => _keyError = 'Could not save the API key securely. Unlock your keyring and try again');
+        setState(() => _keyError = context.l10n.errorSecureStorageUnavailable);
       }
     } finally {
       if (mounted) {
@@ -161,7 +161,7 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
           })
           .catchError((Object error) {
             if (!token.isCancelled) {
-              modelError = error.toString();
+              modelError = _catalogErrorMessage(error);
             }
           }),
       widget.api
@@ -171,7 +171,7 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
           })
           .catchError((Object error) {
             if (!token.isCancelled) {
-              voiceError = error.toString();
+              voiceError = _catalogErrorMessage(error);
             }
           }),
     ]);
@@ -189,6 +189,14 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
     });
   }
 
+  String _catalogErrorMessage(Object error) {
+    if (error is ElevenLabsSpeechException) {
+      return error.message;
+    }
+
+    return context.l10n.errorElevenLabsUnavailable;
+  }
+
   Future<void> _savePreferences() async {
     if (_savingPreferences || !(_preferencesForm.currentState?.validate() ?? false)) {
       return;
@@ -203,11 +211,11 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
       await settings.setGlobalSetting<String>(SettingKeys.readerElevenLabsLanguage, _languageController.text.trim());
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Speech preferences saved')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.readerSpeechPreferencesSaved)));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not save speech preferences')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.readerSpeechSaveFailed)));
       }
     } finally {
       if (mounted) {
@@ -229,6 +237,7 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.read(settingsManagerProvider.notifier);
+    final localizations = context.l10n;
 
     ref.watch(globalSettingByKeyProvider(SettingKeys.readerElevenLabsModel));
 
@@ -259,11 +268,11 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
                 enableSuggestions: false,
                 keyboardType: TextInputType.visiblePassword,
                 onSubmitted: (_) => unawaited(_saveKey()),
-                label: 'API key',
-                helperText: 'Stored securely on this device',
+                label: localizations.fieldApiKey,
+                helperText: localizations.readerSpeechApiKeyStored,
                 errorText: _keyError,
                 suffixIcon: IconButton(
-                  tooltip: _obscureKey ? 'Show API key' : 'Hide API key',
+                  tooltip: _obscureKey ? localizations.actionShow : localizations.actionHide,
                   icon: Icon(_obscureKey ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                   onPressed: () => setState(() => _obscureKey = !_obscureKey),
                 ),
@@ -276,12 +285,12 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
                   FilledButton.icon(
                     onPressed: _loadingKey || _savingKey ? null : () => unawaited(_saveKey()),
                     icon: const Icon(Icons.key_outlined),
-                    label: Text(_savingKey ? 'Saving' : 'Save API key'),
+                    label: Text(_savingKey ? localizations.statusSaving : localizations.actionSave),
                   ),
                   OutlinedButton.icon(
                     onPressed: !_hasKey || _loadingCatalog ? null : () => unawaited(_loadCatalog()),
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Refresh voices and models'),
+                    label: Text(localizations.actionRefresh),
                   ),
                 ],
               ),
@@ -293,8 +302,8 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
           ),
         ),
         SettingDropdown<String>(
-          label: 'Model',
-          description: 'Choose a v2 or v4 speech model',
+          label: localizations.fieldModel,
+          description: localizations.readerSpeechModelDescription,
           values: choices.map((model) => model.id).toList(),
           valueLabels: choices.map((model) => model.name).toList(),
           settingKey: SettingKeys.readerElevenLabsModel,
@@ -302,9 +311,9 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
         if (_modelError != null) ListTile(leading: const Icon(Icons.info_outline), title: Text(_modelError!)),
         if (_voices.isNotEmpty)
           SettingDropdown<String>(
-            label: 'Voice',
+            label: localizations.fieldVoice,
             values: ['', ..._voices.map((voice) => voice['id']!)],
-            valueLabels: ['Choose a voice', ..._voices.map((voice) => voice['name']!)],
+            valueLabels: [localizations.readerSpeechVoiceChoose, ..._voices.map((voice) => voice['name']!)],
             settingKey: SettingKeys.readerElevenLabsVoiceId,
             onChanged: (value) => _voiceController.text = value,
           ),
@@ -323,11 +332,11 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
                   enableSuggestions: false,
                   validator: (value) =>
                       value?.trim().isNotEmpty == true && !RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(value!.trim())
-                      ? 'Enter a valid voice ID'
+                      ? context.l10n.readerSpeechVoiceInvalid
                       : null,
                   onFieldSubmitted: (_) => unawaited(_savePreferences()),
-                  label: 'Voice ID',
-                  helperText: 'Use any voice available to your account',
+                  label: localizations.fieldVoiceId,
+                  helperText: localizations.readerSpeechVoiceIdDescription,
                 ),
                 const SizedBox(height: 16),
                 StyledTextFormField(
@@ -342,30 +351,30 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
                       return null;
                     }
                     if (!RegExp(r'^[a-zA-Z]{2,3}(?:[-_][a-zA-Z0-9]{2,8})*$').hasMatch(language)) {
-                      return 'Enter a language code such as en or de';
+                      return context.l10n.readerSpeechLanguageCodeExample;
                     }
 
                     final code = language.replaceAll('_', '-').split('-').first.toLowerCase();
 
                     if (selectedModel?.languages.isNotEmpty == true && !selectedModel!.languages.containsKey(code)) {
-                      return 'This model does not support that language';
+                      return context.l10n.readerSpeechLanguageUnsupported;
                     }
 
                     return null;
                   },
                   onFieldSubmitted: (_) => unawaited(_savePreferences()),
-                  label: 'Preferred language',
-                  hintText: 'en, de, fr',
+                  label: localizations.readerSpeechPreferredLanguage,
+                  hintText: localizations.readerSpeechLanguageHint,
                   helperText: selectedModel?.supportsLanguageCode == false
-                      ? 'This model detects the language from the text'
-                      : 'Leave empty to detect the language from the text',
+                      ? localizations.readerSpeechDetectsLanguage
+                      : localizations.readerSpeechDetectLanguage,
                   suffixIcon: selectedModel?.languages.isNotEmpty == true
                       ? YaabsaContextMenuButton<String>(
-                          tooltip: 'Choose language',
+                          tooltip: localizations.readerSpeechLanguageChoose,
                           icon: const Icon(Icons.language),
                           onSelected: (value) => _languageController.text = value,
                           itemBuilder: (context) => [
-                            const PopupMenuItem(value: '', child: Text('Automatic')),
+                            PopupMenuItem(value: '', child: Text(localizations.optionAutomatic)),
                             for (final language in selectedModel!.languages.entries)
                               PopupMenuItem(value: language.key, child: Text(language.value)),
                           ],
@@ -377,7 +386,7 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
                   alignment: AlignmentDirectional.centerStart,
                   child: FilledButton.tonal(
                     onPressed: _savingPreferences ? null : () => unawaited(_savePreferences()),
-                    child: Text(_savingPreferences ? 'Saving' : 'Save speech preferences'),
+                    child: Text(_savingPreferences ? localizations.statusSaving : localizations.actionSave),
                   ),
                 ),
               ],

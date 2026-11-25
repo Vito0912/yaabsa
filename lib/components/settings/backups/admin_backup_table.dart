@@ -3,6 +3,7 @@ import 'package:yaabsa/api/admin/admin_backup.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminBackupTable extends StatelessWidget {
   const AdminBackupTable({
@@ -43,7 +44,7 @@ class AdminBackupTable extends StatelessWidget {
   String _sizeLabel(AdminBackup backup) {
     final size = backup.fileSize;
     if (size == null || size <= 0) {
-      return '--';
+      return currentAppLocalizations().statusUnknown;
     }
 
     return formatBytes(size);
@@ -51,12 +52,14 @@ class AdminBackupTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return ExpressiveActionTable<AdminBackup>(
       rows: backups,
       columns: [
         ExpressiveTableColumn<AdminBackup>(
           id: 'file',
-          label: 'File',
+          label: l10n.fieldFile,
           width: 280,
           cellBuilder: (context, backup) =>
               Text(_fileLabel(backup), softWrap: true, maxLines: 3, overflow: TextOverflow.ellipsis),
@@ -64,13 +67,13 @@ class AdminBackupTable extends StatelessWidget {
         ),
         ExpressiveTableColumn<AdminBackup>(
           id: 'created',
-          label: 'Created',
+          label: l10n.fieldCreated,
           width: 152,
           cellBuilder: (context, backup) => Text(_createdLabel(backup)),
         ),
         ExpressiveTableColumn<AdminBackup>(
           id: 'size',
-          label: 'Size',
+          label: l10n.fieldSize,
           width: 110,
           alignment: ExpressiveTableCellAlignment.end,
           cellBuilder: (context, backup) => Text(_sizeLabel(backup), textAlign: TextAlign.end),
@@ -82,27 +85,27 @@ class AdminBackupTable extends StatelessWidget {
       actions: [
         ExpressiveTableAction<AdminBackup>(
           icon: Icons.settings_backup_restore_rounded,
-          tooltip: 'Restore backup',
+          tooltip: l10n.actionRestore,
           tone: ExpressiveTableActionTone.primary,
           onPressed: onRestore,
         ),
         ExpressiveTableAction<AdminBackup>(
           icon: Icons.download_rounded,
-          tooltip: 'Download backup',
+          tooltip: l10n.actionDownload,
           tone: ExpressiveTableActionTone.primary,
           onPressed: onDownload,
         ),
         ExpressiveTableAction<AdminBackup>(
           icon: Icons.delete_outline_rounded,
-          tooltip: 'Delete backup',
+          tooltip: l10n.actionDelete,
           tone: ExpressiveTableActionTone.danger,
           onPressed: onDelete,
         ),
       ],
       loading: loading,
       physics: physics,
-      emptyTitle: 'No backups found',
-      emptySubtitle: 'Create or upload a backup to protect your Audiobookshelf metadata and database.',
+      emptyTitle: l10n.statusNoBackupsFound,
+      emptySubtitle: l10n.messageBackupProtection,
     );
   }
 }

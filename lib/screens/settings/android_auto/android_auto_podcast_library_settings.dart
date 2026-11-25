@@ -8,6 +8,7 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -45,7 +46,9 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update sort field: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorOperationFailed(context.l10n.operationSaveSortOrder, e.toString()))),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -60,10 +63,10 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
     final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider);
     final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-    final integrationLabel = isIOS ? 'CarPlay' : 'Android Auto';
+    final integrationLabel = isIOS ? context.l10n.settingsCarPlay : context.l10n.settingsAndroidAuto;
 
     return SettingsPageScaffold(
-      title: '$integrationLabel - Podcast Library',
+      title: context.l10n.headingIntegrationSectionSettings(integrationLabel, context.l10n.navPodcastLibrary),
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: '/settings/android-auto',
@@ -71,20 +74,20 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
         currentUser.when(
           data: (user) {
             if (user == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure car podcast settings'),
+                child: Text(context.l10n.promptSignInToManageSettings),
               );
             }
 
             return SettingsNavigationSection(
-              title: 'Podcast Browse Settings',
+              title: context.l10n.headingBrowseSettings,
               topPadding: 0,
               settings: [
                 SettingSwitchTile(
                   userId: user.id,
-                  label: 'Sort Descending',
-                  subtitle: 'Sort podcast lists in descending order',
+                  label: context.l10n.settingSortDescending,
+                  subtitle: context.l10n.settingSortDescendingDescription(context.l10n.mediaTypePodcast),
                   settingKey: SettingKeys.androidAutoPodcastSortDescending,
                   defaultValue: true,
                 ),
@@ -105,9 +108,9 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
                         : _sortFieldAdded;
 
                     return SettingDropdown<String>.remote(
-                      label: 'Sort By',
+                      label: context.l10n.fieldSortBy,
                       values: const [_sortFieldTitle, _sortFieldAuthor, _sortFieldAdded],
-                      valueLabels: const ['Title', 'Author', 'Date Added'],
+                      valueLabels: [context.l10n.fieldTitle, context.l10n.fieldAuthor, context.l10n.sortDateAdded],
                       value: safeSortField,
                       enabled: !_isUpdatingSortField,
                       onValueChanged: (value) {
@@ -123,8 +126,10 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
             padding: EdgeInsets.all(16),
             child: Center(child: YaabsaCircularProgressIndicator()),
           ),
-          error: (error, _) =>
-              Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString())),
+          ),
         ),
       ],
     );

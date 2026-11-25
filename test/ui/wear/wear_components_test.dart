@@ -15,9 +15,12 @@ import 'package:yaabsa/ui/components/wear/wear_scroll_view.dart';
 import 'package:yaabsa/ui/components/wear/wear_transforming_list_item.dart';
 import 'package:yaabsa/ui/components/wear/wear_volume_control.dart';
 import 'package:yaabsa/ui/theme/wear_theme.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Widget _wearTestApp({required Widget child, Size size = const Size(227, 227)}) {
   return MaterialApp(
+    localizationsDelegates: yaabsaLocalizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     theme: buildWearTheme(ThemeData.dark(useMaterial3: true)),
     home: MediaQuery(
       data: MediaQueryData(size: size),

@@ -36,6 +36,7 @@ import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SignIn extends HookConsumerWidget {
   const SignIn({super.key});
@@ -318,7 +319,7 @@ class SignIn extends HookConsumerWidget {
 
       final normalizedServer = normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
-        setErrorMessage('Please enter a valid server address.');
+        setErrorMessage(currentAppLocalizations().validationServerAddressRequired);
         return;
       }
       _setControllerTextKeepingCursor(serverAddressController, normalizedServer);
@@ -331,7 +332,7 @@ class SignIn extends HookConsumerWidget {
 
       final allowsLocal = currentStatus.authMethods.contains('local');
       if (!useApiKey.value && !allowsLocal) {
-        setErrorMessage('Local login is disabled on this server. Use OpenID Connect instead.');
+        setErrorMessage(currentAppLocalizations().errorLocalLoginDisabled);
         return;
       }
 
@@ -352,7 +353,7 @@ class SignIn extends HookConsumerWidget {
         if (useApiKey.value) {
           final apiKey = apiKeyController.text.trim();
           if (apiKey.isEmpty) {
-            setErrorMessage('API key is required.');
+            setErrorMessage(currentAppLocalizations().validationApiKeyRequired);
             return;
           }
 
@@ -363,7 +364,7 @@ class SignIn extends HookConsumerWidget {
           final userResponse = await api.getMeApi().getUser();
           final userData = userResponse.data;
           if (userData == null) {
-            setErrorMessage('API key authentication failed: Invalid response.');
+            setErrorMessage(currentAppLocalizations().errorApiKeyInvalidResponse);
             return;
           }
 
@@ -377,7 +378,7 @@ class SignIn extends HookConsumerWidget {
           final password = importedPassword ?? passwordController.text;
 
           if (username.isEmpty || password.isEmpty) {
-            setErrorMessage('Username and password are required.');
+            setErrorMessage(currentAppLocalizations().errorCredentialsRequired);
             return;
           }
           loginPassword = password;
@@ -401,7 +402,7 @@ class SignIn extends HookConsumerWidget {
         if (magicConfig != null && magicConfigMatches && magicConfig.isPasswordBearing) {
           final initialPassword = loginPassword;
           if (initialPassword == null || initialPassword.isEmpty) {
-            setErrorMessage('The initial password is not available. Enter the account password manually.');
+            setErrorMessage(currentAppLocalizations().errorInitialPasswordUnavailable);
             return;
           }
 
@@ -414,19 +415,17 @@ class SignIn extends HookConsumerWidget {
               context: context,
               barrierDismissible: false,
               builder: (context) => AlertDialog(
-                title: const Text('Guest password cannot be changed'),
-                content: const Text(
-                  'Audiobookshelf does not allow guest users to change passwords. The initial password will remain valid after this sign in. Continue only if you accept this risk.',
-                ),
+                title: Text(context.l10n.authGuestPasswordCannotChange),
+                content: Text(context.l10n.authGuestPasswordWarning),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                  FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
+                  TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.actionCancel)),
+                  FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(context.l10n.actionContinue)),
                 ],
               ),
             );
             if (continueWithGuestPassword != true) {
               clearImportedMagicConfig();
-              setErrorMessage('Sign in cancelled because the guest password cannot be rotated.');
+              setErrorMessage(currentAppLocalizations().errorGuestPasswordNotRotated);
               return;
             }
           } else {
@@ -436,7 +435,7 @@ class SignIn extends HookConsumerWidget {
             final newPassword = await showMagicPasswordChangeDialog(context);
             if (newPassword == null || newPassword.isEmpty) {
               clearImportedMagicConfig();
-              setErrorMessage('Password change is required after using an Authentication Code.');
+              setErrorMessage(currentAppLocalizations().errorPasswordChangeRequired);
               return;
             }
 
@@ -485,7 +484,7 @@ class SignIn extends HookConsumerWidget {
         if (isWearPairing) {
           final accessToken = useApiKey.value ? loggedInUser.apiKey : (loggedInUser.accessToken ?? loggedInUser.token);
           if (accessToken == null || accessToken.isEmpty) {
-            setErrorMessage('Login succeeded, but the server did not return a token for the watch.');
+            setErrorMessage(currentAppLocalizations().errorWatchTokenMissing);
             return;
           }
 
@@ -498,13 +497,13 @@ class SignIn extends HookConsumerWidget {
 
           if (!context.mounted) return;
           if (!sent) {
-            setErrorMessage('Could not send credentials to the watch. Make sure it is still waiting and try again.');
+            setErrorMessage(currentAppLocalizations().errorWatchCredentialSendFailed);
             return;
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Watch connected successfully.'), behavior: SnackBarBehavior.floating),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(context.l10n.authWatchConnected), behavior: SnackBarBehavior.floating));
           if (context.canPop()) {
             context.pop();
           } else {
@@ -588,7 +587,7 @@ class SignIn extends HookConsumerWidget {
 
       final normalizedServer = normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
-        setErrorMessage('Please enter a valid server address first');
+        setErrorMessage(currentAppLocalizations().validationServerAddressRequired);
         return;
       }
       _setControllerTextKeepingCursor(serverAddressController, normalizedServer);
@@ -601,7 +600,7 @@ class SignIn extends HookConsumerWidget {
 
       final allowsOpenId = currentStatus.authMethods.contains('openid');
       if (!allowsOpenId) {
-        setErrorMessage('OpenID Connect is not enabled on this server');
+        setErrorMessage(currentAppLocalizations().errorOpenIdDisabled);
         return;
       }
 
@@ -610,19 +609,16 @@ class SignIn extends HookConsumerWidget {
             .read(oidcStateProvider.notifier)
             .initiateOidc(serverUrl: normalizedServer, customHeaders: customHeaders.value);
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You should be redirected to your browser to complete the OpenID Connect login'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.authOpenIdRedirect), behavior: SnackBarBehavior.floating));
       } catch (e) {
         final formatted = formatOidcError(e);
         if (formatted is Exception) {
           final msg = formatted.toString().replaceFirst('Exception: ', '');
           setErrorMessage(msg);
         } else {
-          setErrorMessage('Failed to start OpenID Connect: $formatted');
+          setErrorMessage(currentAppLocalizations().errorOpenIdStartFailed(formatted.toString()));
         }
       }
     }
@@ -740,8 +736,12 @@ class SignIn extends HookConsumerWidget {
       child: Scaffold(
         appBar: isAutomotive
             ? AppBar(
-                title: const Text('Sign in'),
-                leading: IconButton(tooltip: 'Close', icon: const Icon(Icons.close), onPressed: closeAutomotiveSignIn),
+                title: Text(context.l10n.actionSignIn),
+                leading: IconButton(
+                  tooltip: context.l10n.actionClose,
+                  icon: const Icon(Icons.close),
+                  onPressed: closeAutomotiveSignIn,
+                ),
               )
             : null,
         backgroundColor: colorScheme.surface,
@@ -786,22 +786,20 @@ class SignIn extends HookConsumerWidget {
                                             context.go('/');
                                           }
                                         },
-                                  tooltip: 'Back',
+                                  tooltip: context.l10n.actionBack,
                                   icon: const Icon(Icons.arrow_back_rounded),
                                 ),
                               ),
                               const SizedBox(height: 4),
                             ],
                             Text(
-                              'Yaabsa',
+                              'yaabsa',
                               textAlign: TextAlign.center,
                               style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              isWearPairing
-                                  ? 'Sign in to connect your Wear OS watch'
-                                  : 'Sign in to your Audiobookshelf server',
+                              isWearPairing ? context.l10n.authSignInWear : context.l10n.authSignInServer,
                               textAlign: TextAlign.center,
                               style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                             ),
@@ -810,8 +808,8 @@ class SignIn extends HookConsumerWidget {
                               controller: serverAddressController,
                               enabled: !isLoading.value && !oidcLoading && !importedCodeNeedsPassword,
                               keyboardType: TextInputType.url,
-                              label: 'Server Address',
-                              hintText: 'https://your-audiobookshelf.example',
+                              label: context.l10n.fieldServerAddress,
+                              hintText: context.l10n.authServerAddressHint,
                               prefixIcon: const Icon(Icons.dns_outlined),
                             ),
                             const SizedBox(height: 8),
@@ -829,8 +827,7 @@ class SignIn extends HookConsumerWidget {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Your custom headers will be sent unencrypted over HTTP, so anyone on the '
-                                      'network can read them. Use https:// if your server supports it.',
+                                      context.l10n.authHttpHeadersWarning,
                                       style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
                                     ),
                                   ),
@@ -849,8 +846,10 @@ class SignIn extends HookConsumerWidget {
                               ),
                             ],
                             if (kIsWeb)
-                              Text("""Web support is not supported. It is possible, but any issues should not be reported as issues. You can report any issues in the discussion here: https://github.com/Vito0912/yaabsa/discussions/59
-                              """, style: textTheme.bodyMedium?.copyWith(color: colorScheme.error)),
+                              Text(
+                                context.l10n.authWebSupportNote('https://github.com/Vito0912/yaabsa/discussions/59'),
+                                style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+                              ),
                             SignInAuthSection(
                               useApiKey: useApiKey.value,
                               isLoading: isLoading.value || oidcLoading,

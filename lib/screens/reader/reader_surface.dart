@@ -28,7 +28,7 @@ extension _ReaderSurface on _ReaderState {
     required bool isEpubMode,
     required bool showMiniPlayer,
   }) {
-    final title = itemAsync.asData?.value.media?.title ?? 'Your book';
+    final title = itemAsync.asData?.value.media?.title ?? context.l10n.readerBookTitleFallback;
 
     return Theme(
       data: _readerThemeData,
@@ -57,17 +57,17 @@ extension _ReaderSurface on _ReaderState {
                             return userAsync.when(
                               data: (user) {
                                 if (user == null) {
-                                  return const Center(child: Text('No authenticated user available.'));
+                                  return Center(child: Text(context.l10n.errorNoActiveUser));
                                 }
 
                                 if (_loadingLocalFile) {
-                                  return const Center(
+                                  return Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        YaabsaCircularProgressIndicator(),
-                                        SizedBox(height: 16),
-                                        Text('Loading local ebook files...'),
+                                        const YaabsaCircularProgressIndicator(),
+                                        const SizedBox(height: 16),
+                                        Text(context.l10n.readerLoadingEbookFiles),
                                       ],
                                     ),
                                   );
@@ -76,7 +76,7 @@ extension _ReaderSurface on _ReaderState {
                                 final authToken = user.preferredAuthToken;
 
                                 if (authToken == null || authToken.isEmpty) {
-                                  return const Center(child: Text('Missing authentication token for ebook loading.'));
+                                  return Center(child: Text(context.l10n.errorMissingEbookToken));
                                 }
 
                                 final mode = _resolveReaderMode(item);
@@ -106,7 +106,7 @@ extension _ReaderSurface on _ReaderState {
                                 );
                               },
                               error: (error, stackTrace) {
-                                return Center(child: Text('Failed to load user profile: $error'));
+                                return Center(child: Text(context.l10n.errorUnableToLoadContent));
                               },
                               loading: () {
                                 return const Center(child: YaabsaCircularProgressIndicator());
@@ -114,7 +114,7 @@ extension _ReaderSurface on _ReaderState {
                             );
                           },
                           error: (error, stackTrace) {
-                            return Center(child: Text('Failed to load ebook metadata: $error'));
+                            return Center(child: Text(context.l10n.errorUnableToLoadContent));
                           },
                           loading: () {
                             return const Center(child: YaabsaCircularProgressIndicator());

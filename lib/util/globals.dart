@@ -6,7 +6,7 @@ import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/handler/download_handler.dart';
 import 'package:yaabsa/util/handler/shake_handler.dart';
 
-const String appName = 'Yaabsa';
+const String appName = 'yaabsa';
 
 final ProviderContainer containerRef = ProviderContainer();
 late final PackageInfo packageInfo;

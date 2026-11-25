@@ -9,6 +9,7 @@ import 'package:yaabsa/util/file_formats.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'download_type_dialog.dart';
 import 'audio_file_download_dialog.dart';
@@ -110,6 +111,7 @@ Future<void> triggerBookDownload(BuildContext context, WidgetRef ref, String ite
 }
 
 Future<void> triggerMultiBookDownload(BuildContext context, WidgetRef ref, List<String> itemIds) async {
+  final localizations = context.l10n;
   final user = ref.read(currentUserProvider).value;
   if (user == null) return;
 
@@ -148,8 +150,7 @@ Future<void> triggerMultiBookDownload(BuildContext context, WidgetRef ref, List<
   }
 
   if (context.mounted) {
-    final message = count == 1 ? '1 download added to queue.' : '$count downloads added to queue.';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizations.statusDownloadsQueued(count))));
   }
 }
 
@@ -157,6 +158,8 @@ Future<void> triggerMultiLibraryItemDownload(BuildContext context, WidgetRef ref
   if (!(ref.read(currentUserProvider).value?.permissions.download ?? false)) {
     return;
   }
+
+  final localizations = context.l10n;
 
   final episodeItems = <String, LibraryItem>{
     for (final item in items)
@@ -183,8 +186,8 @@ Future<void> triggerMultiLibraryItemDownload(BuildContext context, WidgetRef ref
     return;
   }
   if (episodeItems.isNotEmpty) {
-    final message = count == 1 ? '1 episode download added to queue.' : '$count episode downloads added to queue.';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(localizations.statusEpisodeDownloadsQueued(count))));
   }
   final bookIds = items.where((item) => selectablePodcastEpisode(item) == null).map((item) => item.id).toSet().toList();
   if (bookIds.isNotEmpty) {

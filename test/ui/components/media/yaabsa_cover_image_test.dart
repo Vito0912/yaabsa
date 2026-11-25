@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/previews/media_previews.dart';
 import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   late final MemoryImage artwork;
@@ -18,6 +19,8 @@ void main() {
 
     await tester.pumpWidget(
       const MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Center(
           child: YaabsaCoverImage(
             image: null,
@@ -38,6 +41,8 @@ void main() {
   testWidgets('cover preview includes one decoded local artwork image', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: CoverImagesPreview(artwork: artwork)),
       ),
     );

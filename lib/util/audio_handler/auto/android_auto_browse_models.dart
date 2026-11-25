@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 const String androidAutoContinueNodeId = 'aa/continue';
 const String androidAutoRecentNodeId = 'aa/recent';
@@ -160,6 +161,8 @@ List<MediaItem> buildAndroidAutoRoot(
   int? session,
   Uri? Function(String nodeId)? artUriForNode,
 }) {
+  final l10n = currentAppLocalizations();
+
   String nodeId(String id) {
     if (session == null) {
       return id;
@@ -175,7 +178,7 @@ List<MediaItem> buildAndroidAutoRoot(
     if (snapshot.continueItems.isNotEmpty)
       _androidAutoBrowsableRootItem(
         id: nodeId(androidAutoContinueNodeId),
-        title: 'Continue',
+        title: l10n.shelfContinueListening,
         artUri: artUri('continue_ic'),
         playableStyle: automotiveContinueSupportsGrid(snapshot.continueItems)
             ? AndroidContentStyle.gridItemHintValue
@@ -184,7 +187,7 @@ List<MediaItem> buildAndroidAutoRoot(
     if (snapshot.audioLibraries.isNotEmpty) ...[
       _androidAutoBrowsableRootItem(
         id: nodeId(androidAutoLibrariesNodeId),
-        title: 'Libraries',
+        title: l10n.navLibraries,
         artUri: artUri('apps'),
         browsableStyle: AndroidContentStyle.categoryListItemHintValue,
       ),
@@ -192,7 +195,7 @@ List<MediaItem> buildAndroidAutoRoot(
     if (snapshot.downloadItems.isNotEmpty)
       _androidAutoBrowsableRootItem(
         id: nodeId(androidAutoDownloadsNodeId),
-        title: 'Downloads',
+        title: l10n.navDownloads,
         artUri: artUri('download'),
       ),
   ];

@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:material_3_expressive/material_3_expressive.dart'
     show M3ESlider, M3ESliderColors, M3ESliderSize, M3ESliderTheme, M3ESliderTrack;
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class VolumeSliderPanel extends StatelessWidget {
@@ -149,11 +151,15 @@ class _HorizontalVolumePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final volumeFormat = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
+    final volumeLabel = volumeFormat.format(volume);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Volume', style: Theme.of(context).textTheme.titleLarge),
+        Text(context.l10n.fieldVolume, style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -174,7 +180,7 @@ class _HorizontalVolumePanel extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text('${(volume * 100).round()}%', style: Theme.of(context).textTheme.bodyMedium),
+        Text(volumeLabel, style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
   }
@@ -291,7 +297,10 @@ class _VolumeSliderState extends State<_VolumeSlider> {
   @override
   Widget build(BuildContext context) {
     String formatVolume(double value) {
-      return '${(widget.sliderValueToVolume(value) * 100).round()}%';
+      final locale = Localizations.localeOf(context).toLanguageTag();
+      final volume = widget.sliderValueToVolume(value);
+      final format = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
+      return format.format(volume);
     }
 
     void handleChangeEnd(double _) {
@@ -306,7 +315,7 @@ class _VolumeSliderState extends State<_VolumeSlider> {
             onChanged: _handleChanged,
             onChangeEnd: handleChangeEnd,
             label: formatVolume(widget.value),
-            semanticLabel: 'Volume',
+            semanticLabel: context.l10n.fieldVolume,
             semanticFormatterCallback: formatVolume,
             size: M3ESliderSize.xs,
             trackBuilder: _buildTrack,
@@ -318,7 +327,7 @@ class _VolumeSliderState extends State<_VolumeSlider> {
             onChanged: _handleChanged,
             onChangeEnd: handleChangeEnd,
             label: formatVolume(widget.value),
-            semanticLabel: 'Volume',
+            semanticLabel: context.l10n.fieldVolume,
             semanticFormatterCallback: formatVolume,
             size: M3ESliderSize.xs,
             trackBuilder: _buildTrack,

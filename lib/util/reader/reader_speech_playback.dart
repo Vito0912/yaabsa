@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:yaabsa/util/reader/reader_speech_audio.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/reader/reader_speech_engine.dart';
 import 'package:yaabsa/util/reader/reader_speech_timeline.dart';
 

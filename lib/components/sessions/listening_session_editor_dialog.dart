@@ -5,6 +5,7 @@ import 'package:yaabsa/components/sessions/listening_session_utils.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<bool?> showListeningSessionEditorDialog(
   BuildContext context, {
@@ -201,17 +202,17 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Session'),
-          content: const Text('Delete this session permanently? This cannot be undone.'),
+          title: Text(context.l10n.sessionDeleteSingleTitle),
+          content: Text(context.l10n.sessionDeletePrompt(1)),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(context.l10n.actionDelete),
             ),
           ],
         );
@@ -441,7 +442,7 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
       actions: [
         TextButton(
           onPressed: _isSaving || _isDeleting ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Close'),
+          child: Text(context.l10n.actionClose),
         ),
         if (widget.canDelete)
           TextButton(
@@ -449,14 +450,14 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
             onPressed: _isSaving || _isDeleting ? null : _delete,
             child: _isDeleting
                 ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
-                : const Text('Delete'),
+                : Text(context.l10n.actionDelete),
           ),
         if (widget.canEdit)
           FilledButton(
             onPressed: _isSaving || _isDeleting ? null : _save,
             child: _isSaving
                 ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
-                : const Text('Save'),
+                : Text(context.l10n.actionSave),
           ),
       ],
     );

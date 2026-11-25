@@ -1,3 +1,4 @@
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -46,11 +47,11 @@ class SeriesDetailView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Series are available only for book libraries.'));
+      return Center(child: Text(context.l10n.errorBookLibrariesOnly));
     }
 
     final api = ref.watch(absApiProvider);
@@ -66,7 +67,7 @@ class SeriesDetailView extends HookConsumerWidget {
         : const AsyncValue<Series>.loading();
     final resolvedSeries = seriesDetailsAsync.value;
     final seriesTitle = resolvedEntry?.title ?? resolvedSeries?.name;
-    final seriesSubtitle = resolvedEntry?.subtitle?.text ?? _seriesSubtitleFromSeries(resolvedSeries);
+    final seriesSubtitle = resolvedEntry?.subtitle?.text ?? _seriesSubtitleFromSeries(resolvedSeries, context.l10n);
 
     final booksArgs = SeriesBooksArgs(libraryId: libraryId, seriesId: seriesId);
     final currentBooksProvider = seriesBooksProvider(booksArgs);
@@ -174,7 +175,7 @@ class SeriesDetailView extends HookConsumerWidget {
                             onSortPressed: openSortSheet,
                           ),
                           if (state.items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage)
-                            const Expanded(child: Center(child: Text('No books found in this series.')))
+                            Expanded(child: Center(child: Text(context.l10n.statusNoBooksInSeries)))
                           else
                             Expanded(
                               child: Stack(
@@ -270,7 +271,7 @@ class SeriesDetailView extends HookConsumerWidget {
 
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Error loading series books',
+          title: context.l10n.errorLoadingNamedContent(context.l10n.navSeries),
           onRetry: () => ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: true),
         );
       },
@@ -278,10 +279,13 @@ class SeriesDetailView extends HookConsumerWidget {
   }
 }
 
-String? _seriesSubtitleFromSeries(Series? series) {
+String? _seriesSubtitleFromSeries(Series? series, AppLocalizations l10n) {
   final numBooks = series?.numBooks;
-  if (numBooks == null) return null;
-  return '$numBooks ${numBooks == 1 ? 'book' : 'books'}';
+  if (numBooks == null) {
+    return null;
+  }
+
+  return l10n.bookCount(numBooks);
 }
 
 int _estimatedItemCount({required int loadedCount, required int totalItems, required bool hasNextPage}) {

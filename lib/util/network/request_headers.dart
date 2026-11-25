@@ -1,11 +1,13 @@
+import 'package:yaabsa/util/l10n.dart';
+
 String? validateServerHeader({required String name, required String value}) {
   if (name.trim().isEmpty || value.trim().isEmpty) {
-    return 'Header name and value are required.';
+    return currentAppLocalizations().validationRequestHeadersRequired;
   }
 
   final validName = RegExp(r"^[!#$%&'*+.^_`|~0-9a-zA-Z-]+$").hasMatch(name.trim());
   if (!validName || value.contains('\r') || value.contains('\n')) {
-    return 'Enter a valid header name and value.';
+    return currentAppLocalizations().validationRequestHeadersInvalid;
   }
 
   return null;

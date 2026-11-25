@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/tasks/abs_task.dart';
 import 'package:yaabsa/components/app/tasks/task_running_card.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class TaskNotificationPanel extends ConsumerWidget {
   const TaskNotificationPanel({super.key, this.onTaskSelected, this.onClearActivity, this.maxHeight});
@@ -13,6 +14,7 @@ class TaskNotificationPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final notifier = ref.read(serverTasksProvider.notifier);
     final taskState = ref.watch(serverTasksProvider);
     final tasks = [...taskState.tasks]..sort((left, right) => (right.startedAt ?? 0).compareTo(left.startedAt ?? 0));
@@ -33,9 +35,9 @@ class TaskNotificationPanel extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Text('Task Activity', style: Theme.of(context).textTheme.titleLarge)),
+                Expanded(child: Text(l10n.headingTaskActivity, style: Theme.of(context).textTheme.titleLarge)),
                 IconButton(
-                  tooltip: 'Clear completed activity',
+                  tooltip: l10n.actionClearCompleted,
                   onPressed: hasCompletedTasks
                       ? () {
                           notifier.clearCompletedTaskActivity();
@@ -47,19 +49,17 @@ class TaskNotificationPanel extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 2),
-            Text(
-              runningCount == 0
-                  ? 'No tasks are currently running.'
-                  : '$runningCount task${runningCount == 1 ? '' : 's'} running',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            Text(l10n.taskRunningCount(runningCount), style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 10),
             Flexible(
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: listMaxHeight),
                 child: tasks.isEmpty
-                    ? const Center(
-                        child: Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Text('No tasks yet.')),
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Text(l10n.statusNoTasksYet),
+                        ),
                       )
                     : ListView.separated(
                         shrinkWrap: true,

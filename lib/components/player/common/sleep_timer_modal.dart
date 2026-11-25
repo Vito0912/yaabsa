@@ -6,6 +6,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/features/player/widgets/sleep_timer_active_presentation.dart';
 import 'package:yaabsa/features/player/widgets/sleep_timer_custom_input.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SleepTimerModal extends ConsumerStatefulWidget {
   const SleepTimerModal({super.key});
@@ -21,12 +22,12 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
   final TextEditingController _customController = TextEditingController();
 
   final List<SleepTimerOption> _quickOptions = const [
-    SleepTimerOption(label: '5m', duration: Duration(minutes: 5)),
-    SleepTimerOption(label: '10m', duration: Duration(minutes: 10)),
-    SleepTimerOption(label: '15m', duration: Duration(minutes: 15)),
-    SleepTimerOption(label: '30m', duration: Duration(minutes: 30)),
-    SleepTimerOption(label: '45m', duration: Duration(minutes: 45)),
-    SleepTimerOption(label: '60m', duration: Duration(minutes: 60)),
+    SleepTimerOption(duration: Duration(minutes: 5)),
+    SleepTimerOption(duration: Duration(minutes: 10)),
+    SleepTimerOption(duration: Duration(minutes: 15)),
+    SleepTimerOption(duration: Duration(minutes: 30)),
+    SleepTimerOption(duration: Duration(minutes: 45)),
+    SleepTimerOption(duration: Duration(minutes: 60)),
   ];
 
   @override
@@ -65,7 +66,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
               children: [
                 if (sleepTimer.isActive) ...[const SizedBox(height: 8), _buildActiveTimerPresentation(sleepTimer)],
                 const SizedBox(height: 8),
-                Text('Quick start', style: Theme.of(context).textTheme.labelLarge),
+                Text(context.l10n.sleepTimerQuickStart, style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -73,7 +74,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                   children: [
                     ..._quickOptions.map(
                       (option) => ChoiceChip(
-                        label: Text(option.label),
+                        label: Text(context.l10n.durationCompactMinutes(option.duration.inMinutes)),
                         selected: !chapterMode && _selectedMinutes == option.duration.inMinutes,
                         showCheckmark: false,
                         onSelected: (_) => _startQuickMinutes(option.duration.inMinutes),
@@ -82,7 +83,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                     if (hasChapters)
                       ChoiceChip(
                         avatar: const Icon(Icons.skip_next, size: 18),
-                        label: const Text('End of chapter'),
+                        label: Text(context.l10n.sleepTimerEndOfChapter),
                         selected: chapterMode,
                         showCheckmark: false,
                         onSelected: (_) => _startQuickChapterTimer(),
@@ -117,7 +118,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                           }
                         },
                         icon: Icon(sleepTimer.isRunning ? Icons.pause : Icons.play_arrow),
-                        label: Text(sleepTimer.isRunning ? 'Pause' : 'Resume'),
+                        label: Text(sleepTimer.isRunning ? context.l10n.playbackPause : context.l10n.actionResume),
                       ),
                       OutlinedButton.icon(
                         onPressed:
@@ -132,7 +133,11 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                                 }
                               },
                         icon: const Icon(Icons.add),
-                        label: Text(sleepTimer.isChapterTimer ? 'Add chapter' : 'Add 5 min'),
+                        label: Text(
+                          sleepTimer.isChapterTimer
+                              ? context.l10n.sleepTimerAddChapter
+                              : context.l10n.sleepTimerAddMinutes(5),
+                        ),
                       ),
                       TextButton.icon(
                         onPressed: () {
@@ -141,7 +146,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                           HapticFeedback.lightImpact();
                         },
                         icon: const Icon(Icons.stop),
-                        label: const Text('Stop'),
+                        label: Text(context.l10n.playbackStop),
                       ),
                     ],
                   ),
@@ -177,7 +182,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
     if (!ref.read(sleepTimerHandlerProvider.notifier).startChapters(count)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('No chapter is available at the current position'),
+          content: Text(context.l10n.sleepTimerNoChapterAvailable),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -195,7 +200,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
     if (value == null || value <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Enter a number greater than zero'),
+          content: Text(context.l10n.validationPositiveNumberRequired),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -214,18 +219,17 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
   }
 
   Widget _buildActiveTimerPresentation(SleepTimerData sleepTimer) {
+    final timeRemaining = sleepTimer.remainingTime.toCompactRemainingString();
     final description = sleepTimer.isChapterTimer
-        ? '${sleepTimer.remainingChapters} chapter${sleepTimer.remainingChapters == 1 ? '' : 's'} remaining'
-              ' • ${sleepTimer.remainingTime.toCompactRemainingString()} remaining'
-        : '${sleepTimer.remainingTime.toCompactRemainingString()} remaining';
+        ? '${context.l10n.sleepTimerChaptersRemaining(sleepTimer.remainingChapters ?? 0)} · $timeRemaining'
+        : '$timeRemaining remaining';
 
     return SleepTimerActivePresentation(isRunning: sleepTimer.isRunning, description: description);
   }
 }
 
 class SleepTimerOption {
-  final String label;
   final Duration duration;
 
-  const SleepTimerOption({required this.label, required this.duration});
+  const SleepTimerOption({required this.duration});
 }

@@ -4,6 +4,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 import 'package:yaabsa/screens/settings/tools_settings.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManagementSettingsSection extends StatelessWidget {
   const ManagementSettingsSection({super.key, required this.currentUser});
@@ -23,14 +24,14 @@ class ManagementSettingsSection extends StatelessWidget {
       if (isAdminUser)
         SettingsNavigationItem(
           icon: Icons.admin_panel_settings_outlined,
-          title: 'Admin Server Settings',
+          title: context.l10n.headingAdminServerSettings,
           enabled: isAdminUser,
           onTap: isAdminUser ? () => context.push(AdminServerSettings.routeName) : null,
         ),
       if (currentUser.permissions.update || currentUser.permissions.delete || currentUser.permissions.upload)
         SettingsNavigationItem(
           icon: Icons.handyman_outlined,
-          title: 'Tools',
+          title: context.l10n.settingsCategoryTools,
           onTap: () => context.push(ToolsSettings.routeName),
         ),
     ];
@@ -39,6 +40,6 @@ class ManagementSettingsSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return SettingsNavigationSection(title: 'Management', items: items);
+    return SettingsNavigationSection(title: context.l10n.settingsCategoryManagement, items: items);
   }
 }

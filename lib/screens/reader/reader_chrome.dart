@@ -140,7 +140,7 @@ extension _ReaderChrome on _ReaderState {
                 child: Row(
                   children: [
                     IconButton(
-                      tooltip: 'Close book',
+                      tooltip: context.l10n.actionCloseBook,
                       icon: const Icon(Icons.arrow_back_rounded),
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -154,17 +154,17 @@ extension _ReaderChrome on _ReaderState {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Search in book',
+                      tooltip: context.l10n.actionSearchInBook,
                       icon: const Icon(Icons.search_rounded),
                       onPressed: _isBookReady ? () => unawaited(_showReaderSearch(isEpubMode: isEpubMode)) : null,
                     ),
                     IconButton(
-                      tooltip: 'Reading preferences',
+                      tooltip: context.l10n.headingReadingPreferences,
                       icon: const Icon(Icons.text_fields_rounded),
                       onPressed: () => unawaited(_showReaderSettingsSheet(isEpubMode: isEpubMode)),
                     ),
                     YaabsaContextMenuButton<String>(
-                      tooltip: 'More reading options',
+                      tooltip: context.l10n.actionMore,
                       icon: const Icon(Icons.more_vert_rounded),
                       enabled: _isBookReady,
                       onOpened: () => _isReaderPanelOpen = true,
@@ -204,8 +204,8 @@ extension _ReaderChrome on _ReaderState {
                             ),
                             title: Text(
                               _isReaderLocationBookmarked(isEpubMode: isEpubMode)
-                                  ? 'Remove bookmark'
-                                  : 'Bookmark this page',
+                                  ? context.l10n.actionRemoveBookmark
+                                  : context.l10n.actionBookmarkThisPage,
                             ),
                           ),
                         ),
@@ -216,7 +216,7 @@ extension _ReaderChrome on _ReaderState {
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(_isTtsPlaying ? Icons.stop_circle_outlined : Icons.volume_up_outlined),
-                              title: Text(_isTtsPlaying ? 'Stop reading aloud' : 'Read aloud'),
+                              title: Text(_isTtsPlaying ? context.l10n.playbackStop : context.l10n.readerReadAloud),
                             ),
                           ),
                         if (_hasMediaOverlays)
@@ -226,7 +226,9 @@ extension _ReaderChrome on _ReaderState {
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: const Icon(Icons.headphones_rounded),
-                              title: Text(_isMediaOverlayActive ? 'Stop narration' : 'Play book narration'),
+                              title: Text(
+                                _isMediaOverlayActive ? context.l10n.playbackStop : context.l10n.readerBookNarration,
+                              ),
                             ),
                           ),
                       ],
@@ -331,21 +333,25 @@ extension _ReaderChrome on _ReaderState {
     final total = _pdfController.isReady ? _pdfController.pageCount : 0;
     final page = _currentPdfPage ?? 1;
     final fraction = isEpubMode ? (location?.fraction ?? 0) : (total > 1 ? (page - 1) / (total - 1) : 0.0);
-    String progress = '${(fraction * 100).round()}%';
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final percentFormat = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
+    var progress = percentFormat.format(fraction);
 
     if (!isEpubMode && total > 0) {
-      progress = 'Page $page of $total';
+      progress = context.l10n.paginationPage(page, total);
     } else if (location?.pageItem?.label?.isNotEmpty == true) {
       final pageCount = _epubPageList?.length ?? 0;
-      final pageLabel = location!.pageItem!.label;
-      progress = pageCount > 0 ? 'Page $pageLabel of $pageCount · $progress' : 'Page $pageLabel · $progress';
+      final pageLabel = location!.pageItem!.label!;
+      progress = pageCount > 0
+          ? context.l10n.readerPageLabelWithProgress(pageLabel, pageCount, progress)
+          : context.l10n.readerPageLabelProgress(pageLabel, progress);
     } else if (location?.location != null) {
       final current = location!.location!['current'] as num? ?? 0;
       final count = location.location!['total'] as num? ?? 0;
 
       if (count > 0) {
         final position = (current.toInt() + 1).clamp(1, count.toInt());
-        progress = 'Location $position of ${count.toInt()} · $progress';
+        progress = context.l10n.readerLocationProgress(position, count.toInt(), progress);
       }
     }
 
@@ -354,7 +360,7 @@ extension _ReaderChrome on _ReaderState {
       ready: _isBookReady,
       includeBottomSafeArea: !showMiniPlayer,
       progress: progress,
-      chapter: isEpubMode ? (location?.tocItem?.label ?? 'Reading') : 'Reading',
+      chapter: isEpubMode ? (location?.tocItem?.label ?? context.l10n.readerReading) : context.l10n.readerReading,
       fraction: fraction.clamp(0.0, 1.0),
       canGoPrevious: _isBookReady && (isEpubMode ? fraction > 0 : page > 1),
       canGoNext: _isBookReady && (isEpubMode ? fraction < 1 : page < total),

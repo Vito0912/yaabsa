@@ -8,6 +8,7 @@ import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/components/common/paged_list_footer.dart';
 import 'package:yaabsa/ui/components/feedback/feedback_panel.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManagedMultiBookCardConfig {
   const ManagedMultiBookCardConfig({required this.entry, required this.onTap, this.onLongPress});
@@ -64,8 +65,7 @@ class ManagedMultiBookView extends StatelessWidget {
               createLabel: createLabel,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             ),
-            if (refreshError != null)
-              TextButton(onPressed: onRefresh, child: const Text('Could not refresh lists. Retry')),
+            if (refreshError != null) TextButton(onPressed: onRefresh, child: Text(context.l10n.errorRefreshLists)),
             Expanded(
               child: cards.isEmpty && !hasNextPage
                   ? _ManagedMultiBookEmptyState(

@@ -8,6 +8,7 @@ import 'package:yaabsa/components/settings/theme_preset_option_card.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ThemeAppearanceSection extends ConsumerWidget {
   const ThemeAppearanceSection({super.key});
@@ -45,7 +46,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SettingsSectionTitle(title: 'Theme', topPadding: 10),
+        SettingsSectionTitle(title: context.l10n.themeSettingsTitle, topPadding: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Card(
@@ -55,7 +56,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Theme Mode',
+                    context.l10n.headingThemeMode,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 10),
@@ -65,7 +66,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
                     children: AppThemeMode.values
                         .map(
                           (mode) => ChoiceChip(
-                            label: Text(mode.label),
+                            label: Text(context.l10n.themeModeName(mode.name)),
                             avatar: Icon(switch (mode) {
                               AppThemeMode.light => Icons.light_mode_rounded,
                               AppThemeMode.dark => Icons.dark_mode_rounded,
@@ -96,7 +97,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
           child: Text(
-            'THEME PRESETS',
+            context.l10n.headingThemePresets,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w600,
@@ -126,8 +127,8 @@ class ThemeAppearanceSection extends ConsumerWidget {
                       (preset) => SizedBox(
                         width: cardWidth,
                         child: ThemePresetOptionCard(
-                          title: preset.label,
-                          description: preset.description,
+                          title: context.l10n.themePresetName(preset.name),
+                          description: context.l10n.themePresetDescription(preset.name),
                           selected: appThemePreset == preset,
                           accentColor: appThemeSeedColor(preset: preset, customSeedColor: customSeedColor),
                           onTap: () {
@@ -155,7 +156,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Custom Theme',
+                      context.l10n.headingCustomTheme,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 14),
@@ -181,12 +182,12 @@ class ThemeAppearanceSection extends ConsumerWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Accent ${toHex(customSeedColor)}',
+                              context.l10n.themeAccentColorValue(toHex(customSeedColor)),
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ),
                           Text(
-                            'R$customRed G$customGreen B$customBlue',
+                            context.l10n.themeRgbValues(customRed, customGreen, customBlue),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
@@ -195,7 +196,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     ThemeColorChannelSlider(
-                      label: 'Red',
+                      label: context.l10n.colorChannelRed,
                       value: customRed,
                       activeColor: const Color(0xFFDC2626),
                       onChanged: (value) {
@@ -207,7 +208,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
                       },
                     ),
                     ThemeColorChannelSlider(
-                      label: 'Green',
+                      label: context.l10n.colorChannelGreen,
                       value: customGreen,
                       activeColor: const Color(0xFF16A34A),
                       onChanged: (value) {
@@ -219,7 +220,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
                       },
                     ),
                     ThemeColorChannelSlider(
-                      label: 'Blue',
+                      label: context.l10n.colorChannelBlue,
                       value: customBlue,
                       activeColor: const Color(0xFF2563EB),
                       onChanged: (value) {
@@ -232,7 +233,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Quick Colors',
+                      context.l10n.headingQuickColors,
                       style: Theme.of(context).textTheme.labelLarge
                           ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),

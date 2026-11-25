@@ -4,6 +4,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class CachingGeneralSettings extends ConsumerWidget {
@@ -18,20 +19,24 @@ class CachingGeneralSettings extends ConsumerWidget {
     final isCachingEnabled = SettingsParser.decodeValue<bool>(cachingSetting, cachingDefault);
 
     return SettingsPageScaffold(
-      title: 'Caching - General',
+      title: context.l10n.settingsCategoryGeneral,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: '/settings/caching',
       children: [
         SettingsNavigationSection(
-          title: 'Caching Options',
+          title: context.l10n.settingsCategoryCaching,
           topPadding: 0,
           settings: [
-            const SettingSwitchTile(label: 'Enable caching', settingKey: SettingKeys.caching),
             SettingSwitchTile(
-              label: 'Speedup mode',
-              subtitle: 'Combine caching with background refreshes to load faster',
-              disabledReason: 'Enable response caching to use speedup mode',
+              label: context.l10n.settingEnableCaching,
+              subtitle: context.l10n.settingEnableCachingDescription,
+              settingKey: SettingKeys.caching,
+            ),
+            SettingSwitchTile(
+              label: context.l10n.settingSpeedupMode,
+              subtitle: context.l10n.settingSpeedupModeDescription,
+              disabledReason: context.l10n.permissionCachingRequired,
               settingKey: SettingKeys.boostLoading,
               enabled: isCachingEnabled,
             ),

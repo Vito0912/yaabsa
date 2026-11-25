@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/api/library/author_details.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/app/library/author_detail_content.dart';
@@ -43,7 +44,7 @@ class AuthorDetailView extends ConsumerWidget {
       ),
       error: (error, stackTrace) => ConnectionIssueView.requestFailed(
         error: error,
-        title: 'Error loading author details',
+        title: context.l10n.errorLoadingNamedContent(context.l10n.navAuthors),
         onRetry: () async {
           ref.invalidate(libraryAuthorDetailsProvider(authorId));
           await ref.read(libraryAuthorDetailsProvider(authorId).future);
@@ -62,7 +63,7 @@ class _AuthorDetailLoadedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final numBooks = author.libraryItems.length;
-    final subtitle = numBooks <= 0 ? null : '$numBooks ${numBooks == 1 ? 'book' : 'books'}';
+    final subtitle = numBooks <= 0 ? null : context.l10n.bookCount(numBooks);
 
     return Column(
       children: [
@@ -127,7 +128,7 @@ class _AuthorTopSection extends StatelessWidget {
                   context.go('/?tab=authors&intent=${DateTime.now().microsecondsSinceEpoch}');
                 },
                 icon: const Icon(Icons.arrow_back_rounded),
-                tooltip: 'Back',
+                tooltip: context.l10n.actionBack,
               ),
               const SizedBox(width: 6),
               AuthorImage(

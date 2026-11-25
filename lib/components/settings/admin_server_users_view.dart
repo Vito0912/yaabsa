@@ -15,6 +15,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/components/settings/admin_users/magic_config_dialog.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerUsersView extends ConsumerStatefulWidget {
   const AdminServerUsersView({super.key});
@@ -151,7 +152,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     if (api == null) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'No active API client.';
+        _errorMessage = context.l10n.errorNoActiveApiClient;
       });
       return;
     }
@@ -204,7 +205,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       }
 
       setState(() {
-        _errorMessage = 'Failed to load users: $error';
+        _errorMessage = context.l10n.errorOperationFailed(context.l10n.operationLoadUsers, error.toString());
       });
     } finally {
       if (mounted) {
@@ -216,6 +217,10 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
   }
 
   void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) {
       return;
@@ -225,9 +230,10 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
   }
 
   Future<MagicConfigKeyMarker?> _ensureMagicKey() async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return null;
     }
 
@@ -254,13 +260,11 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     final shouldGenerate = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Authentication Code key?'),
-        content: const Text(
-          'yaabsa needs to store a server-specific encryption key in the login message. It is hidden from browsers, but anyone who can read the public login message can retrieve it. This key makes Authentication Codes compatible and opaque. This makes sure that if you ever leak a key neither username nor password can be extracted without that key. If you rotate the key and the key is lost, the information of the key is secure.',
-        ),
+        title: Text(context.l10n.titleCreateAuthenticationCodeKey),
+        content: Text(context.l10n.messageCreateAuthenticationCodeKey),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Create key')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.actionCancel)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(context.l10n.actionCreate)),
         ],
       ),
     );
@@ -281,7 +285,9 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
           MagicConfigKeyMarker.extractFromSanitizedHtml(savedSettings?.authLoginCustomMessage),
         );
     if (savedMarker == null || savedMarker.encodedKey != marker.encodedKey) {
-      _showMessage('Audiobookshelf did not preserve the Authentication Code key. No Authentication Code was created.');
+      if (mounted) {
+        _showMessage(l10n.errorAuthenticationCodeKeyNotPreserved);
+      }
       return null;
     }
     if (mounted) {
@@ -294,6 +300,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
   }
 
   Future<void> _createAuthenticationCodeKey() async {
+    final l10n = context.l10n;
     if (_isCreatingAuthenticationCodeKey) {
       return;
     }
@@ -303,11 +310,13 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     });
     try {
       final marker = await _ensureMagicKey();
-      if (marker != null) {
-        _showMessage('Authentication Code key created.');
+      if (mounted && marker != null) {
+        _showMessage(l10n.statusAuthenticationCodeKeyCreated);
       }
     } catch (error) {
-      _showMessage('Failed to create Authentication Code: $error');
+      if (mounted) {
+        _showMessage(l10n.errorOperationFailed(l10n.operationCreateAuthenticationCode, error.toString()));
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -322,10 +331,11 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     required String? password,
     required bool allowPassword,
   }) async {
+    final l10n = context.l10n;
     final currentUser = await ref.read(currentUserProvider.future);
     final server = currentUser?.server;
     if (server == null) {
-      _showMessage('The active account has no configured server address.');
+      _showMessage(l10n.errorActiveAccountNoServerAddress);
       return;
     }
 
@@ -346,25 +356,24 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
   }
 
   Future<void> _deleteAuthenticationCode() async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Authentication Code?'),
-        content: Text(
-          'Authentication Codes use one server-wide key. Deleting it will invalidate every Authentication Code. Existing signed-in accounts are not affected.',
-        ),
+        title: Text(context.l10n.titleDeleteAuthenticationCodeKey),
+        content: Text(context.l10n.messageDeleteAuthenticationCodeKey),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.actionCancel)),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Delete Authentication Code'),
+            child: Text(context.l10n.actionDeleteAuthenticationCodeKey),
           ),
         ],
       ),
@@ -390,7 +399,9 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
             _authenticationCodeKeyLoaded = true;
           });
         }
-        _showMessage('No Authentication Code is configured.');
+        if (mounted) {
+          _showMessage(l10n.statusNoAuthenticationCodeKeyConfigured);
+        }
         return;
       }
 
@@ -405,9 +416,13 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
           _authenticationCodeKeyLoaded = true;
         });
       }
-      _showMessage('Authentication Code deleted. Existing Authentication Codes are no longer valid.');
+      if (mounted) {
+        _showMessage(l10n.statusAuthenticationCodeKeyDeleted);
+      }
     } catch (error) {
-      _showMessage('Failed to delete Authentication Code: $error');
+      if (mounted) {
+        _showMessage(l10n.errorOperationFailed(l10n.operationDeleteAuthenticationCode, error.toString()));
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -418,17 +433,22 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
   }
 
   Future<bool> _unlinkOpenId(AdminUser user) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return false;
     }
 
     _setBusyForUser(user.id, true);
     try {
       final success = await api.getAdminApi().unlinkUserOpenId(user.id);
+      if (!mounted) {
+        return false;
+      }
+
       if (!success) {
-        _showMessage('Failed to unlink OpenID for ${user.username}.');
+        _showMessage(l10n.errorUnlinkOpenIdUser(user.username));
         return false;
       }
 
@@ -438,17 +458,22 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       }
       return true;
     } catch (error) {
-      _showMessage('Failed to unlink OpenID for ${user.username}: $error');
+      if (mounted) {
+        _showMessage(l10n.errorOperationFailed(l10n.operationUnlinkOpenId, '${user.username}: $error'));
+      }
       return false;
     } finally {
-      _setBusyForUser(user.id, false);
+      if (mounted) {
+        _setBusyForUser(user.id, false);
+      }
     }
   }
 
   Future<void> _createUser() async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -470,13 +495,17 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       ),
     );
 
-    if (payload == null) {
+    if (!mounted || payload == null) {
       return;
     }
 
     _setCreating(true);
     try {
       final response = await api.getAdminApi().createUser(payload: payload);
+      if (!mounted) {
+        return;
+      }
+
       final createdUser = response.data;
 
       if (createdUser == null) {
@@ -486,18 +515,25 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       }
 
       await _showMagicConfig(username: payload.username, password: payload.password, allowPassword: true);
-      _showMessage('User created successfully.');
+      if (mounted) {
+        _showMessage(l10n.statusUserCreated);
+      }
     } catch (error) {
-      _showMessage('Failed to create user: $error');
+      if (mounted) {
+        _showMessage(l10n.errorOperationFailed(l10n.operationCreateUser, error.toString()));
+      }
     } finally {
-      _setCreating(false);
+      if (mounted) {
+        _setCreating(false);
+      }
     }
   }
 
   Future<void> _editUser(AdminUser user) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -519,13 +555,17 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       ),
     );
 
-    if (payload == null) {
+    if (!mounted || payload == null) {
       return;
     }
 
     _setBusyForUser(user.id, true);
     try {
       final response = await api.getAdminApi().updateUser(userId: user.id, payload: payload);
+      if (!mounted) {
+        return;
+      }
+
       final updatedUser = response.data;
 
       if (updatedUser == null) {
@@ -538,23 +578,28 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         ref.invalidate(currentUserProvider);
       }
 
-      _showMessage('User updated successfully.');
+      _showMessage(l10n.statusUserUpdated);
     } catch (error) {
-      _showMessage('Failed to update user: $error');
+      if (mounted) {
+        _showMessage(l10n.errorOperationFailed(l10n.operationUpdateUser, error.toString()));
+      }
     } finally {
-      _setBusyForUser(user.id, false);
+      if (mounted) {
+        _setBusyForUser(user.id, false);
+      }
     }
   }
 
   Future<void> _toggleUserActive(AdminUser user) async {
+    final l10n = context.l10n;
     if (user.isRoot) {
-      _showMessage('The root account cannot be disabled.');
+      _showMessage(l10n.statusRootAccountAlwaysActive);
       return;
     }
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -562,6 +607,10 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     try {
       final payload = AdminUserUpsertRequest.fromUser(user).copyWith(isActive: !user.isActive);
       final response = await api.getAdminApi().updateUser(userId: user.id, payload: payload);
+      if (!mounted) {
+        return;
+      }
+
       final updatedUser = response.data ?? user.copyWith(isActive: !user.isActive);
       _upsertUserInList(updatedUser);
 
@@ -569,23 +618,28 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         ref.invalidate(currentUserProvider);
       }
 
-      _showMessage(updatedUser.isActive ? 'User enabled.' : 'User disabled.');
+      _showMessage(updatedUser.isActive ? l10n.statusUserEnabled : l10n.statusUserDisabled);
     } catch (error) {
-      _showMessage('Failed to update user status: $error');
+      if (mounted) {
+        _showMessage(l10n.errorOperationFailed(l10n.operationUpdateUserStatus, error.toString()));
+      }
     } finally {
-      _setBusyForUser(user.id, false);
+      if (mounted) {
+        _setBusyForUser(user.id, false);
+      }
     }
   }
 
   Future<void> _deleteUser(AdminUser user, {required String? activeUserId}) async {
+    final l10n = context.l10n;
     if (activeUserId == user.id) {
-      _showMessage('You cannot delete the currently signed-in user.');
+      _showMessage(l10n.errorCannotDeleteCurrentUser);
       return;
     }
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -593,38 +647,46 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete User'),
-          content: Text('Delete user "${user.username}"? This cannot be undone.'),
+          title: Text(context.l10n.titleDeleteUser),
+          content: Text(context.l10n.promptDeleteUser(user.username)),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
             OutlinedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-              child: const Text('Delete'),
+              child: Text(context.l10n.actionDelete),
             ),
           ],
         );
       },
     );
 
-    if (shouldDelete != true) {
+    if (!mounted || shouldDelete != true) {
       return;
     }
 
     _setBusyForUser(user.id, true);
     try {
       final deleted = await api.getAdminApi().deleteUser(user.id);
+      if (!mounted) {
+        return;
+      }
+
       if (!deleted) {
-        _showMessage('Failed to delete user ${user.username}.');
+        _showMessage(l10n.errorDeleteUserFailed(user.username));
         return;
       }
 
       _removeUserFromList(user.id);
-      _showMessage('User deleted successfully.');
+      _showMessage(l10n.statusUserDeleted);
     } catch (error) {
-      _showMessage('Failed to delete user: $error');
+      if (mounted) {
+        _showMessage(l10n.errorOperationFailed(l10n.operationDeleteUser, error.toString()));
+      }
     } finally {
-      _setBusyForUser(user.id, false);
+      if (mounted) {
+        _setBusyForUser(user.id, false);
+      }
     }
   }
 
@@ -646,7 +708,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
             const SizedBox(width: 10),
             TextButton(
               onPressed: () => unawaited(_loadUserManagementData(showLoading: true)),
-              child: const Text('Retry'),
+              child: Text(context.l10n.actionRetry),
             ),
           ],
         ),
@@ -659,8 +721,8 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         _isLoading || _isCreatingUser || _isCreatingAuthenticationCodeKey || _isDeletingAuthenticationCode;
     final hasAuthenticationCode = _authenticationCodeKey != null;
     final authenticationCodeActionLabel = hasAuthenticationCode
-        ? 'Delete Authentication Code'
-        : 'Create Authentication Code';
+        ? context.l10n.actionDeleteAuthenticationCodeKey
+        : context.l10n.actionCreateAuthenticationCode;
     final authenticationCodeActionIcon = hasAuthenticationCode ? Icons.delete_sweep_outlined : Icons.qr_code_2_rounded;
     final authenticationCodeAction = hasAuthenticationCode ? _deleteAuthenticationCode : _createAuthenticationCodeKey;
 
@@ -669,8 +731,8 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           StyledTextField(
-            label: 'Search users',
-            hintText: 'Filter by username, role, or email',
+            label: context.l10n.labelSearchUsers,
+            hintText: context.l10n.hintFilterUsers,
             prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
@@ -688,7 +750,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
                   icon: _isCreatingUser
                       ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.person_add_alt_1_rounded),
-                  label: const Text('Add user'),
+                  label: Text(context.l10n.actionAddUser),
                 ),
               ),
               const SizedBox(width: 8),
@@ -703,7 +765,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
                 ),
               const SizedBox(width: 4),
               IconButton(
-                tooltip: 'Refresh',
+                tooltip: context.l10n.actionRefresh,
                 onPressed: _isLoading ? null : () => unawaited(_loadUserManagementData(showLoading: true)),
                 icon: const Icon(Icons.refresh_rounded),
               ),
@@ -717,8 +779,8 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       children: [
         Expanded(
           child: StyledTextField(
-            label: 'Search users',
-            hintText: 'Filter by username, role, or email',
+            label: context.l10n.labelSearchUsers,
+            hintText: context.l10n.hintFilterUsers,
             prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
@@ -732,7 +794,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         OutlinedButton.icon(
           onPressed: _isLoading ? null : () => unawaited(_loadUserManagementData(showLoading: true)),
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Refresh'),
+          label: Text(context.l10n.actionRefresh),
         ),
         const SizedBox(width: 10),
         FilledButton.icon(
@@ -740,7 +802,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
           icon: _isCreatingUser
               ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.person_add_alt_1_rounded),
-          label: const Text('Add user'),
+          label: Text(context.l10n.actionAddUser),
         ),
         const SizedBox(width: 10),
         if (_authenticationCodeKeyLoaded)
@@ -783,17 +845,14 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage users.'),
+            child: Text(context.l10n.promptSignInForAdminAccess),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(context.l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -832,7 +891,10 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          context.l10n.errorOperationFailed(context.l10n.operationLoadUser, error.toString()),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

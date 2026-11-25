@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum LibraryItemDeleteMode { absOnly, absAndFileSystem }
 
@@ -24,12 +25,9 @@ class LibraryItemDeleteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isSingle = deleteCount == 1;
-
-    final title = isSingle ? 'Delete audiobook?' : 'Delete audiobooks?';
-    final warning = isSingle
-        ? 'This action will remove the audiobook from Audiobookshelf and cannot be undone.'
-        : 'This action will remove $deleteCount audiobooks from Audiobookshelf and cannot be undone.';
+    final l10n = context.l10n;
+    final title = l10n.deleteAudiobookTitle(deleteCount);
+    final warning = l10n.deleteAudiobookWarning(deleteCount);
 
     return AlertDialog(
       title: Text(title),
@@ -42,36 +40,36 @@ class LibraryItemDeleteDialog extends StatelessWidget {
             Text(warning),
             const SizedBox(height: 8),
             Text(
-              'Choose deletion mode:',
+              l10n.deleteModePrompt,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             if (skippedCount > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '$skippedCount selected item(s) are not audiobooks and will be skipped.',
+                  l10n.deleteSkippedNonAudiobooks(skippedCount),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               ),
             const SizedBox(height: 10),
             LibraryItemDeleteOptionTile(
               icon: Icons.delete_outline_rounded,
-              title: 'Delete from Audiobookshelf only',
-              subtitle: 'Removes from ABS database, keeps media files on disk. It might come back after ABS rescans the library/file system.',
+              title: l10n.deleteFromServerOnlyTitle,
+              subtitle: l10n.deleteFromServerOnlySubtitle,
               onTap: () => Navigator.of(context).pop(LibraryItemDeleteMode.absOnly),
             ),
             const SizedBox(height: 8),
             LibraryItemDeleteOptionTile(
               icon: Icons.delete_forever_rounded,
-              title: 'Delete from Audiobookshelf and file system',
-              subtitle: 'Permanently removes ABS entry and media files.',
+              title: l10n.deleteFromServerAndFilesTitle,
+              subtitle: l10n.deleteFromServerAndFilesSubtitle,
               destructive: true,
               onTap: () => Navigator.of(context).pop(LibraryItemDeleteMode.absAndFileSystem),
             ),
           ],
         ),
       ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))],
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.actionCancel))],
     );
   }
 }

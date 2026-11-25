@@ -6,6 +6,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/util/browse/audio_browse_policy.dart';
 import 'package:yaabsa/util/browse/compact_browse_models.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 const compactBrowsePageSize = 20;
 const _requestOptions = <String, dynamic>{'doNotCache': true};
@@ -72,11 +73,14 @@ class CompactBrowseRepository {
 
     return CompactBrowsePage(
       entries: [
-        category('Recently added', CompactBrowseSection.recent),
-        category(podcast ? 'Podcasts' : 'All audiobooks', CompactBrowseSection.items),
-        if (podcast) category('Latest episodes', CompactBrowseSection.latestEpisodes),
-        if (!podcast) category('Authors', CompactBrowseSection.authors),
-        if (!podcast) category('Series', CompactBrowseSection.series),
+        category(currentAppLocalizations().shelfRecentlyAdded, CompactBrowseSection.recent),
+        category(
+          podcast ? currentAppLocalizations().mediaTypePodcasts : currentAppLocalizations().filterAllAudiobooks,
+          CompactBrowseSection.items,
+        ),
+        if (podcast) category(currentAppLocalizations().shelfLatestEpisodes, CompactBrowseSection.latestEpisodes),
+        if (!podcast) category(currentAppLocalizations().navAuthors, CompactBrowseSection.authors),
+        if (!podcast) category(currentAppLocalizations().navSeries, CompactBrowseSection.series),
       ],
     );
   }
@@ -284,7 +288,7 @@ class CompactBrowseRepository {
 
   CompactBrowseEntry _episodeEntry(Episode episode) {
     return CompactBrowseEntry(
-      title: episode.title ?? 'Episode',
+      title: episode.title ?? currentAppLocalizations().untitledEpisode,
       subtitle: episode.podcast?.metadata.title,
       itemId: episode.libraryItemId,
       episodeId: episode.id,

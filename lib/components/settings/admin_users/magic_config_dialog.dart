@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:yaabsa/api/magic/magic_config.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void> showMagicConfigDialog(
   BuildContext context, {
@@ -105,13 +106,13 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
   Future<void> _generate() async {
     if (_includePassword && !_passwordAcknowledged) {
       setState(() {
-        _error = 'Please acknowledge the password-sharing risk before continuing.';
+        _error = context.l10n.errorAcknowledgePasswordSharingRisk;
       });
       return;
     }
     if (_includeHeaders && widget.headers.isNotEmpty && !_headersAcknowledged) {
       setState(() {
-        _error = 'Please acknowledge the custom-header risk before continuing.';
+        _error = context.l10n.errorAcknowledgeCustomHeadersRisk;
       });
       return;
     }
@@ -128,7 +129,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
       if (requiresServerKey && marker == null) {
         if (mounted) {
           setState(() {
-            _error = 'A server key is required to include protected Authentication Code data. Ask an administrator to enable it first.';
+            _error = context.l10n.errorAuthenticationCodeKeyRequired;
           });
         }
         return;
@@ -153,7 +154,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
         return;
       }
       setState(() {
-        _error = 'Could not generate Authentication Code: $error';
+        _error = context.l10n.errorOperationFailed(context.l10n.operationGenerateAuthenticationCode, error.toString());
       });
     } finally {
       if (mounted) {
@@ -181,7 +182,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
     }
     await SharePlus.instance.share(
       ShareParams(
-        title: 'yaabsa Authentication Code',
+        title: context.l10n.shareAuthenticationCodeTitle,
         text: value,
         files: files.isEmpty ? null : files,
         sharePositionOrigin: _shareOrigin(context),
@@ -200,14 +201,13 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
       return;
     }
     if (qrFile == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('QR-code sharing is unavailable on this platform.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorQrCodeSharingUnavailable)));
       return;
     }
 
     await SharePlus.instance.share(
       ShareParams(
-        title: 'yaabsa Authentication Code QR code',
+        title: context.l10n.semanticsAuthenticationCodeQrCode,
         files: [qrFile],
         sharePositionOrigin: _shareOrigin(context),
       ),
@@ -219,7 +219,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication Code copied.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusAuthenticationCodeCopied)));
   }
 
   Rect? _shareOrigin(BuildContext context) {
@@ -240,26 +240,33 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
     final generated = _token;
 
     return AlertDialog(
-      title: const Text('Authentication Code'),
+      title: Text(context.l10n.fieldAuthenticationCode),
       content: SizedBox(
         width: 520,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Share a Authentication Code that prefills all important server information',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(context.l10n.messageShareAuthenticationCode, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 16),
               if (widget.localServerUrl != null && widget.localServerUrl != widget.serverUrl)
                 YaabsaDropdownField<String>(
-                  label: 'Server URL',
+                  label: context.l10n.fieldServerAddress,
                   value: _selectedServerUrl,
                   enabled: !_isGenerating,
                   items: [
-                    DropdownMenuItem(value: widget.serverUrl, child: Text('${widget.serverUrl} (external)')),
-                    DropdownMenuItem(value: widget.localServerUrl, child: Text('${widget.localServerUrl} (local)')),
+                    DropdownMenuItem(
+                      value: widget.serverUrl,
+                      child: Text(
+                        context.l10n.serverUrlLocation(widget.serverUrl, context.l10n.serverLocationExternal),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: widget.localServerUrl,
+                      child: Text(
+                        context.l10n.serverUrlLocation(widget.localServerUrl!, context.l10n.serverLocationLocal),
+                      ),
+                    ),
                   ],
                   onChanged: _isGenerating
                       ? null
@@ -278,10 +285,8 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
               if (widget.allowPassword && widget.password != null)
                 _MagicConfigOption(
                   child: YaabsaSwitchTile.adaptive(
-                    title: const Text('Include set password'),
-                    subtitle: const Text(
-                      'The user can sign in without typing the password and must choose a new password immediately',
-                    ),
+                    title: Text(context.l10n.optionIncludeSetPassword),
+                    subtitle: Text(context.l10n.descriptionIncludedSetPassword),
                     secondary: const Icon(Icons.password_rounded),
                     value: _includePassword,
                     onChanged: _isGenerating
@@ -298,10 +303,8 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
               if (hasHeaders)
                 _MagicConfigOption(
                   child: YaabsaSwitchTile.adaptive(
-                    title: const Text('Include custom headers'),
-                    subtitle: Text(
-                      '${widget.headers.length} saved header${widget.headers.length == 1 ? '' : 's'} will be included',
-                    ),
+                    title: Text(context.l10n.optionIncludeCustomHeaders),
+                    subtitle: Text(context.l10n.messageSavedHeadersIncluded(widget.headers.length)),
                     secondary: const Icon(Icons.http_rounded),
                     value: _includeHeaders,
                     onChanged: _isGenerating
@@ -318,7 +321,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
               if (_includePassword)
                 _AcknowledgementTile(
                   value: _passwordAcknowledged,
-                  text: 'I understand that anyone who gets this code can use the temporary password until it is changed or the Authentication Code key is rotated',
+                  text: context.l10n.messagePasswordSharingAcknowledgement,
                   onChanged: _isGenerating
                       ? null
                       : (value) {
@@ -330,7 +333,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
               if (_includeHeaders && hasHeaders)
                 _AcknowledgementTile(
                   value: _headersAcknowledged,
-                  text: 'I understand that custom headers may contain secrets or grant server access',
+                  text: context.l10n.messageCustomHeadersAcknowledgement,
                   onChanged: _isGenerating
                       ? null
                       : (value) {
@@ -345,10 +348,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
               ],
               if (generated != null) ...[
                 const SizedBox(height: 16),
-                Text(
-                  'Scan this code in yaabsa on the other device, or copy the raw Authentication Code and use “Import Authentication Code” on the sign-in screen.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                Text(context.l10n.messageUseAuthenticationCode, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 12),
                 LayoutBuilder(
                   builder: (context, constraints) {
@@ -362,7 +362,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
                         padding: const EdgeInsets.all(16),
                         backgroundColor: Colors.white,
                         gapless: true,
-                        semanticsLabel: 'yaabsa Authentication Code QR code',
+                        semanticsLabel: context.l10n.semanticsAuthenticationCodeQrCode,
                       ),
                     );
                   },
@@ -379,17 +379,17 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
                       OutlinedButton.icon(
                         onPressed: _shareQrCode,
                         icon: const Icon(Icons.qr_code_2_rounded),
-                        label: const Text('Share QR code'),
+                        label: Text(context.l10n.actionShareQrCode),
                       ),
                     OutlinedButton.icon(
                       onPressed: _share,
                       icon: const Icon(Icons.share_outlined),
-                      label: const Text('Share'),
+                      label: Text(context.l10n.actionShare),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => _copy(generated),
                       icon: const Icon(Icons.copy_outlined),
-                      label: const Text('Copy'),
+                      label: Text(context.l10n.actionCopy),
                     ),
                   ],
                 ),
@@ -399,11 +399,14 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: _isGenerating ? null : () => Navigator.pop(context), child: const Text('Close')),
+        TextButton(
+          onPressed: _isGenerating ? null : () => Navigator.pop(context),
+          child: Text(context.l10n.actionClose),
+        ),
         if (generated == null)
           FilledButton(
             onPressed: _isGenerating ? null : _generate,
-            child: Text(_isGenerating ? 'Generating...' : 'Generate Authentication Code'),
+            child: Text(_isGenerating ? context.l10n.statusGenerating : context.l10n.actionCreateAuthenticationCode),
           ),
       ],
     );

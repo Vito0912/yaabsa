@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 const applicationDocumentsDownloadBase = 'application-documents';
 const systemDownloadsDownloadBase = 'system-downloads';
@@ -145,7 +146,7 @@ String encodeDesktopDownloadLocation(String directoryPath) {
 String formatDownloadLocationForDisplay(String? rawValue) {
   final parsed = parseDownloadLocationSetting(rawValue);
   if (parsed == null) {
-    return 'Default location';
+    return currentAppLocalizations().downloadLocationDefault;
   }
 
   if (parsed.scheme == 'file') {
@@ -161,26 +162,26 @@ String formatDownloadLocationForDisplay(String? rawValue) {
 
 Future<String> defaultDownloadLocationDescription() async {
   if (kIsWeb) {
-    return 'Not supported on Web';
+    return currentAppLocalizations().downloadLocationUnsupportedWeb;
   }
 
   if (Platform.isLinux || Platform.isWindows) {
     final downloadsDir = await getDownloadsDirectory();
     if (downloadsDir != null) {
-      return 'System Downloads: ${downloadsDir.path}';
+      return currentAppLocalizations().downloadLocationSystemDownloads(downloadsDir.path);
     }
-    return 'App documents folder (fallback)';
+    return currentAppLocalizations().downloadLocationDocumentsFallback;
   }
 
   if (Platform.isAndroid) {
-    return 'App documents folder (private app storage)';
+    return currentAppLocalizations().downloadLocationPrivateDocuments;
   }
 
   if (Platform.isIOS || Platform.isMacOS) {
-    return 'App documents folder (sandboxed by OS)';
+    return currentAppLocalizations().downloadLocationSandboxedDocuments;
   }
 
-  return 'App documents folder';
+  return currentAppLocalizations().downloadLocationAppDocuments;
 }
 
 Future<DownloadTaskDestination> resolveDownloadTaskDestination(
@@ -189,7 +190,7 @@ Future<DownloadTaskDestination> resolveDownloadTaskDestination(
   String itemId,
 ) async {
   if (kIsWeb) {
-    throw UnsupportedError('Downloads are not supported on Web');
+    throw UnsupportedError(currentAppLocalizations().downloadNotSupportedWeb);
   }
   final customLocation = parseDownloadLocationSetting(rawLocation);
 
@@ -197,7 +198,7 @@ Future<DownloadTaskDestination> resolveDownloadTaskDestination(
     if (Platform.isAndroid) {
       final activatedUri = await downloader.uri.activate(customLocation);
       if (activatedUri == null) {
-        throw Exception('The selected Android folder is no longer accessible. Please pick it again.');
+        throw Exception(currentAppLocalizations().downloadLocationUnavailableAndroid);
       }
 
       return DownloadTaskDestination.uri(directoryUri: activatedUri);
@@ -205,7 +206,7 @@ Future<DownloadTaskDestination> resolveDownloadTaskDestination(
 
     if (Platform.isLinux || Platform.isWindows) {
       if (customLocation.scheme != 'file') {
-        throw Exception('Custom download location must be a local folder on this platform.');
+        throw Exception(currentAppLocalizations().downloadLocationMustBeLocal);
       }
 
       final rootPath = customLocation.toFilePath(windows: Platform.isWindows);

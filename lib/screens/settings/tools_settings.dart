@@ -6,6 +6,7 @@ import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -19,16 +20,16 @@ class ToolsSettings extends ConsumerWidget {
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Tools',
+      title: context.l10n.settingsCategoryTools,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         currentUserAsync.when(
           data: (currentUser) {
             if (currentUser == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('Sign in to configure tools'),
+                child: Text(context.l10n.promptSignInToManageSettings),
               );
             }
 
@@ -37,50 +38,47 @@ class ToolsSettings extends ConsumerWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 2, 20, 16),
-                  child: Text(
-                    'Additional tools that extend standard ABS behavior by coordinating multiple API calls. All tools are disabled by default',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  child: Text(context.l10n.messageAdditionalToolsInfo, style: Theme.of(context).textTheme.bodyMedium),
                 ),
                 SettingsNavigationSection(
-                  title: 'Tool Subpages',
+                  title: context.l10n.headingToolSubpages,
                   topPadding: 0,
                   items: [
                     SettingsNavigationItem(
                       icon: Icons.route_outlined,
-                      title: 'Path Tag and Genre Update',
+                      title: context.l10n.headingPathTagGenreUpdate,
                       onTap: () => context.push(PathTagGenreUpdateSettings.routeName),
                     ),
                   ],
                 ),
                 SettingsNavigationSection(
-                  title: 'Experimental Tools',
+                  title: context.l10n.headingExperimentalTools,
                   topPadding: 20,
                   settings: [
                     SettingSwitchTile(
-                      label: 'Remove authors without books',
-                      subtitle: 'Add a button in the author section to delete authors without books',
+                      label: context.l10n.actionRemoveAuthorsWithoutBooks,
+                      subtitle: context.l10n.settingRemoveAuthorsWithoutBooksDescription,
                       settingKey: SettingKeys.toolsRemoveAuthorsWithoutBooks,
                       userId: currentUser.id,
                       defaultValue: false,
                     ),
                     SettingSwitchTile(
-                      label: 'Force metadata refresh',
-                      subtitle: 'Add a button to force recreation of metadata files in Admin Server Settings under metadata utils',
+                      label: context.l10n.settingForceMetadataRefresh,
+                      subtitle: context.l10n.settingForceMetadataRefreshDescription,
                       settingKey: SettingKeys.toolsForceMetadataRefresh,
                       userId: currentUser.id,
                       defaultValue: false,
                     ),
                     SettingSwitchTile(
-                      label: 'Match audiobook chapters',
-                      subtitle: 'Add a quick match option for fast chapter matching, including bulk mode',
+                      label: context.l10n.settingMatchAudiobookChapters,
+                      subtitle: context.l10n.settingMatchAudiobookChaptersDescription,
                       settingKey: SettingKeys.toolsMatchAudiobookChapters,
                       userId: currentUser.id,
                       defaultValue: false,
                     ),
                     SettingSwitchTile(
-                      label: 'Split genres/tags',
-                      subtitle: 'Add a button to split genres and tags in Admin Server Settings under metadata utils',
+                      label: context.l10n.settingSplitGenresAndTags,
+                      subtitle: context.l10n.settingSplitGenresAndTagsDescription,
                       settingKey: SettingKeys.toolsSplitGenresTags,
                       userId: currentUser.id,
                       defaultValue: false,
@@ -97,7 +95,7 @@ class ToolsSettings extends ConsumerWidget {
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to load user settings: $error',
+              context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString()),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

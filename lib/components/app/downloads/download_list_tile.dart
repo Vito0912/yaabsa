@@ -6,6 +6,7 @@ import 'package:yaabsa/components/common/expressive_list_tile.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/item_download_status_provider.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
@@ -38,7 +39,7 @@ class DownloadListTile extends ConsumerWidget {
       itemDownloadStatusesProvider.select((value) => value.value?[(itemId, download.episode?.id)]),
     );
     final colors = Theme.of(context).colorScheme;
-    final title = download.episode?.title ?? download.item?.title ?? 'Unknown item';
+    final title = download.episode?.title ?? download.item?.title ?? context.l10n.unknownMediaItem;
     final downloaded = download.numberOfDownloadedFiles;
     final total = download.numberOfFiles;
     final complete = total > 0 && downloaded >= total;
@@ -82,8 +83,8 @@ class DownloadListTile extends ConsumerWidget {
                   status != null
                       ? ItemDownloadIndicator(status: status).label
                       : complete
-                      ? 'Available offline'
-                      : '$downloaded of $total files offline',
+                      ? context.l10n.statusAvailableOffline
+                      : context.l10n.downloadedFileCountSummary(downloaded, total),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
                 ),
               ),
@@ -104,7 +105,7 @@ class DownloadListTile extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                'Smart download',
+                context.l10n.statusSmartDownload,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
               ),
             ),
@@ -114,7 +115,7 @@ class DownloadListTile extends ConsumerWidget {
           ? null
           : YaabsaContextMenuButton<String>(
               enabled: !isDeleting,
-              tooltip: 'Download actions',
+              tooltip: context.l10n.headingDownloadActions,
               icon: const Icon(Icons.more_vert_rounded),
               onSelected: (value) {
                 switch (value) {
@@ -127,9 +128,9 @@ class DownloadListTile extends ConsumerWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(value: 'files', child: Text('Files')),
-                const PopupMenuItem(value: 'open', child: Text('Open item')),
-                const PopupMenuItem(value: 'delete', child: Text('Delete download')),
+                PopupMenuItem(value: 'files', child: Text(context.l10n.fieldFiles)),
+                PopupMenuItem(value: 'open', child: Text(context.l10n.actionOpen)),
+                PopupMenuItem(value: 'delete', child: Text(context.l10n.actionDeleteDownload)),
               ],
             ),
     );

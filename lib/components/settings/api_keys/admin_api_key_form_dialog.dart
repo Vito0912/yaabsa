@@ -9,6 +9,7 @@ import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/ui/components/dialogs/dialog_actions.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<CreateAdminApiKeyRequest?> showCreateAdminApiKeyDialog(
   BuildContext context, {
@@ -104,35 +105,32 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
 
   String? _validateName(String value) {
     if (value.trim().isEmpty) {
-      return 'Name is required.';
+      return currentAppLocalizations().errorNameRequired;
     }
     return null;
   }
 
   String? _validateSelectedUser(String? userId) {
     if (userId == null || userId.trim().isEmpty) {
-      return 'Owner is required.';
+      return currentAppLocalizations().errorOwnerRequired;
     }
     return null;
   }
 
   String? _validateExpiresInDays(String value) {
+    final l10n = currentAppLocalizations();
     if (_neverExpires) {
       return null;
     }
 
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      return 'Expires in days is required when expiration is enabled.';
+      return l10n.errorExpirationDaysRequired;
     }
 
     final parsed = int.tryParse(trimmed);
-    if (parsed == null || parsed <= 0) {
-      return 'Enter a positive whole number of days.';
-    }
-
-    if (parsed > 36500) {
-      return 'Use 36500 days or less.';
+    if (parsed == null || parsed < 1 || parsed > 36500) {
+      return l10n.errorWholeNumberRange(1, 36500);
     }
 
     return null;
@@ -167,10 +165,11 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final userOptions = _userOptions();
 
     return AlertDialog(
-      title: const Text('Create API Key'),
+      title: Text(l10n.headingCreateApiKey),
       content: SizedBox(
         width: 540,
         child: SingleChildScrollView(
@@ -179,7 +178,7 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               StyledTextField(
-                label: 'Name',
+                label: l10n.fieldName,
                 controller: _nameController,
                 onChanged: (_) {
                   if (_nameError == null) {
@@ -189,7 +188,7 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
                     _nameError = _validateName(_nameController.text);
                   });
                 },
-                hintText: 'Example: Home Assistant Integration',
+                hintText: l10n.hintExampleApiKeyName,
                 errorText: _nameError,
               ),
               const SizedBox(height: 12),
@@ -204,15 +203,15 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
                 },
                 decoration: yaabsaFieldDecoration(
                   context,
-                  label: 'Owner',
-                  hintText: 'Select key owner',
+                  label: l10n.fieldOwner,
+                  hintText: l10n.hintSelectApiKeyOwner,
                 ).copyWith(errorText: _userError),
               ),
               const SizedBox(height: 4),
               YaabsaSwitchTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('API key is active'),
-                subtitle: const Text('Inactive keys cannot authenticate API requests.'),
+                title: Text(l10n.settingApiKeyActive),
+                subtitle: Text(l10n.settingApiKeyActiveDescription),
                 value: _isActive,
                 onChanged: (value) {
                   setState(() {
@@ -222,8 +221,8 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
               ),
               YaabsaSwitchTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Never expires'),
-                subtitle: const Text('Turn off to set an expiration in days.'),
+                title: Text(l10n.statusNeverExpires),
+                subtitle: Text(l10n.settingApiKeyNeverExpiresDescription),
                 value: _neverExpires,
                 onChanged: (value) {
                   setState(() {
@@ -236,11 +235,11 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
               ),
               if (!_neverExpires)
                 StyledTextField(
-                  label: 'Expires in days',
+                  label: l10n.fieldExpirationDays,
                   controller: _expiresDaysController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  hintText: 'Example: 30',
+                  hintText: l10n.hintExampleExpirationDays,
                   errorText: _expiresInError,
                   onChanged: (_) {
                     if (_expiresInError == null) {
@@ -257,7 +256,7 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
       ),
       actions: [
         YaabsaDialogActions(
-          actionLabel: 'Create key',
+          actionLabel: l10n.actionCreate,
           actionIcon: Icons.key_rounded,
           onAction: _submit,
           onCancel: () => Navigator.of(context).pop(),
@@ -321,7 +320,7 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
   void _submit() {
     if (_selectedUserId == null || _selectedUserId!.trim().isEmpty) {
       setState(() {
-        _validationError = 'Owner is required.';
+        _validationError = currentAppLocalizations().errorOwnerRequired;
       });
       return;
     }
@@ -331,10 +330,11 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentOwner = widget.apiKey.user?.username ?? widget.apiKey.userId;
 
     return AlertDialog(
-      title: const Text('Edit API Key'),
+      title: Text(l10n.headingEditApiKey),
       content: SizedBox(
         width: 540,
         child: SingleChildScrollView(
@@ -345,7 +345,7 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(widget.apiKey.name, style: Theme.of(context).textTheme.titleMedium),
-                subtitle: Text('Current owner: $currentOwner'),
+                subtitle: Text(l10n.apiKeyCurrentOwner(currentOwner)),
               ),
               const SizedBox(height: 6),
               YaabsaExpressiveDropdownField<String>(
@@ -357,13 +357,17 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
                     _validationError = null;
                   });
                 },
-                decoration: yaabsaFieldDecoration(context, label: 'Owner', hintText: 'Select key owner'),
+                decoration: yaabsaFieldDecoration(
+                  context,
+                  label: l10n.fieldOwner,
+                  hintText: l10n.hintSelectApiKeyOwner,
+                ),
               ),
               const SizedBox(height: 8),
               YaabsaSwitchTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('API key is active'),
-                subtitle: const Text('Inactive keys cannot authenticate API requests.'),
+                title: Text(l10n.settingApiKeyActive),
+                subtitle: Text(l10n.settingApiKeyActiveDescription),
                 value: _isActive,
                 onChanged: (value) {
                   setState(() {
@@ -374,8 +378,8 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
               const SizedBox(height: 4),
               Text(
                 widget.apiKey.expiresAt == null
-                    ? 'Expires: Never'
-                    : 'Expires: ${formatDateTimeLabel(widget.apiKey.expiresAt)}',
+                    ? l10n.apiKeyExpiresAt(l10n.statusNeverExpires)
+                    : l10n.apiKeyExpiresAt(formatDateTimeLabel(widget.apiKey.expiresAt)),
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
@@ -389,7 +393,7 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
       ),
       actions: [
         YaabsaDialogActions(
-          actionLabel: 'Save changes',
+          actionLabel: l10n.actionSave,
           actionIcon: Icons.save_outlined,
           onAction: _hasChanges ? _submit : null,
           onCancel: () => Navigator.of(context).pop(),

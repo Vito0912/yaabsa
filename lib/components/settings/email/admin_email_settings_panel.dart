@@ -3,6 +3,7 @@ import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminEmailSettingsPanel extends StatelessWidget {
   const AdminEmailSettingsPanel({
@@ -72,6 +73,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final canEditFields = !isSavingSettings && !isSendingTest;
 
     return Card(
@@ -87,7 +89,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'SMTP Settings',
+                    l10n.headingSmtpSettings,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -95,7 +97,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Configure server email delivery and send a test message to verify connectivity.',
+              l10n.messageConfigureSmtpEmailDelivery,
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
@@ -108,7 +110,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       StyledTextField(
-                        label: 'Host',
+                        label: l10n.fieldHost,
                         controller: hostController,
                         enabled: canEditFields,
                         hintText: 'smtp.example.com',
@@ -117,7 +119,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       StyledTextField(
-                        label: 'Port',
+                        label: l10n.fieldPort,
                         controller: portController,
                         enabled: canEditFields,
                         keyboardType: TextInputType.number,
@@ -136,7 +138,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                     Expanded(
                       flex: 3,
                       child: StyledTextField(
-                        label: 'Host',
+                        label: l10n.fieldHost,
                         controller: hostController,
                         enabled: canEditFields,
                         hintText: 'smtp.example.com',
@@ -147,7 +149,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: StyledTextField(
-                        label: 'Port',
+                        label: l10n.fieldPort,
                         controller: portController,
                         enabled: canEditFields,
                         keyboardType: TextInputType.number,
@@ -166,19 +168,19 @@ class AdminEmailSettingsPanel extends StatelessWidget {
               builder: (context, constraints) {
                 final stacked = constraints.maxWidth < 620;
                 final usernameField = StyledTextField(
-                  label: 'Username',
+                  label: l10n.fieldUsername,
                   controller: userController,
                   enabled: canEditFields,
                   onChanged: onUserChanged,
                 );
                 final passwordField = StyledTextField(
-                  label: 'Password',
+                  label: l10n.fieldPassword,
                   controller: passwordController,
                   enabled: canEditFields,
                   obscureText: obscurePassword,
                   onChanged: onPasswordChanged,
                   suffixIcon: IconButton(
-                    tooltip: obscurePassword ? 'Show password' : 'Hide password',
+                    tooltip: obscurePassword ? l10n.actionShowPassword : l10n.actionHidePassword,
                     onPressed: canEditFields ? () => onObscurePasswordChanged(!obscurePassword) : null,
                     icon: Icon(obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                   ),
@@ -206,7 +208,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
               builder: (context, constraints) {
                 final stacked = constraints.maxWidth < 620;
                 final fromField = StyledTextField(
-                  label: 'From Address',
+                  label: l10n.fieldFromAddress,
                   controller: fromAddressController,
                   enabled: canEditFields,
                   keyboardType: TextInputType.emailAddress,
@@ -214,7 +216,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                   onChanged: onFromAddressChanged,
                 );
                 final testField = StyledTextField(
-                  label: 'Test Address',
+                  label: l10n.fieldTestAddress,
                   controller: testAddressController,
                   enabled: canEditFields,
                   keyboardType: TextInputType.emailAddress,
@@ -242,14 +244,14 @@ class AdminEmailSettingsPanel extends StatelessWidget {
             const SizedBox(height: 8),
             YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              title: const Text('Use secure SMTP connection'),
+              title: Text(l10n.settingSecureSmtpConnection),
               value: secure,
               onChanged: canEditFields ? onSecureChanged : null,
             ),
             YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              title: const Text('Reject unauthorized certificates'),
-              subtitle: const Text('Disable only if your SMTP server uses self-signed certificates.'),
+              title: Text(l10n.settingRejectUnauthorizedCertificates),
+              subtitle: Text(l10n.settingRejectUnauthorizedCertificatesDescription),
               value: rejectUnauthorized,
               onChanged: canEditFields ? onRejectUnauthorizedChanged : null,
             ),
@@ -262,7 +264,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                   icon: isSendingTest
                       ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.mark_email_read_outlined),
-                  label: const Text('Send Test'),
+                  label: Text(l10n.actionSendTestEmail),
                 ),
                 const SizedBox(width: 8),
                 FilledButton.icon(
@@ -270,7 +272,7 @@ class AdminEmailSettingsPanel extends StatelessWidget {
                   icon: isSavingSettings
                       ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.save_outlined),
-                  label: const Text('Save Settings'),
+                  label: Text(l10n.actionSave),
                 ),
               ],
             ),

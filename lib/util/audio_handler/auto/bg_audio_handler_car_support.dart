@@ -38,9 +38,11 @@ const int _androidAutoMaxPageSize = 200;
 const int _androidAutoSearchResultsPerLibrary = 4;
 const int _androidAutoLetterGroupingThreshold = 30;
 const int _androidAutoAuthenticationRequiredErrorCode = 3;
-const String _androidAutoAuthenticationRequiredMessage = 'Authentication required';
-const String _androidAutoUnauthenticatedContentUnavailableMessage = 'No content is avaiable if not signed in.';
-const String _androidAutoUnauthenticatedSignInHintMessage = 'You can sign in via the settings';
+String get _androidAutoAuthenticationRequiredMessage => currentAppLocalizations().errorAuthenticationRequired;
+
+String get _androidAutoUnauthenticatedContentUnavailableMessage => currentAppLocalizations().errorNoContentSignedOut;
+
+String get _androidAutoUnauthenticatedSignInHintMessage => currentAppLocalizations().authSignInThroughSettings;
 
 const String _androidAutoSortFieldTitle = 'title';
 const String _androidAutoSortFieldAuthor = 'author';
@@ -144,34 +146,36 @@ extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
   }
 
   String get label {
+    final l10n = currentAppLocalizations();
+
     switch (this) {
       case _AndroidAutoLibraryTab.all:
-        return 'All';
+        return l10n.filterAll;
       case _AndroidAutoLibraryTab.recentlyAdded:
-        return 'Recently Added';
+        return l10n.shelfRecentlyAdded;
       case _AndroidAutoLibraryTab.latestEpisodes:
-        return 'Latest Episodes';
+        return l10n.shelfLatestEpisodes;
       case _AndroidAutoLibraryTab.authors:
-        return 'Authors';
+        return l10n.navAuthors;
       case _AndroidAutoLibraryTab.series:
-        return 'Series';
+        return l10n.navSeries;
       case _AndroidAutoLibraryTab.collections:
-        return 'Collections';
+        return l10n.navCollections;
       case _AndroidAutoLibraryTab.playlists:
-        return 'Playlists';
+        return l10n.navPlaylists;
       case _AndroidAutoLibraryTab.discovery:
-        return 'Discovery';
+        return l10n.navDiscovery;
       case _AndroidAutoLibraryTab.continueSeries:
-        return 'Continue Series';
+        return l10n.shelfContinueSeries;
       case _AndroidAutoLibraryTab.narrators:
-        return 'Narrators';
+        return l10n.navNarrators;
     }
   }
 
   String? get subtitle {
     switch (this) {
       case _AndroidAutoLibraryTab.all:
-        return 'This can take a while to load';
+        return currentAppLocalizations().statusMayTakeTimeToLoad;
       default:
         return null;
     }

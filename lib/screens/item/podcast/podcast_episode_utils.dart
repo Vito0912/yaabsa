@@ -1,5 +1,7 @@
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum PodcastEpisodeProgressFilter { all, incomplete, inProgress, complete }
 
@@ -19,10 +21,10 @@ bool podcastEpisodeInProgress(MediaProgress? progress) {
   return !podcastEpisodeCompleted(progress) && progress.progress > 0;
 }
 
-String podcastEpisodeTitle(Episode episode) {
+String? podcastEpisodeTitle(Episode episode) {
   final title = episode.title;
   if (title == null || title.trim().isEmpty) {
-    return 'Untitled episode';
+    return null;
   }
   return title.trim();
 }
@@ -35,7 +37,7 @@ String? podcastEpisodeSubtitle(Episode episode) {
   return subtitle.trim();
 }
 
-String? podcastFormatEpisodeDate(Episode episode) {
+String? podcastFormatEpisodeDate(Episode episode, {required String localeName}) {
   DateTime? date;
 
   if (episode.publishedAt != null && episode.publishedAt! > 0) {
@@ -47,10 +49,7 @@ String? podcastFormatEpisodeDate(Episode episode) {
     return null;
   }
 
-  final year = date.year.toString().padLeft(4, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-  return '$year-$month-$day';
+  return DateFormat.yMMMd(localeName).format(date);
 }
 
 String? podcastEpisodeDescriptionPreview(Episode episode) {
@@ -86,28 +85,28 @@ String podcastEpisodeDescriptionFullText(Episode episode) {
   return text.trim();
 }
 
-String podcastEpisodeProgressFilterLabel(PodcastEpisodeProgressFilter filter) {
+String podcastEpisodeProgressFilterLabel(PodcastEpisodeProgressFilter filter, AppLocalizations l10n) {
   switch (filter) {
     case PodcastEpisodeProgressFilter.all:
-      return 'All';
+      return l10n.filterAll;
     case PodcastEpisodeProgressFilter.incomplete:
-      return 'Incomplete';
+      return l10n.statusIncomplete;
     case PodcastEpisodeProgressFilter.inProgress:
-      return 'In Progress';
+      return l10n.statusInProgress;
     case PodcastEpisodeProgressFilter.complete:
-      return 'Complete';
+      return l10n.statusComplete;
   }
 }
 
-String podcastEpisodeSortModeLabel(PodcastEpisodeSortMode mode) {
+String podcastEpisodeSortModeLabel(PodcastEpisodeSortMode mode, AppLocalizations l10n) {
   switch (mode) {
     case PodcastEpisodeSortMode.newestFirst:
-      return 'Newest';
+      return l10n.sortNewestFirst;
     case PodcastEpisodeSortMode.oldestFirst:
-      return 'Oldest';
+      return l10n.sortOldestFirst;
     case PodcastEpisodeSortMode.titleAsc:
-      return 'Title A-Z';
+      return l10n.sortTitleAscending;
     case PodcastEpisodeSortMode.titleDesc:
-      return 'Title Z-A';
+      return l10n.sortTitleDescending;
   }
 }

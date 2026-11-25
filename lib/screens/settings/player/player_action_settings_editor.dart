@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerActionSettingsEditor extends ConsumerWidget {
   const PlayerActionSettingsEditor({
@@ -26,25 +27,29 @@ class PlayerActionSettingsEditor extends ConsumerWidget {
     return setting.when(
       data: (rawValue) {
         final selected = decodePlayerActions(rawValue, fallback: fallback);
+        final l10n = context.l10n;
+
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           title: Text(title),
-          subtitle: Text('$description\n${selected.length} actions shown'),
+          subtitle: Text(l10n.playerActionSelectionSummary(description, selected.length)),
           isThreeLine: true,
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => _showEditor(context, ref, selected),
         );
       },
-      loading: () => const ListTile(
+      loading: () => ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
         leading: SizedBox.square(dimension: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
-        title: Text('Loading actions'),
+        title: Text(context.l10n.statusLoading),
       ),
       error: (error, stackTrace) => ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
         leading: Icon(Icons.error_outline_rounded, color: Theme.of(context).colorScheme.error),
         title: Text(title),
-        subtitle: const Text('Could not load this setting'),
+        subtitle: Text(
+          context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, context.l10n.errorUnknown),
+        ),
       ),
     );
   }
@@ -101,7 +106,7 @@ class _PlayerActionEditorSheetState extends State<_PlayerActionEditorSheet> {
                 Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 4),
                 Text(
-                  'Choose visible actions and drag them into the preferred order.',
+                  context.l10n.hintChooseAndOrderActions,
                   style: Theme.of(context).textTheme.bodyMedium
                       ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
@@ -124,7 +129,7 @@ class _PlayerActionEditorSheetState extends State<_PlayerActionEditorSheet> {
                   key: ValueKey<PlayerActionType>(action),
                   value: _selected.contains(action),
                   secondary: Icon(action.icon),
-                  title: Text(action.label),
+                  title: Text(action.label(context.l10n)),
                   onChanged: (selected) {
                     setState(() {
                       selected ? _selected.add(action) : _selected.remove(action);
@@ -135,14 +140,14 @@ class _PlayerActionEditorSheetState extends State<_PlayerActionEditorSheet> {
                     alignment: Alignment.centerLeft,
                     child: ReorderableDragStartListener(
                       index: index,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            Icon(Icons.drag_handle_rounded, size: 20),
-                            SizedBox(width: 6),
-                            Text('Drag to reorder'),
+                            const Icon(Icons.drag_handle_rounded, size: 20),
+                            const SizedBox(width: 6),
+                            Text(context.l10n.hintDragToReorder),
                           ],
                         ),
                       ),
@@ -158,7 +163,7 @@ class _PlayerActionEditorSheetState extends State<_PlayerActionEditorSheet> {
               onPressed: () {
                 Navigator.of(context).pop(_order.where(_selected.contains).toList(growable: false));
               },
-              child: const Text('Save actions'),
+              child: Text(context.l10n.actionSave),
             ),
           ),
         ],

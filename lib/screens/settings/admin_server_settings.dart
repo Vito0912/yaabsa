@@ -17,6 +17,7 @@ import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerSettings extends ConsumerWidget {
   const AdminServerSettings({super.key});
@@ -33,112 +34,112 @@ class AdminServerSettings extends ConsumerWidget {
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Admin Server Settings',
+      title: context.l10n.headingAdminServerSettings,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         currentUserAsync.when(
           data: (currentUser) {
             if (currentUser == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('Sign in to open admin server settings'),
+                child: Text(context.l10n.promptSignInToManageSettings),
               );
             }
 
             final isAdminUser = _isAdminType(currentUser.type);
             final serverUrl = currentUser.server?.url.trim();
-            final managedServer = serverUrl == null || serverUrl.isEmpty ? 'unknown server' : serverUrl;
+            final managedServer = serverUrl == null || serverUrl.isEmpty ? context.l10n.statusUnknownServer : serverUrl;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SettingsNavigationSection(
-                  title: 'Settings for $managedServer',
+                  title: context.l10n.adminSettingsForServer(managedServer),
                   topPadding: 0,
                   items: [
                     SettingsNavigationItem(
                       icon: Icons.settings_outlined,
-                      title: 'Server Configuration',
+                      title: context.l10n.navServerConfiguration,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerConfigurationSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.library_add_outlined,
-                      title: 'Libraries',
+                      title: context.l10n.navLibraries,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerLibrariesSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.receipt_long_outlined,
-                      title: 'Logs',
+                      title: context.l10n.settingsCategoryLogs,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerLogsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.backup_table_outlined,
-                      title: 'Backups',
+                      title: context.l10n.navBackups,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerBackupsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.group_outlined,
-                      title: 'Users',
+                      title: context.l10n.labelUsers,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerUsersSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.key_outlined,
-                      title: 'API Keys',
+                      title: context.l10n.navApiKeys,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerApiKeysSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.query_stats_rounded,
-                      title: 'Sessions',
+                      title: context.l10n.fieldSessions,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerSessionsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.rss_feed_rounded,
-                      title: 'RSS Feeds',
+                      title: context.l10n.navRssFeeds,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerRssFeedsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.alternate_email_rounded,
-                      title: 'E-Mail / E-Reader',
+                      title: context.l10n.navEmailEReader,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerEmailSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.verified_user_outlined,
-                      title: 'Authentication',
+                      title: context.l10n.navAuthentication,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerAuthenticationSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.category_outlined,
-                      title: 'Item Metadata Utils',
+                      title: context.l10n.navItemMetadataUtils,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminItemMetadataUtilsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.insert_chart_outlined_rounded,
-                      title: 'Library Stats',
+                      title: context.l10n.navLibraryStats,
                       enabled: isAdminUser,
-                      disabledReason: isAdminUser ? null : 'Requires an admin account',
+                      disabledReason: isAdminUser ? null : context.l10n.errorAdminRequired,
                       onTap: isAdminUser ? () => context.push(AdminServerLibraryStatsSettings.routeName) : null,
                     ),
                   ],
@@ -153,7 +154,7 @@ class AdminServerSettings extends ConsumerWidget {
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to load user settings: $error',
+              context.l10n.errorOperationFailed(context.l10n.operationLoadSettings, error.toString()),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

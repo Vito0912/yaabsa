@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryTargetPickerOption {
   const LibraryTargetPickerOption({required this.id, required this.title, this.subtitle});
@@ -16,7 +17,7 @@ Future<LibraryTargetPickerOption?> showLibraryTargetPickerSheet({
   List<LibraryTargetPickerOption> options = const <LibraryTargetPickerOption>[],
   LibraryTargetOptionsLoader? loadOptions,
   required String emptyMessage,
-  String loadErrorMessage = 'Could not load options.',
+  String? loadErrorMessage,
 }) {
   assert(options.isNotEmpty || loadOptions != null, 'Provide either options or loadOptions.');
 
@@ -39,7 +40,7 @@ Future<LibraryTargetPickerOption?> showLibraryTargetPickerSheet({
               : _LibraryTargetPickerAsyncContent(
                   title: title,
                   emptyMessage: emptyMessage,
-                  loadErrorMessage: loadErrorMessage,
+                  loadErrorMessage: loadErrorMessage ?? context.l10n.errorLoadOptionsFailed,
                   loadOptions: loadOptions,
                   onSelected: (option) => Navigator.of(sheetContext).pop(option),
                 ),
@@ -207,7 +208,7 @@ class _LibraryTargetPickerErrorContent extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Retry'),
+                    label: Text(context.l10n.actionRetry),
                   ),
                 ],
               ),

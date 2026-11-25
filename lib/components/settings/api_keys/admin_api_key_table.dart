@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/admin_api_key.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminApiKeyTable extends StatelessWidget {
   const AdminApiKeyTable({
@@ -36,59 +37,60 @@ class AdminApiKeyTable extends StatelessWidget {
     return user.username;
   }
 
-  String _expiresLabel(AdminApiKey apiKey) {
+  String _expiresLabel(AdminApiKey apiKey, AppLocalizations l10n) {
     if (apiKey.expiresAt == null) {
-      return 'Never';
+      return l10n.statusNeverExpires;
     }
 
     if (apiKey.isExpired) {
-      return 'Expired';
+      return l10n.statusExpired;
     }
 
     return formatDateTimeLabel(apiKey.expiresAt);
   }
 
-  String _statusLabel(AdminApiKey apiKey) {
+  String _statusLabel(AdminApiKey apiKey, AppLocalizations l10n) {
     if (!apiKey.isActive) {
-      return 'Inactive';
+      return l10n.statusInactive;
     }
     if (apiKey.isExpired) {
-      return 'Expired';
+      return l10n.statusExpired;
     }
-    return 'Active';
+    return l10n.statusActive;
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return ExpressiveActionTable<AdminApiKey>(
       rows: apiKeys,
       columns: [
         ExpressiveTableColumn<AdminApiKey>(
           id: 'name',
-          label: 'Name',
+          label: l10n.fieldName,
           width: 180,
           cellBuilder: (context, apiKey) => Text(apiKey.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<AdminApiKey>(
           id: 'owner',
-          label: 'Owner',
+          label: l10n.fieldOwner,
           width: 130,
           cellBuilder: (context, apiKey) => Text(_ownerLabel(apiKey), maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<AdminApiKey>(
           id: 'status',
-          label: 'Status',
+          label: l10n.fieldStatus,
           width: 108,
-          cellBuilder: (context, apiKey) => Text(_statusLabel(apiKey)),
+          cellBuilder: (context, apiKey) => Text(_statusLabel(apiKey, l10n)),
         ),
         ExpressiveTableColumn<AdminApiKey>(
           id: 'expires',
-          label: 'Expires',
+          label: l10n.fieldExpires,
           width: 154,
           cellBuilder: (context, apiKey) => Text(
-            _expiresLabel(apiKey),
+            _expiresLabel(apiKey, l10n),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: apiKey.isExpired ? colorScheme.error : null),
@@ -96,7 +98,7 @@ class AdminApiKeyTable extends StatelessWidget {
         ),
         ExpressiveTableColumn<AdminApiKey>(
           id: 'created',
-          label: 'Created',
+          label: l10n.fieldCreated,
           width: 154,
           showOnMobile: false,
           cellBuilder: (context, apiKey) => Text(
@@ -116,20 +118,20 @@ class AdminApiKeyTable extends StatelessWidget {
       actions: [
         ExpressiveTableAction<AdminApiKey>(
           icon: Icons.edit_outlined,
-          tooltip: 'Edit API key',
+          tooltip: l10n.actionEdit,
           tone: ExpressiveTableActionTone.primary,
           onPressed: onEdit,
         ),
         ExpressiveTableAction<AdminApiKey>(
           icon: Icons.delete_outline_rounded,
-          tooltip: 'Delete API key',
+          tooltip: l10n.actionDelete,
           tone: ExpressiveTableActionTone.danger,
           onPressed: onDelete,
         ),
       ],
       loading: loading,
-      emptyTitle: 'No API keys found',
-      emptySubtitle: 'Create an API key to allow server integrations and automation clients.',
+      emptyTitle: l10n.statusNoApiKeysFound,
+      emptySubtitle: l10n.messageApiKeyPurpose,
     );
   }
 }

@@ -14,6 +14,7 @@ import 'package:yaabsa/screens/wear/components/wear_cover_grid_row.dart';
 import 'package:yaabsa/screens/wear/wear_item_screen.dart';
 import 'package:yaabsa/util/browse/compact_browse_models.dart';
 import 'package:yaabsa/util/globals.dart' show BreakpointContextX;
+import 'package:yaabsa/util/l10n.dart';
 
 class WearBrowseScreen extends ConsumerStatefulWidget {
   const WearBrowseScreen({required this.title, required this.query, super.key});
@@ -81,9 +82,9 @@ class _WearBrowseScreenState extends ConsumerState<WearBrowseScreen> {
         const Center(child: YaabsaCircularProgressIndicator(strokeWidth: 2, size: 32))
       else if (result.hasError) ...[
         Text(wearRequestError(result.error!), textAlign: TextAlign.center),
-        WearBrowseButton(title: 'Retry', icon: Icons.refresh, onPressed: _refresh),
+        WearBrowseButton(title: context.l10n.actionRetry, icon: Icons.refresh, onPressed: _refresh),
       ] else if (entries.isEmpty)
-        const Text('No items', textAlign: TextAlign.center),
+        Text(context.l10n.statusNoItems, textAlign: TextAlign.center),
       if (!result.isLoading && !result.hasError && feed?.loadingMore == true)
         const Padding(
           padding: EdgeInsets.all(12),
@@ -93,10 +94,14 @@ class _WearBrowseScreenState extends ConsumerState<WearBrowseScreen> {
         ),
       if (!result.isLoading && !result.hasError && feed?.loadMoreError != null) ...[
         Text(wearRequestError(feed!.loadMoreError!), textAlign: TextAlign.center),
-        WearBrowseButton(title: 'Retry', icon: Icons.refresh, onPressed: _loadMore),
+        WearBrowseButton(title: context.l10n.actionRetry, icon: Icons.refresh, onPressed: _loadMore),
       ],
       if (!result.isLoading && !result.hasError)
-        WearBrowseButton(title: 'Refresh', icon: Icons.refresh, onPressed: feed?.loadingMore == true ? null : _refresh),
+        WearBrowseButton(
+          title: context.l10n.actionRefresh,
+          icon: Icons.refresh,
+          onPressed: feed?.loadingMore == true ? null : _refresh,
+        ),
     ];
 
     return WearBrowseScaffold(

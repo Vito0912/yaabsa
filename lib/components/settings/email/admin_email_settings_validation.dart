@@ -1,3 +1,5 @@
+import 'package:yaabsa/util/l10n.dart' show AppLocalizations;
+
 class AdminEmailSettingsValidation {
   static final RegExp _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
@@ -6,59 +8,59 @@ class AdminEmailSettingsValidation {
     return trimmed.isEmpty ? null : trimmed;
   }
 
-  static String? validateHost(String value) {
+  static String? validateHost(String value, AppLocalizations l10n) {
     if (value.trim().isEmpty) {
-      return 'Host is required.';
+      return l10n.errorEmailHostRequired;
     }
     return null;
   }
 
-  static String? validatePort(String value) {
+  static String? validatePort(String value, AppLocalizations l10n) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      return 'Port is required.';
+      return l10n.errorEmailPortRequired;
     }
 
     final parsed = int.tryParse(trimmed);
     if (parsed == null) {
-      return 'Port must be a number.';
+      return l10n.errorEmailPortMustBeNumber;
     }
 
     if (parsed < 1 || parsed > 65535) {
-      return 'Port must be between 1 and 65535.';
+      return l10n.errorEmailPortRange(1, 65535);
     }
 
     return null;
   }
 
-  static String? validateOptionalEmail(String value, {required String fieldLabel}) {
+  static String? validateOptionalEmail(String value, {required String fieldLabel, required AppLocalizations l10n}) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
       return null;
     }
 
     if (!_emailPattern.hasMatch(trimmed)) {
-      return '$fieldLabel must be a valid email address.';
+      return l10n.errorEmailFieldInvalid(fieldLabel);
     }
 
     return null;
   }
 
-  static String? validateDeviceName(String value) {
+  static String? validateDeviceName(String value, AppLocalizations l10n) {
     if (value.trim().isEmpty) {
-      return 'Device name is required.';
+      return l10n.errorDeviceNameRequired;
     }
     return null;
   }
 
-  static String? validateDeviceEmail(String value) {
+  static String? validateDeviceEmail(String value, AppLocalizations l10n) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      return 'Device email is required.';
+      return l10n.errorDeviceEmailRequired;
     }
 
     if (!_emailPattern.hasMatch(trimmed)) {
-      return 'Device email must be a valid email address.';
+      return l10n.errorDeviceEmailInvalid;
     }
 
     return null;

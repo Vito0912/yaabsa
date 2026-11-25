@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ChangelogSection {
   const ChangelogSection({required this.title, required this.entries});
@@ -77,7 +78,7 @@ class Changelog {
 
       if (entries == null) {
         entries = [];
-        sections.add(ChangelogSection(title: 'Updates', entries: entries));
+        sections.add(ChangelogSection(title: currentAppLocalizations().changelogUpdates, entries: entries));
       }
 
       final text = line.replaceFirst(bullet, '').trim();

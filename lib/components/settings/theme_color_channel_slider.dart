@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
 
 class ThemeColorChannelSlider extends StatelessWidget {
   const ThemeColorChannelSlider({
@@ -16,6 +17,9 @@ class ThemeColorChannelSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+    final formattedValue = NumberFormat.decimalPattern(localeName).format(value);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -23,7 +27,7 @@ class ThemeColorChannelSlider extends StatelessWidget {
           children: [
             Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
             Text(
-              value.toString(),
+              formattedValue,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontFeatures: const [FontFeature.tabularFigures()],

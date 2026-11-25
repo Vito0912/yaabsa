@@ -1,44 +1,36 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
-import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_route_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
-import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
-class CachingSettings extends ConsumerWidget {
+class CachingSettings extends StatelessWidget {
   const CachingSettings({super.key});
 
   static const String routeName = '/settings/caching';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cachingSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.caching)).asData?.value;
-    final cachingDefault = defaultSettings[SettingKeys.caching] as bool? ?? true;
-    final isCachingEnabled = SettingsParser.decodeValue<bool>(cachingSetting, cachingDefault);
-
+  Widget build(BuildContext context) {
     return SettingsPageScaffold(
-      title: 'Caching Settings',
+      title: context.l10n.settingsCategoryCaching,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         SettingsNavigationSection(
-          title: 'Caching Subsettings',
+          title: context.l10n.settingsCategoryCaching,
           items: [
             SettingsNavigationItem(
               icon: Icons.tune_rounded,
-              title: 'General',
-              subtitle: 'Enable/disable caching and configure speedup mode behavior',
+              title: context.l10n.settingsCategoryGeneral,
+              subtitle: context.l10n.messageCachingGeneral,
               onTap: () => context.push(CachingGeneralSettings.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.route_rounded,
-              title: 'Route Rules',
-              subtitle: isCachingEnabled
-                  ? 'Configure endpoint-level cache behavior'
-                  : 'Open route rules (editing is disabled until caching is enabled)',
+              title: context.l10n.navCacheRouteRules,
+              subtitle: context.l10n.messageCacheRouteRules,
               onTap: () => context.push(CachingRouteSettings.routeName),
             ),
           ],

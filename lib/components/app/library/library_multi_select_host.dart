@@ -15,6 +15,7 @@ import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/components/app/downloads/download_helper.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryMultiSelectBindings {
   const LibraryMultiSelectBindings({
@@ -79,10 +80,9 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         return;
       }
 
-      final updateLabel = next.updates == 1 ? '1 book' : '${next.updates} books';
       final message = next.success && next.updates > 0
-          ? 'Metadata change request completed. $updateLabel updated.'
-          : 'Metadata change request completed.';
+          ? context.l10n.statusQuickMatchBatchCompleted(next.updates)
+          : context.l10n.statusQuickMatchBatchCompletedWithoutUpdates;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     });
 
@@ -259,7 +259,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canDownload)
         MultiSelectAppBarAction(
           icon: Icons.download_rounded,
-          tooltip: 'Download selected',
+          tooltip: context.l10n.actionDownloadSelectedItems,
           enabled: !selectionBusy.value && downloadableSelectedItems.isNotEmpty,
           onPressed: () {
             runAction(() async {
@@ -271,7 +271,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canAddToPlaylist)
         MultiSelectAppBarAction(
           icon: Icons.playlist_add_rounded,
-          tooltip: 'Add to playlist',
+          tooltip: context.l10n.actionAddToPlaylist,
           enabled: !selectionBusy.value,
           onPressed: () {
             runAction(
@@ -289,7 +289,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canAddToCollection)
         MultiSelectAppBarAction(
           icon: Icons.collections_bookmark_outlined,
-          tooltip: 'Add to collection',
+          tooltip: context.l10n.actionAddToCollection,
           enabled: !selectionBusy.value,
           onPressed: () {
             runAction(
@@ -306,7 +306,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canQuickMatchItems)
         MultiSelectAppBarAction(
           icon: Icons.auto_fix_high_rounded,
-          tooltip: 'Quick match selected books',
+          tooltip: context.l10n.actionQuickMatch,
           enabled: !selectionBusy.value,
           onPressed: () {
             runAction(
@@ -322,7 +322,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         ),
       MultiSelectAppBarAction(
         icon: allSelectedFinished ? Icons.remove_done_rounded : Icons.task_alt_rounded,
-        tooltip: allSelectedFinished ? 'Mark selected as unfinished' : 'Mark selected as finished',
+        tooltip: allSelectedFinished ? context.l10n.actionMarkAsUnfinished : context.l10n.actionMarkAsFinished,
         enabled: !selectionBusy.value,
         onPressed: () {
           runAction(() {
@@ -347,7 +347,9 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canDeleteItems)
         MultiSelectAppBarAction(
           icon: Icons.delete_outline_rounded,
-          tooltip: hasDeletableSelectedItems ? 'Delete selected audiobooks' : 'No selected audiobooks can be deleted',
+          tooltip: hasDeletableSelectedItems
+              ? context.l10n.actionDeleteSelectedAudiobooks
+              : context.l10n.statusNoSelectedAudiobooksCanBeDeleted,
           enabled: !selectionBusy.value && hasDeletableSelectedItems,
           onPressed: () {
             runAction(() async {

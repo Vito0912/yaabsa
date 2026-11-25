@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/theme/component_styles.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 const double _minimumInlineMetadataValueWidth = 180;
 
@@ -55,7 +56,7 @@ class ItemHeroCard extends StatelessWidget {
                       value: progressValue.clamp(0.0, 1.0),
                       minHeight: 6,
                       backgroundColor: Colors.black54,
-                      semanticsLabel: 'Listening progress',
+                      semanticsLabel: context.l10n.fieldProgress,
                     ),
                   ),
                   Positioned(
@@ -68,7 +69,7 @@ class ItemHeroCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '${(progressValue.clamp(0.0, 1.0) * 100).toStringAsFixed(1)}%',
+                        context.l10n.progressPercent(progressValue.clamp(0.0, 1.0).toDouble()),
                         style: theme.textTheme.labelMedium,
                       ),
                     ),
@@ -114,8 +115,12 @@ class ItemHeroCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
-                    Text('Book details', style: theme.textTheme.labelLarge),
+                    IconButton(
+                      onPressed: onBack,
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      tooltip: context.l10n.actionBack,
+                    ),
+                    Text(context.l10n.headingBookDetails, style: theme.textTheme.labelLarge),
                   ],
                 ),
                 if (!placeActionsBesideCover) ...[
@@ -215,7 +220,7 @@ class ItemMetadataCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showHeading) ...[
-            Text('Book information', style: Theme.of(context).textTheme.titleMedium),
+            Text(context.l10n.headingBookInformation, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
           ],
           if (gridLayout)

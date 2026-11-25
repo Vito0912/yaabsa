@@ -34,6 +34,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -100,18 +101,9 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   bool _didRequestAaosMediaCenterLaunch = false;
   bool _aaosMediaCenterLaunchFailed = false;
 
-  late final NavigationItemConfig _downloadsMenuItem;
-  late final List<NavigationItemConfig> _advancedMenuItems;
-
   @override
   void initState() {
     super.initState();
-    _downloadsMenuItem = const NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads());
-    _advancedMenuItems = const [
-      NavigationItemConfig(icon: Icons.bar_chart_rounded, label: "Stats", page: StatsView()),
-      NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
-    ];
-
     _currentlyDisplayedPageSource = _pageSourceFor(widget.child);
 
     final settings = containerRef.read(settingsManagerProvider.notifier);
@@ -137,7 +129,13 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   _PageSource _pageSourceFor(Widget? child) => child == null ? _PageSource.internal : _PageSource.child;
 
   List<NavigationItemConfig> _visibleAdvancedMenuItems() {
-    return [_downloadsMenuItem, ..._advancedMenuItems];
+    final l10n = context.l10n;
+
+    return [
+      NavigationItemConfig(icon: Icons.download, label: l10n.navDownloads, page: const Downloads()),
+      NavigationItemConfig(icon: Icons.bar_chart_rounded, label: l10n.navStats, page: StatsView()),
+      NavigationItemConfig(icon: Icons.settings, label: l10n.navSettings, page: MainSettingsScreen()),
+    ];
   }
 
   HomeNavigationPreferences _resolvePrimaryPreferences({required String? userId, required String? libraryMediaType}) {
@@ -160,6 +158,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     required HomeNavigationPreferences preferences,
     required bool isAdminUser,
   }) {
+    final l10n = context.l10n;
     final views = <HomePrimaryView>[];
     for (final view in preferences.visibleViews) {
       if (view == HomePrimaryView.podcastAdd && !isAdminUser) {
@@ -172,11 +171,11 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     final issueCount = selectedLibrary == null
         ? 0
         : ref.read(libraryFilterDataProvider(selectedLibrary.id)).value?.numIssues ?? 0;
-    if (issueCount > 0 || (_lastSelectedLabel == 'Issues' && selectedLibrary != null)) {
+    if (issueCount > 0 || (_lastSelectedLabel == l10n.navIssues && selectedLibrary != null)) {
       items.add(
         NavigationItemConfig(
           icon: Icons.warning_amber_rounded,
-          label: 'Issues',
+          label: l10n.navIssues,
           badgeCount: issueCount,
           page: const LibraryView(key: ValueKey('issues'), initialFilter: 'issues'),
         ),
@@ -310,16 +309,17 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   }
 
   String _tabIntentForLabel(String label) {
+    final l10n = context.l10n;
     final mappedPrimaryView = HomePrimaryView.fromLabel(label);
     if (mappedPrimaryView != null) {
       return mappedPrimaryView.tabIntent;
     }
 
     return switch (label) {
-      'Downloads' => 'downloads',
-      'Stats' => 'stats',
-      'Settings' => 'settings',
-      'Issues' => 'issues',
+      _ when label == l10n.navDownloads => 'downloads',
+      _ when label == l10n.navStats => 'stats',
+      _ when label == l10n.navSettings => 'settings',
+      _ when label == l10n.navIssues => 'issues',
       _ => 'shelf',
     };
   }
@@ -456,12 +456,13 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     final shouldLeave = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final l10n = context.l10n;
         return AlertDialog(
-          title: const Text('Leave upload page?'),
-          content: const Text('Leaving this page now cancels active uploads. Continue?'),
+          title: Text(l10n.headingLeaveUploadPage),
+          content: Text(l10n.promptLeaveUploadPageDuringUpload),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Stay here')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Leave page')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.actionStayHere)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.actionLeavePage)),
           ],
         );
       },
@@ -564,9 +565,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
           if (!context.mounted) {
             return;
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to open the Media Center. Try Open Car Library in Settings.')),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(context.l10n.errorUnableToOpenMediaCenter)));
         });
       }
 
@@ -613,6 +613,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     );
     final advancedMenuItems = _visibleAdvancedMenuItems();
 
+    final l10n = context.l10n;
     final uri = GoRouterState.of(context).uri;
     final queryParameters = uri.queryParameters;
     final tabIntent = queryParameters['tab'] ?? (uri.path == '/' ? primaryPreferences.defaultView.tabIntent : null);
@@ -622,10 +623,10 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       final targetLabel =
           targetPrimaryView?.label ??
           switch (tabIntent) {
-            'downloads' => 'Downloads',
-            'stats' => 'Stats',
-            'settings' => 'Settings',
-            'issues' => 'Issues',
+            'downloads' => l10n.navDownloads,
+            'stats' => l10n.navStats,
+            'settings' => l10n.navSettings,
+            'issues' => l10n.navIssues,
             _ => primaryPreferences.defaultView.label,
           };
 

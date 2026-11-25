@@ -5,6 +5,7 @@ import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class PlayerSettingsCompatibility extends StatelessWidget {
   const PlayerSettingsCompatibility({super.key});
@@ -18,30 +19,25 @@ class PlayerSettingsCompatibility extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
-      title: 'Player - Compatibility',
+      title: context.l10n.settingsCategoryCompatibility,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
         SettingsNavigationSection(
-          title: 'Audio Decoding',
+          title: context.l10n.settingsCategoryAudioDecoding,
           topPadding: 0,
           settings: [
             if (_supportsFdkAacDecoder)
               SettingSwitchTile(
-                label: 'Disable FDK AAC decoder',
-                subtitle:
-                    'Enable if AAC playback crashes with your installed codecs. '
-                    'Uses other available decoders or server transcoding. '
-                    'Applies to system and bundled codecs. Restart the app to apply.',
+                label: context.l10n.settingDisableFdkAacDecoder,
+                subtitle: context.l10n.settingDisableFdkAacDecoderDescription,
                 settingKey: SettingKeys.disableFdkAacDecoder,
               ),
             if (_supportsIndexSeeking)
               SettingSwitchTile(
-                label: 'Enable MP3 index seeking',
-                subtitle:
-                    'Improve seeking compatibility for MP3 files. '
-                    'Seeking may be slower and use more data. Restart the app to apply.',
+                label: context.l10n.settingEnableMp3IndexSeeking,
+                subtitle: context.l10n.settingEnableMp3IndexSeekingDescription,
                 settingKey: SettingKeys.enableIndexSeeking,
               ),
           ],

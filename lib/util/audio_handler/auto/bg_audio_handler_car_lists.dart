@@ -35,7 +35,7 @@ extension _BGAudioHandlerCarLists on BGAudioHandler {
         _androidAutoBrowsableItem(
           id: _androidAutoLibraryNodeId(libraryId),
           title: tab.label,
-          subtitle: 'Unable to load. Select to retry.',
+          subtitle: currentAppLocalizations().statusUnableToLoadRetry,
         ),
       ];
     }
@@ -63,12 +63,13 @@ extension _BGAudioHandlerCarLists on BGAudioHandler {
   }
 
   List<MediaItem> _carListRanges(String libraryId, String kind, int total) {
-    final label = kind == 'collections' ? 'Collections' : 'Playlists';
+    final l10n = currentAppLocalizations();
+    final label = kind == 'collections' ? l10n.navCollections : l10n.navPlaylists;
     return carListRanges(total)
         .map((range) {
           return _androidAutoBrowsableItem(
             id: _CarBrowsePage(libraryId, kind, range.page).id,
-            title: '$label ${range.first} to ${range.last}',
+            title: l10n.listRangeTitle(label, range.first, range.last),
           );
         })
         .toList(growable: false);

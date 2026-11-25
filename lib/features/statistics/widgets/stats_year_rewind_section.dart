@@ -6,6 +6,7 @@ import 'package:yaabsa/features/statistics/widgets/statistics_components.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_ranked_panel.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class StatsYearRewindSection extends StatelessWidget {
   const StatsYearRewindSection({
@@ -33,7 +34,7 @@ class StatsYearRewindSection extends StatelessWidget {
             Expanded(
               child: YaabsaExpressiveDropdownField<int>(
                 value: availableYears.contains(selectedYear) ? selectedYear : availableYears.first,
-                decoration: const InputDecoration(labelText: 'Year', isDense: true),
+                decoration: InputDecoration(labelText: context.l10n.fieldYear, isDense: true),
                 options: [
                   for (final year in availableYears) YaabsaDropdownOption<int>(value: year, label: year.toString()),
                 ],
@@ -45,7 +46,11 @@ class StatsYearRewindSection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            IconButton(tooltip: 'Refresh', onPressed: onRefresh, icon: const Icon(Icons.refresh_rounded)),
+            IconButton(
+              tooltip: context.l10n.actionRefresh,
+              onPressed: onRefresh,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -54,7 +59,7 @@ class StatsYearRewindSection extends StatelessWidget {
           skipLoadingOnReload: true,
           data: (stats) {
             if (stats == null) {
-              return const Text('No year-in-review data available for this year.');
+              return Text(context.l10n.statsYearUnavailable);
             }
 
             final totalSessions = stats.totalListeningSessions ?? stats.numListeningSessions ?? 0;
@@ -70,7 +75,7 @@ class StatsYearRewindSection extends StatelessWidget {
                 _YearSpotlightCard(
                   year: selectedYear,
                   totalTime: formatListeningSeconds(totalTime),
-                  sessions: '$totalSessions sessions',
+                  sessions: context.l10n.sessionCount(totalSessions),
                   peakMonth: mostListenedMonth == null ? null : '$mostListenedMonth • $peakMonthListening',
                 ),
                 const SizedBox(height: 14),
@@ -78,56 +83,68 @@ class StatsYearRewindSection extends StatelessWidget {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _YearMetricChip(icon: Icons.headset_rounded, label: 'Sessions', value: '$totalSessions'),
+                    _YearMetricChip(
+                      icon: Icons.headset_rounded,
+                      label: context.l10n.fieldSessions,
+                      value: context.l10n.sessionCount(totalSessions),
+                    ),
                     _YearMetricChip(
                       icon: Icons.schedule_rounded,
-                      label: 'Listening',
+                      label: context.l10n.fieldListeningTime,
                       value: formatListeningSeconds(totalTime),
                     ),
-                    _YearMetricChip(icon: Icons.task_alt_rounded, label: 'Books Finished', value: '$booksFinished'),
-                    _YearMetricChip(icon: Icons.menu_book_rounded, label: 'Books Listened', value: '$booksListened'),
+                    _YearMetricChip(
+                      icon: Icons.task_alt_rounded,
+                      label: context.l10n.fieldBooksFinished,
+                      value: context.l10n.bookCount(booksFinished),
+                    ),
+                    _YearMetricChip(
+                      icon: Icons.menu_book_rounded,
+                      label: context.l10n.fieldBooksListened,
+                      value: context.l10n.bookCount(booksListened),
+                    ),
                     if (mostListenedMonth != null)
                       _YearMetricChip(
                         icon: Icons.calendar_month_rounded,
-                        label: 'Peak Month',
+                        label: context.l10n.fieldPeakMonth,
                         value: '$mostListenedMonth ($peakMonthListening)',
                       ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 StatsRankedPanel(
-                  title: 'Top Authors',
+                  title: context.l10n.headingTopAuthors,
                   icon: Icons.person_outline_rounded,
                   entries: [
                     for (final author in stats.topAuthors)
                       StatsRankedEntry(
-                        label: author.name ?? 'Unknown Author',
+                        label: author.name ?? context.l10n.unknownAuthor,
                         value: (author.time ?? 0).toDouble(),
                         trailing: formatListeningSeconds(author.time),
                       ),
                   ],
                   previewCount: 5,
-                  emptyMessage: 'No top authors for this year.',
+                  emptyMessage: context.l10n.statsNoTopAuthorsYear,
                 ),
                 const SizedBox(height: 16),
                 StatsRankedPanel(
-                  title: 'Top Genres',
+                  title: context.l10n.headingTopGenres,
                   icon: Icons.local_offer_outlined,
                   entries: [
                     for (final genre in stats.topGenres)
                       StatsRankedEntry(
-                        label: genre.genre ?? 'Unknown Genre',
+                        label: genre.genre ?? context.l10n.unknownGenre,
                         value: (genre.time ?? 0).toDouble(),
                         trailing: formatListeningSeconds(genre.time),
                       ),
                   ],
                   previewCount: 5,
-                  emptyMessage: 'No top genres for this year.',
+                  emptyMessage: context.l10n.statsNoTopGenresYear,
                 ),
                 if (stats.topNarrators.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   StatsRankedPanel(
-                    title: 'Top Narrators',
+                    title: context.l10n.headingTopNarrators,
                     icon: Icons.record_voice_over_rounded,
                     entries: [
                       for (final narrator in stats.topNarrators)
@@ -138,7 +155,7 @@ class StatsYearRewindSection extends StatelessWidget {
                         ),
                     ],
                     previewCount: 5,
-                    emptyMessage: 'No top narrators for this year.',
+                    emptyMessage: context.l10n.statsNoTopNarratorsYear,
                   ),
                 ],
               ],
@@ -156,22 +173,7 @@ class StatsYearRewindSection extends StatelessWidget {
       return null;
     }
 
-    const names = <String>[
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    return names[month - 1];
+    return formatMonthName(DateTime(2024, month));
   }
 }
 
@@ -246,14 +248,17 @@ class _YearSpotlightCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$year in rewind', style: theme.textTheme.labelLarge),
+            Text(context.l10n.headingYearRewind(year), style: theme.textTheme.labelLarge),
             const SizedBox(height: 4),
             Text(totalTime, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 2),
             Text(sessions, style: theme.textTheme.bodyMedium),
             if (peakMonth != null) ...[
               const SizedBox(height: 6),
-              Text('Peak month: $peakMonth', style: theme.textTheme.bodySmall),
+              Text(
+                context.l10n.statsPeakMonthValue(context.l10n.fieldPeakMonth, peakMonth!),
+                style: theme.textTheme.bodySmall,
+              ),
             ],
           ],
         ),
@@ -273,7 +278,7 @@ class _YearErrorView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Failed to load year-in-review stats.', style: Theme.of(context).textTheme.bodyMedium),
+        Text(context.l10n.statsYearLoadError, style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 6),
         Text(
           error.toString(),
@@ -282,7 +287,11 @@ class _YearErrorView extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 10),
-        OutlinedButton.icon(onPressed: onRefresh, icon: const Icon(Icons.refresh_rounded), label: const Text('Retry')),
+        OutlinedButton.icon(
+          onPressed: onRefresh,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text(context.l10n.actionRetry),
+        ),
       ],
     );
   }

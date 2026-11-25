@@ -9,6 +9,7 @@ import 'package:yaabsa/components/settings/admin_users/admin_user_permissions_ed
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/lists/multi_select_list_card.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum AdminUserFormMode { create, edit }
 
@@ -152,7 +153,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
 
   String? _validateUsername(String value) {
     if (value.trim().isEmpty) {
-      return 'Username is required.';
+      return currentAppLocalizations().validationUsernameRequired;
     }
     return null;
   }
@@ -163,7 +164,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
       return null;
     }
     if (!email.contains('@')) {
-      return 'Please enter a valid email address.';
+      return currentAppLocalizations().errorEmailInvalid;
     }
     return null;
   }
@@ -173,7 +174,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
       return null;
     }
     if (value.trim().isEmpty) {
-      return 'Password is required when creating a user.';
+      return currentAppLocalizations().errorPasswordRequiredForNewUser;
     }
     return null;
   }
@@ -258,13 +259,14 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
       if (success) {
         _hasLinkedOpenId = false;
       } else {
-        _validationError = 'Failed to unlink OpenID.';
+        _validationError = currentAppLocalizations().errorUnlinkOpenId;
       }
     });
 
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger != null) {
-      messenger.showSnackBar(SnackBar(content: Text(success ? 'OpenID link removed.' : 'Could not unlink OpenID.')));
+      final l10n = currentAppLocalizations();
+      messenger.showSnackBar(SnackBar(content: Text(success ? l10n.statusOpenIdLinkRemoved : l10n.errorUnlinkOpenId)));
     }
   }
 
@@ -322,6 +324,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
   }
 
   Widget _buildAccountAndPermissionsSection(BuildContext context) {
+    final l10n = context.l10n;
     final accountTypeOptions = <String>{'admin', 'user', 'guest'};
     if (_type == 'root' || widget.initialValue.type.trim().toLowerCase() == 'root') {
       accountTypeOptions.add('root');
@@ -337,14 +340,17 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Account', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  l10n.accountLabel,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 10),
                 StyledTextField(
                   controller: _usernameController,
                   enabled: !_isSubmitting,
                   onChanged: (_) => _revalidateUsername(),
                   textInputAction: TextInputAction.next,
-                  label: 'Username',
+                  label: l10n.fieldUsername,
                   errorText: _usernameError,
                 ),
                 const SizedBox(height: 12),
@@ -354,21 +360,25 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                   onChanged: (_) => _revalidateEmail(),
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  label: 'Email',
+                  label: l10n.fieldEmail,
                   errorText: _emailError,
                 ),
                 const SizedBox(height: 12),
                 YaabsaExpressiveDropdownField<String>(
                   value: _type,
                   decoration: InputDecoration(
-                    labelText: 'Account type',
-                    helperText: _canEditType ? null : 'Root account type cannot be changed.',
+                    labelText: l10n.fieldAccountType,
+                    helperText: _canEditType ? null : l10n.errorRootAccountTypeLocked,
                   ),
                   options: accountTypeOptions
                       .toList()
                       .map(
-                        (type) =>
-                            YaabsaDropdownOption<String>(value: type, label: type == 'root' ? 'root (reserved)' : type),
+                        (type) => YaabsaDropdownOption<String>(
+                          value: type,
+                          label: type == 'root'
+                              ? l10n.userRoleReservedName(l10n.userRoleName(type))
+                              : l10n.userRoleName(type),
+                        ),
                       )
                       .toList(growable: false),
                   onChanged: (_isSubmitting || !_canEditType) ? null : _onTypeChanged,
@@ -376,10 +386,8 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                 const SizedBox(height: 8),
                 YaabsaSwitchTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('User is active'),
-                  subtitle: Text(
-                    _isRootType ? 'Root account is always active.' : 'Disabled users cannot log in or access content.',
-                  ),
+                  title: Text(l10n.settingUserActive),
+                  subtitle: Text(_isRootType ? l10n.statusRootAccountAlwaysActive : l10n.settingUserActiveDescription),
                   value: _isRootType ? true : _isActive,
                   onChanged: (_isSubmitting || _isRootType)
                       ? null
@@ -395,8 +403,8 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                   enabled: !_isSubmitting,
                   onChanged: (_) => _revalidatePassword(),
                   obscureText: true,
-                  label: _isCreateMode ? 'Password' : 'New password',
-                  helperText: _isCreateMode ? null : 'Leave empty to keep current password.',
+                  label: _isCreateMode ? l10n.fieldPassword : l10n.fieldNewPassword,
+                  helperText: _isCreateMode ? null : l10n.promptLeavePasswordEmptyToKeepCurrent,
                   errorText: _passwordError,
                 ),
               ],
@@ -414,6 +422,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
   }
 
   Widget _buildAccessSection(BuildContext context) {
+    final l10n = context.l10n;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -422,14 +431,14 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Library and Tag Access',
+              l10n.headingLibraryAndTagAccess,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
             YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Can access all libraries'),
+              title: Text(l10n.permissionAccessAllLibraries),
               value: _permissions.accessAllLibraries,
               onChanged: _isSubmitting
                   ? null
@@ -444,11 +453,11 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
             ),
             if (!_permissions.accessAllLibraries)
               YaabsaMultiSelectListCard(
-                title: 'Libraries',
+                title: l10n.navLibraries,
                 options: _libraryOptions(),
                 selectedIds: _selectedLibraries,
                 enabled: !_isSubmitting,
-                emptyMessage: 'No libraries available.',
+                emptyMessage: l10n.statusNoLibrariesFound,
                 onSelectionChanged: (next) {
                   setState(() {
                     _selectedLibraries = next;
@@ -459,7 +468,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
             YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Can access all tags'),
+              title: Text(l10n.permissionAccessAllTags),
               value: _permissions.accessAllTags,
               onChanged: _isSubmitting
                   ? null
@@ -476,8 +485,8 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
               YaabsaSwitchTile.adaptive(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Invert selected tags'),
-                subtitle: const Text('When enabled, selected tags are blocked instead of allowed.'),
+                title: Text(l10n.settingInvertSelectedTags),
+                subtitle: Text(l10n.settingInvertSelectedTagsDescription),
                 value: _permissions.selectedTagsNotAccessible,
                 onChanged: _isSubmitting
                     ? null
@@ -487,11 +496,11 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
               ),
             if (!_permissions.accessAllTags)
               YaabsaMultiSelectListCard(
-                title: 'Tags',
+                title: l10n.fieldTags,
                 options: _tagOptions(),
                 selectedIds: _selectedTags,
                 enabled: !_isSubmitting,
-                emptyMessage: 'No tags available.',
+                emptyMessage: l10n.statusNoTagsFound,
                 onSelectionChanged: (next) {
                   setState(() {
                     _selectedTags = next;
@@ -506,6 +515,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.9;
     final isMobile = context.isMobile;
     final isDesktop = context.isDesktop;
@@ -527,12 +537,12 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                 children: [
                   Expanded(
                     child: Text(
-                      _isCreateMode ? 'Add User' : 'Edit User',
+                      _isCreateMode ? l10n.actionAddUser : l10n.headingEditUser,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: l10n.actionClose,
                     onPressed: (_isSubmitting || _isUnlinking) ? null : () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -592,12 +602,12 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                               child: YaabsaCircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.link_off_rounded),
-                      label: const Text('Unlink OpenID'),
+                      label: Text(l10n.actionUnlinkOpenId),
                     ),
                   const Spacer(),
                   TextButton(
                     onPressed: (_isSubmitting || _isUnlinking) ? null : () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.actionCancel),
                   ),
                   const SizedBox(width: 8),
                   FilledButton.icon(
@@ -605,7 +615,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                     icon: _isSubmitting
                         ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.save_outlined),
-                    label: Text(_isCreateMode ? 'Create user' : 'Save changes'),
+                    label: Text(_isCreateMode ? l10n.actionCreate : l10n.actionSave),
                   ),
                 ],
               ),

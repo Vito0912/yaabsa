@@ -4,12 +4,13 @@ import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/sessions/listening_session_utils.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ListeningSessionTable extends StatelessWidget {
   const ListeningSessionTable({
     required this.sessions,
     super.key,
-    this.emptyMessage = 'No listening sessions found.',
+    this.emptyMessage,
     this.onSessionTap,
     this.usernameForSession,
     this.showSelection = false,
@@ -20,7 +21,7 @@ class ListeningSessionTable extends StatelessWidget {
   });
 
   final List<PlaybackSession> sessions;
-  final String emptyMessage;
+  final String? emptyMessage;
   final Future<void> Function(PlaybackSession session)? onSessionTap;
   final String? Function(PlaybackSession session)? usernameForSession;
   final bool showSelection;
@@ -40,7 +41,7 @@ class ListeningSessionTable extends StatelessWidget {
       actions: actions,
       actionsColumnWidth: actionsColumnWidth,
       onRowTap: onSessionTap,
-      emptyTitle: emptyMessage,
+      emptyTitle: emptyMessage ?? context.l10n.sessionNoResults,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       showSelection: showSelection,
@@ -51,14 +52,14 @@ class ListeningSessionTable extends StatelessWidget {
       columns: [
         ExpressiveTableColumn<PlaybackSession>(
           id: 'title',
-          label: 'Title',
+          label: context.l10n.fieldTitle,
           width: 220,
           cellBuilder: (context, session) =>
               Text(listeningSessionTitle(session), maxLines: 2, overflow: TextOverflow.ellipsis),
         ),
         ExpressiveTableColumn<PlaybackSession>(
           id: 'author',
-          label: 'Author',
+          label: context.l10n.fieldAuthor,
           width: 160,
           showOnMobile: false,
           cellBuilder: (context, session) =>
@@ -67,7 +68,7 @@ class ListeningSessionTable extends StatelessWidget {
         if (usernameForSession != null)
           ExpressiveTableColumn<PlaybackSession>(
             id: 'user',
-            label: 'User',
+            label: context.l10n.fieldUser,
             width: 140,
             cellBuilder: (context, session) =>
                 Text(usernameForSession!(session) ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -75,7 +76,7 @@ class ListeningSessionTable extends StatelessWidget {
 
         ExpressiveTableColumn<PlaybackSession>(
           id: 'device',
-          label: 'Device',
+          label: context.l10n.fieldDevice,
           width: 100,
           showOnMobile: false,
           cellBuilder: (context, session) =>
@@ -83,7 +84,7 @@ class ListeningSessionTable extends StatelessWidget {
         ),
         ExpressiveTableColumn<PlaybackSession>(
           id: 'date',
-          label: 'Date',
+          label: context.l10n.fieldDate,
           width: 100,
           tooltipBuilder: (session) {
             final dt = listeningSessionDateTime(session);
@@ -91,12 +92,16 @@ class ListeningSessionTable extends StatelessWidget {
           },
           cellBuilder: (context, session) {
             final dt = listeningSessionDateTime(session);
-            return Text(dt != null ? timeago.format(dt) : '-', maxLines: 2, overflow: TextOverflow.ellipsis);
+            return Text(
+              dt != null ? timeago.format(dt, locale: Localizations.localeOf(context).languageCode) : '-',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            );
           },
         ),
         ExpressiveTableColumn<PlaybackSession>(
           id: 'time',
-          label: 'Time',
+          label: context.l10n.fieldTime,
           width: 100,
           alignment: ExpressiveTableCellAlignment.end,
           cellBuilder: (context, session) =>
@@ -104,7 +109,7 @@ class ListeningSessionTable extends StatelessWidget {
         ),
         ExpressiveTableColumn<PlaybackSession>(
           id: 'progress',
-          label: 'Progress',
+          label: context.l10n.fieldProgress,
           width: 100,
           showOnMobile: false,
           alignment: ExpressiveTableCellAlignment.end,

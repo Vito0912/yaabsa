@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:yaabsa/api/json/value_parsers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ElevenLabsSpeechException implements Exception {
   const ElevenLabsSpeechException(this.message);
@@ -21,13 +22,14 @@ ElevenLabsSpeechException elevenLabsRequestException(DioException error, {requir
   final status = error.response?.statusCode;
 
   String message;
+  final l10n = currentAppLocalizations();
 
   if (code == 'invalid_api_key' ||
       code == 'missing_api_key' ||
       code == 'expired_api_key' ||
       code == 'api_key_expired' ||
       code == 'invalid_authorization_header') {
-    message = 'ElevenLabs rejected the API key. Check your key in Read aloud settings';
+    message = l10n.errorElevenLabsApiKeyRejected;
   } else if (const {
         'missing_permissions',
         'missing_permission',
@@ -37,24 +39,22 @@ ElevenLabsSpeechException elevenLabsRequestException(DioException error, {requir
       }.contains(code) ||
       type == 'authorization_error') {
     message = switch (permission) {
-      'models_read' => 'This key cannot list models. Enable Models read permission or use the available model choices',
-      'voices_read' => 'This key cannot list voices. Enable Voices read permission or enter a voice ID below',
-      _ => 'Enable Text to speech permission for this ElevenLabs key',
+      'models_read' => l10n.errorElevenLabsModelsReadPermission,
+      'voices_read' => l10n.errorElevenLabsVoicesReadPermission,
+      _ => l10n.errorElevenLabsSpeechPermission,
     };
   } else {
     message = switch ((status, code)) {
-      (_, 'quota_exceeded') => 'Your ElevenLabs account has no speech credits available',
-      (_, 'payment_issue' || 'payment_required') ||
-      (402, _) => 'Check your ElevenLabs billing and available speech credits',
-      (_, 'voice_not_found' || 'model_not_found') || (404, _) => 'The selected ElevenLabs voice or model was not found',
-      (_, 'max_character_limit_exceeded') => 'This text exceeds the selected ElevenLabs model character limit',
-      (_, 'paid_plan_required' || 'subscription_required') =>
-        'The selected ElevenLabs voice or model requires a different plan',
-      (401, _) => 'ElevenLabs could not authorize this request. Check your API key and its permissions',
-      (403, _) => 'Your ElevenLabs key or account does not allow this operation',
-      (429, _) => 'ElevenLabs is busy or rate limited. Try again shortly',
-      (400 || 422, _) => 'ElevenLabs rejected the speech settings. Check the model, language and voice ID',
-      _ => 'Could not reach ElevenLabs. Check your connection and try again',
+      (_, 'quota_exceeded') => l10n.errorElevenLabsNoCredits,
+      (_, 'payment_issue' || 'payment_required') || (402, _) => l10n.errorElevenLabsBillingIssue,
+      (_, 'voice_not_found' || 'model_not_found') || (404, _) => l10n.errorElevenLabsVoiceOrModelNotFound,
+      (_, 'max_character_limit_exceeded') => l10n.errorElevenLabsCharacterLimit,
+      (_, 'paid_plan_required' || 'subscription_required') => l10n.errorElevenLabsPlanRequired,
+      (401, _) => l10n.errorElevenLabsUnauthorized,
+      (403, _) => l10n.errorElevenLabsNotAllowed,
+      (429, _) => l10n.errorElevenLabsRateLimited,
+      (400 || 422, _) => l10n.errorElevenLabsSpeechSettingsRejected,
+      _ => l10n.errorElevenLabsUnavailable,
     };
   }
 

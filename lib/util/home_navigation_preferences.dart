@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 enum HomeLibraryMediaType {
@@ -14,9 +15,9 @@ enum HomeLibraryMediaType {
   String get label {
     switch (this) {
       case HomeLibraryMediaType.book:
-        return 'Book';
+        return currentAppLocalizations().mediaTypeAudiobook;
       case HomeLibraryMediaType.podcast:
-        return 'Podcast';
+        return currentAppLocalizations().mediaTypePodcast;
     }
   }
 }
@@ -39,23 +40,23 @@ enum HomePrimaryView {
   String get label {
     switch (this) {
       case HomePrimaryView.shelf:
-        return 'Shelf';
+        return currentAppLocalizations().homeShelf;
       case HomePrimaryView.latestEpisodes:
-        return 'Latest Episodes';
+        return currentAppLocalizations().shelfLatestEpisodes;
       case HomePrimaryView.library:
-        return 'Library';
+        return currentAppLocalizations().navLibrary;
       case HomePrimaryView.podcastAdd:
-        return 'Add';
+        return currentAppLocalizations().actionAdd;
       case HomePrimaryView.collections:
-        return 'Collections';
+        return currentAppLocalizations().navCollections;
       case HomePrimaryView.playlists:
-        return 'Playlists';
+        return currentAppLocalizations().navPlaylists;
       case HomePrimaryView.series:
-        return 'Series';
+        return currentAppLocalizations().navSeries;
       case HomePrimaryView.authors:
-        return 'Authors';
+        return currentAppLocalizations().navAuthors;
       case HomePrimaryView.narrators:
-        return 'Narrators';
+        return currentAppLocalizations().navNarrators;
     }
   }
 

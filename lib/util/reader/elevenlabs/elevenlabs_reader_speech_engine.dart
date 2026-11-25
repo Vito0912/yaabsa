@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/util/reader/elevenlabs/elevenlabs_speech_api.dart';
 import 'package:yaabsa/util/reader/elevenlabs/elevenlabs_speech_clip.dart';
 import 'package:yaabsa/util/reader/reader_speech_engine.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ElevenLabsReaderSpeechEngine implements ReaderSpeechEngine {
   ElevenLabsReaderSpeechEngine({required this.api, required this.readModel});
@@ -109,7 +110,7 @@ class ElevenLabsReaderSpeechEngine implements ReaderSpeechEngine {
       final model = readModel();
 
       if (!isAllowedElevenLabsModel(model)) {
-        throw const ElevenLabsSpeechException('Choose a v2 or v4 ElevenLabs model');
+        throw ElevenLabsSpeechException(currentAppLocalizations().errorElevenLabsModelRequired);
       }
 
       final configuration = (key, model, request.voice, request.language, request.rate);
@@ -263,7 +264,7 @@ class ElevenLabsReaderSpeechEngine implements ReaderSpeechEngine {
     });
     final errorSubscription = player.errorStream.listen((error) {
       if (!completed.isCompleted) {
-        completed.completeError(const ElevenLabsSpeechException('Could not play ElevenLabs audio'));
+        completed.completeError(ElevenLabsSpeechException(currentAppLocalizations().errorReaderSpeechAudioUnavailable));
       }
     });
 
@@ -272,7 +273,9 @@ class ElevenLabsReaderSpeechEngine implements ReaderSpeechEngine {
 
       player.play().catchError((Object error) {
         if (!completed.isCompleted) {
-          completed.completeError(const ElevenLabsSpeechException('Could not play ElevenLabs audio'));
+          completed.completeError(
+            ElevenLabsSpeechException(currentAppLocalizations().errorReaderSpeechAudioUnavailable),
+          );
         }
       }).ignore();
       await waiting;

@@ -9,6 +9,7 @@ import 'package:yaabsa/screens/player/components/play_history_event_group_tile.d
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayHistoryLocalTab extends ConsumerStatefulWidget {
@@ -50,10 +51,10 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider).value;
     if (user == null) {
-      return const _HistoryMessage(
+      return _HistoryMessage(
         icon: Icons.person_off_outlined,
-        title: 'No active user',
-        message: 'Sign in to view playback activity.',
+        title: context.l10n.errorNoActiveUser,
+        message: context.l10n.hintSignInToViewActivity,
       );
     }
 
@@ -80,8 +81,8 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         if (snapshot.hasError) {
           return _HistoryMessage(
             icon: Icons.error_outline_rounded,
-            title: 'Could not load activity',
-            message: snapshot.error.toString(),
+            title: context.l10n.statsActivityUnavailable,
+            message: context.l10n.errorRetryCheckConnection,
           );
         }
         if (!snapshot.hasData) {
@@ -94,10 +95,10 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
 
   Widget _buildHistory(BuildContext context, List<PlayerHistoryEntry> history) {
     if (history.isEmpty) {
-      return const _HistoryMessage(
+      return _HistoryMessage(
         icon: Icons.history_rounded,
-        title: 'No activity yet',
-        message: 'Playback controls, sleep timer changes, and sync activity will appear here.',
+        title: context.l10n.statusNoPlaybackActivityYet,
+        message: context.l10n.hintPlaybackActivityWillAppear,
       );
     }
 
@@ -195,12 +196,12 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         children: [
           Expanded(
             child: Text(
-              'On this device',
+              context.l10n.headingOnThisDevice,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Text(
-            '$eventCount ${eventCount == 1 ? 'event' : 'events'}',
+            context.l10n.eventCount(eventCount),
             style: Theme.of(context).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
         ],
@@ -277,8 +278,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
       return;
     }
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Could not start playback from this position.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorStartPlaybackFromPosition)));
   }
 }
 
@@ -333,19 +333,20 @@ class _DateHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 0, 4, 7),
-      child: Text(_dateLabel(date), style: Theme.of(context).textTheme.titleSmall),
+      child: Text(_dateLabel(context, date), style: Theme.of(context).textTheme.titleSmall),
     );
   }
 
-  String _dateLabel(DateTime date) {
+  String _dateLabel(BuildContext context, DateTime date) {
     final now = DateTime.now();
     if (_isSameDay(now, date)) {
-      return 'Today';
+      return context.l10n.dateToday;
     }
     if (_isSameDay(now.subtract(const Duration(days: 1)), date)) {
-      return 'Yesterday';
+      return context.l10n.dateYesterday;
     }
-    return DateFormat.yMMMMd().format(date);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat.yMMMMd(locale).format(date);
   }
 }
 

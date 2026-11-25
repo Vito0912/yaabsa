@@ -158,7 +158,7 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       return itemTitle;
     }
 
-    return 'Downloaded media';
+    return currentAppLocalizations().downloadedMedia;
   }
 
   MediaItem? _androidAutoPlayableFromDownload(InternalDownload download) {
@@ -178,12 +178,16 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       return _androidAutoPlayableFromEpisode(
         item: item,
         episode: episode,
-        subtitlePrefix: 'Downloaded',
+        subtitlePrefix: currentAppLocalizations().statusDownloaded,
         artUriOverride: artUri,
       );
     }
 
-    return _androidAutoMediaEntryFromLibraryItem(item, subtitlePrefix: 'Downloaded', artUriOverride: artUri);
+    return _androidAutoMediaEntryFromLibraryItem(
+      item,
+      subtitlePrefix: currentAppLocalizations().statusDownloaded,
+      artUriOverride: artUri,
+    );
   }
 
   MediaItem _androidAutoBrowsableItem({
@@ -348,7 +352,7 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
 
     return _androidAutoPlayableItem(
       id: _androidAutoEpisodePlaybackId(episode.libraryItemId, episode.id),
-      title: episodeTitle == null || episodeTitle.isEmpty ? 'Untitled episode' : episodeTitle,
+      title: episodeTitle == null || episodeTitle.isEmpty ? currentAppLocalizations().untitledEpisode : episodeTitle,
       subtitle: podcastTitle == null || podcastTitle.isEmpty ? episode.subtitle?.trim() : podcastTitle,
       artist: podcastAuthor == null || podcastAuthor.isEmpty ? null : podcastAuthor,
       artUri: artUri,

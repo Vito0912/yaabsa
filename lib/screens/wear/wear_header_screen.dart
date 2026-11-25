@@ -3,6 +3,7 @@ import 'package:yaabsa/ui/components/wear/wear_scroll_view.dart';
 import 'package:yaabsa/ui/components/wear/wear_swipe_to_dismiss.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/ui/components/wear/wear_page_header.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 typedef WearServerHeader = ({String name, String value});
 
@@ -44,10 +45,10 @@ class _WearHeaderScreenState extends State<WearHeaderScreen> {
       child: Scaffold(
         body: WearScrollView(
           children: [
-            const WearPageHeader(title: 'Server header'),
+            WearPageHeader(title: context.l10n.headingServerHeader),
             TextField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: context.l10n.fieldHeaderName),
               autocorrect: false,
               enableSuggestions: false,
               textInputAction: TextInputAction.next,
@@ -55,14 +56,14 @@ class _WearHeaderScreenState extends State<WearHeaderScreen> {
             const SizedBox(height: 8),
             TextField(
               controller: _value,
-              decoration: const InputDecoration(labelText: 'Value'),
+              decoration: InputDecoration(labelText: context.l10n.fieldValue),
               autocorrect: false,
               enableSuggestions: false,
               obscureText: true,
             ),
             const SizedBox(height: 12),
             if (_error != null) Text(_error!, textAlign: TextAlign.center),
-            FilledButton(onPressed: _add, child: const Text('Add')),
+            FilledButton(onPressed: _add, child: Text(context.l10n.actionAdd)),
           ],
         ),
       ),

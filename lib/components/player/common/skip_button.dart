@@ -1,4 +1,5 @@
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
@@ -56,7 +57,7 @@ class SkipButtonPresentation extends StatelessWidget {
       iconSize: iconSize ?? 24,
       buttonSize: buttonSize,
       compact: false,
-      tooltip: previous ? 'Previous' : 'Next',
+      tooltip: previous ? context.l10n.playbackPrevious : context.l10n.playbackNext,
       onPressed: onPressed,
     );
   }

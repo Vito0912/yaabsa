@@ -4,6 +4,7 @@ import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/cards/surface_card.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/util/byte_format.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ItemUploadFileQueue extends StatelessWidget {
   const ItemUploadFileQueue({super.key, required this.items, required this.enabled, required this.onRemoveFile});
@@ -29,9 +30,9 @@ class ItemUploadFileQueue extends StatelessWidget {
                   file.kind == UploadFileKind.item ? Icons.audio_file_outlined : Icons.insert_drive_file_outlined,
                 ),
                 title: Text(file.fileName, maxLines: 2, overflow: TextOverflow.ellipsis),
-                subtitle: Text(item.status.label),
+                subtitle: Text(item.status.label(context.l10n)),
                 trailing: YaabsaDeleteIconButton(
-                  tooltip: 'Remove ${file.fileName}',
+                  tooltip: context.l10n.removeNamedItem(file.fileName),
                   onPressed: enabled ? () => onRemoveFile(item.id, file) : null,
                 ),
               ),

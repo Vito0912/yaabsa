@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryUploadDropZone extends StatelessWidget {
   const LibraryUploadDropZone({
@@ -22,11 +23,9 @@ class LibraryUploadDropZone extends StatelessWidget {
     final allowsFolders = onChooseFolder != null;
     final String description;
     if (supportsDragDrop) {
-      description = allowsFolders
-          ? 'Drop files or folders here, or choose them below.'
-          : 'Drop files here, or choose them below.';
+      description = allowsFolders ? context.l10n.uploadDropFilesOrFolder : context.l10n.uploadDropFiles;
     } else {
-      description = allowsFolders ? 'Choose files or a folder below.' : 'Choose files below.';
+      description = allowsFolders ? context.l10n.uploadChooseFilesOrFolder : context.l10n.uploadChooseFilesBelow;
     }
 
     return AnimatedContainer(
@@ -58,13 +57,13 @@ class LibraryUploadDropZone extends StatelessWidget {
               FilledButton.icon(
                 onPressed: enabled ? onChooseFiles : null,
                 icon: const Icon(Icons.file_open_rounded),
-                label: const Text('Choose files'),
+                label: Text(context.l10n.actionChooseFiles),
               ),
               if (allowsFolders)
                 OutlinedButton.icon(
                   onPressed: enabled ? onChooseFolder : null,
                   icon: const Icon(Icons.folder_open_rounded),
-                  label: const Text('Choose folder'),
+                  label: Text(context.l10n.actionChooseFolder),
                 ),
             ],
           ),

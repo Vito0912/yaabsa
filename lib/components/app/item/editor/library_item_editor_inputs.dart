@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemEditorSectionCard extends StatelessWidget {
   const LibraryItemEditorSectionCard({super.key, required this.title, required this.child, this.subtitle});
@@ -49,11 +50,11 @@ class LibraryItemEditorPodcastTypeField extends StatelessWidget {
     final selectedValue = _allowedValues.contains(value.trim().toLowerCase()) ? value.trim().toLowerCase() : 'episodic';
 
     return YaabsaDropdownField<String>(
-      label: 'Podcast type',
+      label: context.l10n.fieldPodcastType,
       value: selectedValue,
-      items: const [
-        DropdownMenuItem<String>(value: 'episodic', child: Text('Episodic')),
-        DropdownMenuItem<String>(value: 'serial', child: Text('Serial')),
+      items: [
+        DropdownMenuItem<String>(value: 'episodic', child: Text(context.l10n.podcastTypeEpisodic)),
+        DropdownMenuItem<String>(value: 'serial', child: Text(context.l10n.podcastTypeSerial)),
       ],
       onChanged: (nextValue) {
         if (nextValue == null) {

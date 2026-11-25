@@ -57,6 +57,8 @@ import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/util/globals.dart' show packageInfo, downloadHandler;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
+import 'package:yaabsa/util/l10n.dart';
+import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/audio_handler/playback_error_classifier.dart';
 import 'package:yaabsa/util/audio_handler/playback_keep_alive.dart';
 import 'package:yaabsa/util/audio_handler/playback_keep_alive_level.dart';
@@ -1008,7 +1010,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       _aaosBeginBrowseLoading(this);
       _aaosScheduleRetry(this);
-      throw PlatformException(code: 'browse_not_ready', message: 'Loading content');
+      throw PlatformException(code: 'browse_not_ready', message: currentAppLocalizations().statusLoadingContent);
     }, zoneValues: {#carBrowseRequest: true});
   }
 
@@ -2945,7 +2947,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             controls.add(
               MediaControl.custom(
                 androidIcon: _androidAutoIconReplay,
-                label: 'Rewind',
+                label: currentAppLocalizations().playbackRewind,
                 name: _androidAutoCustomActionRewind,
               ),
             );
@@ -2954,7 +2956,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             controls.add(
               MediaControl.custom(
                 androidIcon: _androidAutoIconForwardMedia,
-                label: 'Fast forward',
+                label: currentAppLocalizations().playbackFastForward,
                 name: _androidAutoCustomActionFastForward,
               ),
             );
@@ -2963,21 +2965,25 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             controls.add(
               MediaControl.custom(
                 androidIcon: _androidAutoIconSpeed,
-                label: 'Speed',
+                label: currentAppLocalizations().playbackSpeed,
                 name: _androidAutoCustomActionSpeed,
               ),
             );
             break;
           case 'stop':
             controls.add(
-              MediaControl.custom(androidIcon: _androidAutoIconStop, label: 'Stop', name: _androidAutoCustomActionStop),
+              MediaControl.custom(
+                androidIcon: _androidAutoIconStop,
+                label: currentAppLocalizations().playbackStop,
+                name: _androidAutoCustomActionStop,
+              ),
             );
             break;
           case 'skipToNext':
             controls.add(
               MediaControl.custom(
                 androidIcon: 'drawable/widget_skip_next',
-                label: 'Next chapter',
+                label: currentAppLocalizations().playbackNextChapter,
                 name: 'custom.skip_next',
               ),
             );
@@ -2986,7 +2992,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             controls.add(
               MediaControl.custom(
                 androidIcon: 'drawable/widget_skip_previous',
-                label: 'Previous chapter',
+                label: currentAppLocalizations().playbackPreviousChapter,
                 name: 'custom.skip_previous',
               ),
             );
@@ -2996,7 +3002,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
               controls.add(
                 MediaControl.custom(
                   androidIcon: _androidAutoIconMoreVert,
-                  label: 'Next page',
+                  label: currentAppLocalizations().paginationNextPage,
                   name: 'custom.switch_page',
                 ),
               );
@@ -3010,7 +3016,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (_notificationPages.length > 1 && !hasSwitchPageAction) {
         final switchPageControl = MediaControl.custom(
           androidIcon: _androidAutoIconMoreVert,
-          label: 'Next page',
+          label: currentAppLocalizations().paginationNextPage,
           name: 'custom.switch_page',
         );
 

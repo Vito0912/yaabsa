@@ -6,6 +6,7 @@ import 'package:yaabsa/components/app/item/book_list_membership_dialog.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/util/collection_membership.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void> showBookCollectionMembershipDialog({required BuildContext context, required LibraryItem item}) async {
   if (item.libraryId == null || item.libraryId!.isEmpty) {
@@ -17,7 +18,7 @@ Future<void> showBookCollectionMembershipDialog({required BuildContext context, 
     builder: (_) => BookCollectionMembershipDialog(item: item),
   );
   if (saved == true && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collections updated.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusCollectionsUpdated)));
   }
 }
 
@@ -42,13 +43,13 @@ class BookCollectionMembershipDialog extends ConsumerWidget {
       nextPageError: lists.value?.nextPageError,
       onLoadMore: () => ref.read(collectionsProvider(libraryId).notifier).loadNextPage(),
       allowed: ref.watch(collectionMembershipEditingAllowedProvider),
-      plural: 'collections',
-      createEntryLabel: 'Create collection',
+      plural: context.l10n.entityCollections,
+      createEntryLabel: context.l10n.actionCreateCollection,
       onCreateEntry: () async {
         final details = await showListManagementFormDialog(
           context: context,
-          title: 'Create collection',
-          confirmLabel: 'Create',
+          title: context.l10n.actionCreateCollection,
+          confirmLabel: context.l10n.actionCreate,
         );
         if (!context.mounted || details == null) {
           return false;
@@ -70,7 +71,7 @@ class BookCollectionMembershipDialog extends ConsumerWidget {
       canRetryEntry: (entry) => !hasCompleteCollectionBooks(entry),
       disabledReason: (entry) {
         if (!hasCompleteCollectionBooks(entry)) {
-          return 'Full book list unavailable.';
+          return context.l10n.errorFullListUnavailable;
         }
         return null;
       },

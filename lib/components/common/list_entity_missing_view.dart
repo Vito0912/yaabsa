@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ListEntityMissingView extends StatelessWidget {
   const ListEntityMissingView({required this.icon, required this.title, required this.message, super.key});
@@ -34,7 +35,7 @@ class ListEntityMissingView extends StatelessWidget {
                 }
               },
               icon: const Icon(Icons.arrow_back_rounded),
-              label: const Text('Back'),
+              label: Text(context.l10n.actionBack),
             ),
           ],
         ),

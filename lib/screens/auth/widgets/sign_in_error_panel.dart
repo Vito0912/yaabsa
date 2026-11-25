@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:flutter/services.dart';
 
 class SignInErrorPanel extends StatelessWidget {
@@ -44,12 +45,13 @@ class SignInErrorPanel extends StatelessWidget {
                   TextButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: const Text('Retry'),
+                    label: Text(context.l10n.actionRetry),
                   ),
                 if (_canCopyDetails)
                   IconButton(
                     onPressed: () => _copyStackTrace(context),
                     icon: const Icon(Icons.copy_all_rounded, size: 18),
+                    tooltip: context.l10n.actionCopy,
                   ),
               ],
             ),
@@ -70,6 +72,6 @@ class SignInErrorPanel extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.statusCopied)));
   }
 }

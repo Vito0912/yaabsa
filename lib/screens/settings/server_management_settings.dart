@@ -7,6 +7,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ServerManagementSettings extends ConsumerWidget {
@@ -19,16 +20,16 @@ class ServerManagementSettings extends ConsumerWidget {
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Server Management',
+      title: context.l10n.settingServerManagement,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         currentUserAsync.when(
           data: (currentUser) {
             if (currentUser == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('Sign in to manage server management settings'),
+                child: Text(context.l10n.promptSignInToManageSettings),
               );
             }
 
@@ -38,53 +39,53 @@ class ServerManagementSettings extends ConsumerWidget {
             final appDatabase = ref.watch(appDatabaseProvider);
 
             return SettingsNavigationSection(
-              title: 'Permission Visibility',
+              title: context.l10n.headingPermissionVisibility,
               topPadding: 0,
               settings: [
                 SettingSwitchTile(
-                  label: 'Collections',
+                  label: context.l10n.permissionCollections,
                   settingKey: SettingKeys.serverManagementCollections,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: true,
                   enabled: canUpdateItems,
-                  subtitle: 'Allows editing and creating collections like playlists',
-                  disabledReason: canUpdateItems ? null : 'Requires edit-item permission',
+                  subtitle: context.l10n.permissionCollectionsDescription,
+                  disabledReason: canUpdateItems ? null : context.l10n.permissionRequiresEditItems,
                 ),
                 SettingSwitchTile(
-                  label: 'Edit items',
+                  label: context.l10n.permissionEditItems,
                   settingKey: SettingKeys.serverManagementEditItems,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: false,
                   enabled: canUpdateItems,
-                  subtitle: 'Allows access to item editing features like bulk edit',
-                  disabledReason: canUpdateItems ? null : 'Requires edit-item permission',
+                  subtitle: context.l10n.permissionEditItemsDescription,
+                  disabledReason: canUpdateItems ? null : context.l10n.permissionRequiresEditItems,
                 ),
                 SettingSwitchTile(
-                  label: 'Delete items',
+                  label: context.l10n.permissionDeleteItems,
                   settingKey: SettingKeys.serverManagementDeleteItems,
                   userId: canDeleteItems ? currentUser.id : null,
                   defaultValue: false,
                   enabled: canDeleteItems,
-                  subtitle: 'Allows deleting items',
-                  disabledReason: canDeleteItems ? null : 'Requires delete-item permission',
+                  subtitle: context.l10n.permissionDeleteItemsDescription,
+                  disabledReason: canDeleteItems ? null : context.l10n.permissionRequiresDeleteItems,
                 ),
                 SettingSwitchTile(
-                  label: 'Edit chapters',
+                  label: context.l10n.permissionEditChapters,
                   settingKey: SettingKeys.serverManagementEditChapters,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: true,
                   enabled: canUpdateItems,
-                  subtitle: 'Allows using and editing the chapter editor',
-                  disabledReason: canUpdateItems ? null : 'Requires edit-item permission',
+                  subtitle: context.l10n.permissionEditChaptersDescription,
+                  disabledReason: canUpdateItems ? null : context.l10n.permissionRequiresEditItems,
                 ),
                 SettingSwitchTile(
-                  label: 'Upload',
+                  label: context.l10n.permissionUpload,
                   settingKey: SettingKeys.serverManagementUploadItems,
                   userId: canUploadItems ? currentUser.id : null,
                   defaultValue: false,
                   enabled: canUploadItems,
-                  subtitle: 'Allows uploading new items',
-                  disabledReason: canUploadItems ? null : 'Requires upload permission',
+                  subtitle: context.l10n.permissionUploadDescription,
+                  disabledReason: canUploadItems ? null : context.l10n.permissionRequiresUpload,
                 ),
                 StreamBuilder<UserSettingEntry?>(
                   stream: appDatabase.watchUserSetting(currentUser.id, SettingKeys.serverManagementEditItems),
@@ -96,13 +97,15 @@ class ServerManagementSettings extends ConsumerWidget {
                     final canEnableMatches = canUpdateItems && editItemsEnabled;
 
                     return SettingSwitchTile(
-                      label: 'Allow matches and quick matches',
+                      label: context.l10n.permissionMatches,
                       settingKey: SettingKeys.serverManagementAllowMatchesQuickMatches,
                       userId: canUpdateItems ? currentUser.id : null,
                       defaultValue: false,
                       enabled: canEnableMatches,
-                      subtitle: 'Allows using match, quick match, and preview match features',
-                      disabledReason: canUpdateItems ? 'Enable "Edit items" first' : 'Requires edit-item permission',
+                      subtitle: context.l10n.permissionMatchesDescription,
+                      disabledReason: canUpdateItems
+                          ? context.l10n.promptEnableSettingFirst(context.l10n.permissionEditItems)
+                          : context.l10n.permissionRequiresEditItems,
                     );
                   },
                 ),
@@ -116,7 +119,7 @@ class ServerManagementSettings extends ConsumerWidget {
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to load user settings: $error',
+              context.l10n.errorOperationFailed(context.l10n.operationLoadUser, error.toString()),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

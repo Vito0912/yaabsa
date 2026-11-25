@@ -15,6 +15,7 @@ import 'package:yaabsa/components/settings/backups/admin_backup_table.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerBackupsView extends ConsumerStatefulWidget {
   const AdminServerBackupsView({super.key});
@@ -134,6 +135,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
   }
 
   Future<void> _loadBackupsData({bool showLoading = true}) async {
+    final l10n = currentAppLocalizations();
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (!mounted) {
@@ -142,7 +144,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
       setState(() {
         _isLoading = false;
-        _errorMessage = 'No active API client.';
+        _errorMessage = l10n.errorNoActiveApiClient;
       });
       return;
     }
@@ -196,7 +198,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       }
 
       setState(() {
-        _errorMessage = _resolveErrorMessage(error, fallback: 'Failed to load backups.');
+        _errorMessage = _resolveErrorMessage(error, fallback: l10n.errorLoadBackups);
       });
     } finally {
       if (mounted) {
@@ -209,56 +211,55 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
   String? _validateBackupPath(String value) {
     if (value.trim().isEmpty) {
-      return 'Backup path is required.';
+      return currentAppLocalizations().errorBackupPathRequired;
     }
     return null;
   }
 
   String? _validateCronExpression(String value) {
+    final l10n = currentAppLocalizations();
     if (!_enableAutomaticBackups) {
       return null;
     }
 
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      return 'Cron expression is required when automatic backups are enabled.';
+      return l10n.errorCronRequired;
     }
 
     final parts = trimmed.split(RegExp(r'\s+'));
     if (parts.length != 5) {
-      return 'Cron expression must have 5 fields.';
+      return l10n.errorCronFieldCount;
     }
 
     return null;
   }
 
   String? _validateBackupsToKeep(String value) {
+    final l10n = currentAppLocalizations();
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      return 'Backups to keep is required.';
+      return l10n.errorBackupsToKeepRequired;
     }
 
     final parsed = int.tryParse(trimmed);
-    if (parsed == null || parsed <= 0) {
-      return 'Backups to keep must be greater than 0.';
-    }
-
-    if (parsed > 99) {
-      return 'Backups to keep must be 99 or less.';
+    if (parsed == null || parsed < 1 || parsed > 99) {
+      return l10n.errorWholeNumberRange(1, 99);
     }
 
     return null;
   }
 
   String? _validateMaxBackupSize(String value) {
+    final l10n = currentAppLocalizations();
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      return 'Maximum backup size is required.';
+      return l10n.errorMaximumBackupSizeRequired;
     }
 
     final parsed = int.tryParse(trimmed);
     if (parsed == null || parsed < 0) {
-      return 'Maximum backup size must be 0 or greater.';
+      return l10n.errorWholeNumberMinimum(0);
     }
 
     return null;
@@ -307,6 +308,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       return;
     }
 
+    final l10n = currentAppLocalizations();
     final backupPathError = _validateBackupPath(_backupPathController.text);
     if (backupPathError != null) {
       setState(() {
@@ -326,7 +328,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -348,13 +350,13 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       });
 
       await _loadBackupsData(showLoading: false);
-      _showMessage('Backup location updated.');
+      _showMessage(l10n.statusBackupLocationUpdated);
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = _resolveErrorMessage(error, fallback: 'Failed to update backup location.');
+      final message = _resolveErrorMessage(error, fallback: l10n.errorUpdateBackupLocation);
       _showMessage(message);
     } finally {
       if (mounted) {
@@ -378,6 +380,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       return;
     }
 
+    final l10n = currentAppLocalizations();
     final cronError = _validateCronExpression(_cronExpressionController.text);
     final backupsToKeepError = _validateBackupsToKeep(_backupsToKeepController.text);
     final maxBackupSizeError = _validateMaxBackupSize(_maxBackupSizeController.text);
@@ -397,7 +400,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -429,13 +432,13 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         });
       }
 
-      _showMessage('Backup settings updated.');
+      _showMessage(l10n.statusBackupSettingsUpdated);
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = _resolveErrorMessage(error, fallback: 'Failed to update backup settings.');
+      final message = _resolveErrorMessage(error, fallback: l10n.errorUpdateBackupSettings);
       _showMessage(message);
     } finally {
       if (mounted) {
@@ -451,9 +454,10 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       return;
     }
 
+    final l10n = currentAppLocalizations();
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -472,9 +476,9 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         _backups = _sortedBackups(response.data?.backups ?? const <AdminBackup>[]);
       });
 
-      _showMessage('Backup created successfully.');
+      _showMessage(l10n.statusBackupCreated);
     } catch (error) {
-      final message = listManagementErrorMessage(error, fallback: 'Failed to create backup.');
+      final message = listManagementErrorMessage(error, fallback: l10n.errorCreateBackup);
       _showMessage(message);
     } finally {
       if (mounted) {
@@ -490,10 +494,11 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       return;
     }
 
+    final l10n = currentAppLocalizations();
     final pickedFile = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['audiobookshelf'],
-      dialogTitle: 'Select backup archive',
+      dialogTitle: l10n.actionSelectBackupArchive,
     );
 
     if (pickedFile == null) {
@@ -502,13 +507,13 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
     final filePath = pickedFile.path;
     if (filePath == null || filePath.trim().isEmpty) {
-      _showMessage('Selected backup file is not available on disk.');
+      _showMessage(l10n.errorBackupFileUnavailable);
       return;
     }
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -528,9 +533,9 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         _backups = _sortedBackups(response.data?.backups ?? const <AdminBackup>[]);
       });
 
-      _showMessage('Backup uploaded successfully.');
+      _showMessage(l10n.statusBackupUploaded);
     } catch (error) {
-      final message = listManagementErrorMessage(error, fallback: 'Failed to upload backup.');
+      final message = listManagementErrorMessage(error, fallback: l10n.errorUploadBackup);
       _showMessage(message);
     } finally {
       if (mounted) {
@@ -552,9 +557,10 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
   }
 
   Future<void> _downloadBackup(AdminBackup backup) async {
+    final l10n = currentAppLocalizations();
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -564,33 +570,32 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
       final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!opened) {
-        _showMessage('Failed to open backup download URL.');
+        _showMessage(l10n.errorOpenBackupDownload);
       }
     } catch (error) {
-      _showMessage(_resolveErrorMessage(error, fallback: 'Failed to open backup download URL.'));
+      _showMessage(_resolveErrorMessage(error, fallback: l10n.errorOpenBackupDownload));
     } finally {
       _setBusyBackup(backup.id, false);
     }
   }
 
   Future<void> _restoreBackup(AdminBackup backup) async {
+    final l10n = currentAppLocalizations();
     if (!backup.canRestore) {
-      _showMessage('This backup was created by an unsupported legacy server format.');
+      _showMessage(l10n.errorLegacyBackupUnsupported);
       return;
     }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final l10n = context.l10n;
         return AlertDialog(
-          title: const Text('Restore backup?'),
-          content: Text(
-            'Restore backup from ${formatDateTimeLabel(backup.createdDateTime)}? '
-            'This replaces the current server database and metadata cache.',
-          ),
+          title: Text(l10n.headingRestoreBackup),
+          content: Text(l10n.promptRestoreBackup(formatDateTimeLabel(backup.createdDateTime))),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Restore')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.actionCancel)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.actionRestore)),
           ],
         );
       },
@@ -602,16 +607,16 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
     _setBusyBackup(backup.id, true);
     try {
       await api.getAdminApi().applyBackup(backupId: backup.id);
-      _showMessage('Backup restore started. Reload the app after the server finishes applying it.');
+      _showMessage(l10n.statusBackupRestoreStarted);
     } catch (error) {
-      final message = listManagementErrorMessage(error, fallback: 'Failed to restore backup.');
+      final message = listManagementErrorMessage(error, fallback: l10n.errorRestoreBackup);
       _showMessage(message);
     } finally {
       _setBusyBackup(backup.id, false);
@@ -619,10 +624,11 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
   }
 
   Future<void> _deleteBackup(AdminBackup backup) async {
+    final l10n = currentAppLocalizations();
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Delete backup?',
-      message: 'Delete backup from ${formatDateTimeLabel(backup.createdDateTime)}? This action cannot be undone.',
+      title: l10n.headingDeleteBackup,
+      message: l10n.promptDeleteBackup(formatDateTimeLabel(backup.createdDateTime)),
     );
 
     if (!confirmed) {
@@ -631,7 +637,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -647,9 +653,9 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         _backups = _sortedBackups(response.data?.backups ?? const <AdminBackup>[]);
       });
 
-      _showMessage('Backup deleted.');
+      _showMessage(l10n.statusBackupDeleted);
     } catch (error) {
-      final message = listManagementErrorMessage(error, fallback: 'Failed to delete backup.');
+      final message = listManagementErrorMessage(error, fallback: l10n.errorDeleteBackup);
       _showMessage(message);
     } finally {
       _setBusyBackup(backup.id, false);
@@ -657,6 +663,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
   }
 
   Widget _buildToolbar({required bool compact}) {
+    final l10n = context.l10n;
     final canStartOperation = !_isLoading && !_isCreatingBackup && !_isUploadingBackup;
 
     if (compact) {
@@ -664,13 +671,13 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           IconButton.filledTonal(
-            tooltip: 'Refresh',
+            tooltip: l10n.actionRefresh,
             onPressed: _isLoading ? null : () => unawaited(_loadBackupsData(showLoading: true)),
             icon: const Icon(Icons.refresh_rounded),
           ),
           const SizedBox(width: 6),
           IconButton.filledTonal(
-            tooltip: 'Upload backup',
+            tooltip: l10n.actionUploadBackup,
             onPressed: canStartOperation ? _uploadBackup : null,
             icon: _isUploadingBackup
                 ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
@@ -678,7 +685,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
           ),
           const SizedBox(width: 6),
           IconButton.filled(
-            tooltip: 'Create backup',
+            tooltip: l10n.actionCreateBackup,
             onPressed: canStartOperation ? _createBackup : null,
             icon: _isCreatingBackup
                 ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
@@ -693,7 +700,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         OutlinedButton.icon(
           onPressed: _isLoading ? null : () => unawaited(_loadBackupsData(showLoading: true)),
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Refresh'),
+          label: Text(l10n.actionRefresh),
         ),
         const SizedBox(width: 10),
         OutlinedButton.icon(
@@ -701,7 +708,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
           icon: _isUploadingBackup
               ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.upload_file_outlined),
-          label: const Text('Upload Backup'),
+          label: Text(l10n.actionUploadBackup),
         ),
         const Spacer(),
         FilledButton.icon(
@@ -709,13 +716,14 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
           icon: _isCreatingBackup
               ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.archive_rounded),
-          label: const Text('Create Backup'),
+          label: Text(l10n.actionCreateBackup),
         ),
       ],
     );
   }
 
   Widget _buildErrorCard() {
+    final l10n = context.l10n;
     final message = _errorMessage;
     if (message == null || message.trim().isEmpty) {
       return const SizedBox.shrink();
@@ -732,7 +740,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: () => unawaited(_loadBackupsData(showLoading: true)), child: const Text('Retry')),
+            TextButton(onPressed: () => unawaited(_loadBackupsData(showLoading: true)), child: Text(l10n.actionRetry)),
           ],
         ),
       ),
@@ -825,22 +833,17 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage backups.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.promptSignInForAdminAccess));
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
-          );
+          return Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(l10n.errorAdminRequired));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -908,7 +911,10 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          l10n.errorOperationFailed(l10n.operationLoadUser, l10n.errorUnknown),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

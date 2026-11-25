@@ -6,6 +6,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 String? normalizeServerAddress(String input) {
   final trimmedInput = input.trim();
@@ -44,7 +45,7 @@ Future<Login> signInWithPassword({
   CancelToken? cancelToken,
 }) async {
   if (username.trim().isEmpty || password.isEmpty) {
-    throw const FormatException('Username and password are required.');
+    throw FormatException(currentAppLocalizations().errorCredentialsRequired);
   }
 
   final response = await api.getMeApi().login(
@@ -54,7 +55,7 @@ Future<Login> signInWithPassword({
   );
   final login = response.data;
   if (login == null || login.user.preferredAuthToken?.isNotEmpty != true) {
-    throw const FormatException('The server did not return a valid account session.');
+    throw FormatException(currentAppLocalizations().errorAccountSessionInvalid);
   }
 
   api.setBearerAuth('BearerAuth', login.user.preferredAuthToken!);

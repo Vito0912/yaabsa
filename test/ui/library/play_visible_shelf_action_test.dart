@@ -9,6 +9,7 @@ import 'package:yaabsa/api/me/media_item_type.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/features/library/widgets/play_visible_shelf_action.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   const unfinishedBook = LibraryItem(
@@ -48,6 +49,8 @@ void main() {
           mediaProgressForLibraryItemProvider('finished').overrideWithValue([_finishedProgress]),
         ],
         child: MaterialApp(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: PlayVisibleShelfAction(
               items: const [unfinishedBook, finishedBook],
@@ -76,6 +79,8 @@ void main() {
       ProviderScope(
         overrides: [mediaProgressForLibraryItemProvider('no-audio').overrideWithValue(const [])],
         child: const MaterialApp(
+          localizationsDelegates: yaabsaLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: PlayVisibleShelfAction(items: [itemWithoutAudio], onPressed: _ignorePlayableEntries),
           ),

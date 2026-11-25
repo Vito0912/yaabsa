@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/sort_button.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SeriesDetailHeader extends StatelessWidget {
   const SeriesDetailHeader({
@@ -37,7 +38,11 @@ class SeriesDetailHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+              IconButton(
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_rounded),
+                tooltip: context.l10n.actionBack,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: _SeriesDetailTitle(title: title, isLoading: isTitleLoading, hasError: hasTitleError),
@@ -45,7 +50,7 @@ class SeriesDetailHeader extends StatelessWidget {
               const SizedBox(width: 4),
               YaabsaSortButton(
                 label: sortLabel,
-                tooltip: 'Sort: $sortLabel',
+                tooltip: context.l10n.actionSortBy(sortLabel),
                 onPressed: onSortPressed,
                 iconOnly: context.isMobile,
                 isLoading: isSortBusy,
@@ -96,7 +101,7 @@ class _SeriesDetailTitle extends StatelessWidget {
 
     if (hasError) {
       return Text(
-        'Series details could not be loaded.',
+        context.l10n.errorLoadSeriesDetailsFailed,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.titleMedium,

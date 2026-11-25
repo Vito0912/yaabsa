@@ -11,6 +11,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 const String _addNewUserValue = '__ADD_NEW_USER__';
 
@@ -27,13 +28,11 @@ class UserSwitcher extends ConsumerWidget {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('Switch User'),
-            content: const Text(
-              'Are you sure you want to switch users? When you switch the user, the player will not be able to sync the progress. It will still be saved locally and sync with the server after an app restart.',
-            ),
+            title: Text(context.l10n.headingSwitchUser),
+            content: Text(context.l10n.promptSwitchUserDuringPlayback),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Switch')),
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(context.l10n.actionSwitch)),
             ],
           );
         },
@@ -84,10 +83,14 @@ class UserSwitcher extends ConsumerWidget {
     }
 
     items.add(
-      const PopupMenuItem<String>(
+      PopupMenuItem<String>(
         value: _addNewUserValue,
         child: Row(
-          children: [Icon(Icons.add_circle_outline_rounded, size: 20), SizedBox(width: 8), Text('Add New User')],
+          children: [
+            const Icon(Icons.add_circle_outline_rounded, size: 20),
+            const SizedBox(width: 8),
+            Text(context.l10n.actionAddUser),
+          ],
         ),
       ),
     );
@@ -106,7 +109,7 @@ class UserSwitcher extends ConsumerWidget {
     required bool? serverReachable,
   }) {
     return YaabsaContextMenuButton<String>(
-      tooltip: 'Switch or Add User',
+      tooltip: context.l10n.actionManageUsers,
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
@@ -153,7 +156,7 @@ class UserSwitcher extends ConsumerWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 130),
               child: Text(
-                currentUser?.username ?? 'Users',
+                currentUser?.username ?? context.l10n.labelUsers,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelLarge,
@@ -175,7 +178,7 @@ class UserSwitcher extends ConsumerWidget {
     required bool? serverReachable,
   }) {
     return YaabsaContextMenuButton<String>(
-      tooltip: 'Switch or Add User',
+      tooltip: context.l10n.actionManageUsers,
       offset: const Offset(0, 55),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 16.0 : 10.0)),
       onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
@@ -227,17 +230,17 @@ class UserSwitcher extends ConsumerWidget {
             );
           },
           loading: () => _buildLoading(context, currentUser),
-          error: (error, stack) => Center(child: Text('Error loading users: $error')),
+          error: (error, stack) => Center(child: Text(context.l10n.errorCouldNotLoadUsers)),
         );
       },
       loading: () => _buildLoading(context, currentUserAsync.value),
       error: (error, stack) => Tooltip(
-        message: 'Could not load the active user. Tap to retry.',
+        message: context.l10n.errorCouldNotLoadUser,
         child: SizedBox(
           width: 40,
           height: 40,
           child: IconButton(
-            tooltip: 'Retry loading active user',
+            tooltip: context.l10n.actionRetry,
             onPressed: () {
               ref.invalidate(currentUserProvider);
               ref.invalidate(allStoredUsersProvider);

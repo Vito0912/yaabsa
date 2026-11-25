@@ -2,6 +2,7 @@ import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_annotation_details_presentation.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 enum ReaderAnnotationSheetActionType { update, delete }
 
@@ -106,8 +107,14 @@ class _AnnotationEditorSheetState extends State<_AnnotationEditorSheet> {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text('Edit annotation', style: Theme.of(context).textTheme.headlineSmall)),
-                  IconButton(onPressed: () => Navigator.pop(context), tooltip: 'Close', icon: const Icon(Icons.close)),
+                  Expanded(
+                    child: Text(context.l10n.actionEditAnnotation, style: Theme.of(context).textTheme.headlineSmall),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: context.l10n.actionClose,
+                    icon: const Icon(Icons.close),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -116,12 +123,12 @@ class _AnnotationEditorSheetState extends State<_AnnotationEditorSheet> {
                 minLines: 3,
                 maxLines: 6,
                 textCapitalization: TextCapitalization.sentences,
-                label: 'Note',
-                hintText: 'Add an optional note',
+                label: context.l10n.fieldNote,
+                hintText: context.l10n.readerAnnotationNoteHint,
                 alignLabelWithHint: true,
               ),
               const SizedBox(height: 20),
-              Text('Color', style: Theme.of(context).textTheme.labelLarge),
+              Text(context.l10n.readerFieldColor, style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
@@ -132,7 +139,7 @@ class _AnnotationEditorSheetState extends State<_AnnotationEditorSheet> {
                   return Semantics(
                     button: true,
                     selected: selected,
-                    label: 'Annotation color $hex',
+                    label: context.l10n.readerAnnotationColorLabel(hex),
                     child: InkWell(
                       onTap: () => setState(() => _selectedColor = hex),
                       customBorder: const CircleBorder(),
@@ -158,7 +165,7 @@ class _AnnotationEditorSheetState extends State<_AnnotationEditorSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                  TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionCancel)),
                   const SizedBox(width: 8),
                   FilledButton.icon(
                     onPressed: () => Navigator.pop(
@@ -166,7 +173,7 @@ class _AnnotationEditorSheetState extends State<_AnnotationEditorSheet> {
                       ReaderAnnotationSheetAction.update(note: _noteController.text.trim(), color: _selectedColor),
                     ),
                     icon: const Icon(Icons.save_outlined),
-                    label: const Text('Save'),
+                    label: Text(context.l10n.actionSave),
                   ),
                 ],
               ),

@@ -10,6 +10,7 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/main/collection_detail_view.dart';
 import 'package:yaabsa/screens/main/playlist_detail_view.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 import 'collection_test_support.dart';
 import '../playlists/playlist_test_support.dart' as playlists;
@@ -36,7 +37,11 @@ Future<void> _mount(WidgetTester tester, ProviderContainer container, Widget vie
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(home: Scaffold(body: view)),
+      child: MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: view),
+      ),
     ),
   );
   await tester.pumpAndSettle();

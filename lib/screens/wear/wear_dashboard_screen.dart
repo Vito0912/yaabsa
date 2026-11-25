@@ -11,6 +11,7 @@ import 'package:yaabsa/screens/wear/wear_browse_screen.dart';
 import 'package:yaabsa/screens/wear/wear_player_screen.dart';
 import 'package:yaabsa/screens/wear/wear_account_screen.dart';
 import 'package:yaabsa/util/browse/compact_browse_models.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearDashboardScreen extends ConsumerWidget {
   const WearDashboardScreen({super.key});
@@ -34,7 +35,7 @@ class WearDashboardScreen extends ConsumerWidget {
           if (snapshot.data != null)
             WearBrowseButton(
               title: snapshot.data!.title,
-              subtitle: 'Now playing',
+              subtitle: context.l10n.playbackNowPlaying,
               primary: true,
               leading: WearCover(uri: snapshot.data!.artUri),
               onPressed: () {
@@ -42,29 +43,29 @@ class WearDashboardScreen extends ConsumerWidget {
               },
             ),
           WearBrowseButton(
-            title: 'Downloads',
+            title: context.l10n.navDownloads,
             leading: const AudioBrowseIcon(name: 'download'),
-            onPressed: () => browse('Downloads', CompactBrowseSection.downloads),
+            onPressed: () => browse(context.l10n.navDownloads, CompactBrowseSection.downloads),
           ),
           WearBrowseButton(
-            title: 'Continue listening',
+            title: context.l10n.shelfContinueListening,
             leading: const AudioBrowseIcon(name: 'continue_ic'),
-            onPressed: () => browse('Continue listening', CompactBrowseSection.continueListening),
+            onPressed: () => browse(context.l10n.shelfContinueListening, CompactBrowseSection.continueListening),
           ),
           WearBrowseButton(
-            title: 'Libraries',
+            title: context.l10n.navLibraries,
             leading: const AudioBrowseIcon(name: 'apps'),
-            onPressed: () => browse('Libraries', CompactBrowseSection.libraries),
+            onPressed: () => browse(context.l10n.navLibraries, CompactBrowseSection.libraries),
           ),
           WearBrowseButton(
-            title: 'Settings',
+            title: context.l10n.navSettings,
             icon: Icons.settings_outlined,
             onPressed: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WearSettingsScreen()));
             },
           ),
           WearBrowseButton(
-            title: 'Account',
+            title: context.l10n.accountLabel,
             icon: Icons.account_circle_outlined,
             onPressed: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WearAccountScreen()));

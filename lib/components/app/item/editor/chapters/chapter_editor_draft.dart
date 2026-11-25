@@ -4,6 +4,15 @@ final _chapterTimePart = RegExp(r'^\d+(?:\.\d+)?$');
 
 typedef ChapterEditorValue = ({double start, String title});
 
+enum ChapterEditorError {
+  bookDurationUnavailable,
+  emptyTitle,
+  invalidStartFormat,
+  firstChapterMustStartAtZero,
+  startOutsideBook,
+  startsNotAscending,
+}
+
 String formatChapterTime(double seconds) {
   if (!seconds.isFinite || seconds < 0) {
     return '';
@@ -59,7 +68,7 @@ class ChapterEditorEntry {
   String title;
   String _startText;
   double? _parsedStart;
-  String? error;
+  ChapterEditorError? error;
   int position = 0;
   bool selected = false;
   void Function()? onChanged;
@@ -179,14 +188,14 @@ class ChapterEditorDraft {
     _reindex();
   }
 
-  void insertAfter(ChapterEditorEntry row) {
+  void insertAfter(ChapterEditorEntry row, {required String title}) {
     if (!indexByKey.containsKey(row.key)) {
       return;
     }
 
     final start = row.start ?? 0;
     final end = row.position + 1 < rows.length ? rows[row.position + 1].start ?? duration : duration;
-    rows.insert(row.position + 1, _create((start: start + (end - start) / 2, title: 'Chapter ${row.position + 2}')));
+    rows.insert(row.position + 1, _create((start: start + (end - start) / 2, title: title)));
     _reindex();
   }
 
@@ -273,19 +282,19 @@ class ChapterEditorDraft {
     final start = row.start;
     final previous = index > 0 ? rows[index - 1].start : null;
     final next = index + 1 < rows.length ? rows[index + 1].start : null;
-    String? error;
+    ChapterEditorError? error;
     if (!duration.isFinite || duration <= 0) {
-      error = 'Book duration is unavailable';
+      error = ChapterEditorError.bookDurationUnavailable;
     } else if (row.title.trim().isEmpty) {
-      error = 'Enter a chapter title';
+      error = ChapterEditorError.emptyTitle;
     } else if (start == null) {
-      error = 'Use HH:MM:SS or seconds';
+      error = ChapterEditorError.invalidStartFormat;
     } else if (index == 0 && start != 0) {
-      error = 'The first chapter must start at zero';
+      error = ChapterEditorError.firstChapterMustStartAtZero;
     } else if (start < 0 || start >= duration) {
-      error = 'Start must be within the book';
+      error = ChapterEditorError.startOutsideBook;
     } else if ((previous != null && start <= previous) || (next != null && start >= next)) {
-      error = 'Starts must be in ascending order';
+      error = ChapterEditorError.startsNotAscending;
     }
 
     row.error = error;

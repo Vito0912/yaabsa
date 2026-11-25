@@ -4,6 +4,7 @@ import 'package:yaabsa/components/settings/settings_editor_header.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class HomeNavigationPreferencesEditor extends ConsumerStatefulWidget {
   const HomeNavigationPreferencesEditor({super.key, required this.userId, required this.mediaType});
@@ -20,13 +21,12 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
 
   String get _settingKey => HomeNavigationPreferencesCodec.settingKeyFor(widget.mediaType);
 
-  String get _title => '${widget.mediaType.label} libraries';
-
   Future<void> _persistPreferences(HomeNavigationPreferences preferences, {String? successMessage}) async {
     if (_isSaving) {
       return;
     }
 
+    final l10n = context.l10n;
     setState(() => _isSaving = true);
 
     try {
@@ -44,7 +44,9 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update $_title: $error')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorOperationFailed(l10n.operationSaveSettings, error.toString()))));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -60,7 +62,7 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
     final currentlyVisible = preferences.visibleViews;
     final isCurrentlyVisible = !preferences.hiddenViews.contains(view);
     if (!isVisible && isCurrentlyVisible && currentlyVisible.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('At least one view must stay enabled.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorKeepOneHomeViewEnabled)));
       return;
     }
 
@@ -93,7 +95,9 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
 
   Future<void> _resetToDefaults() async {
     final defaults = HomeNavigationPreferencesCodec.defaultsFor(widget.mediaType);
-    await _persistPreferences(defaults, successMessage: 'Reset $_title to defaults.');
+    final l10n = context.l10n;
+    final title = l10n.headingHomeNavigationPreferences(widget.mediaType.name);
+    await _persistPreferences(defaults, successMessage: l10n.statusPreferencesReset(title));
   }
 
   BorderRadius _getBorderRadius(int index, int total) {
@@ -121,6 +125,7 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
 
   @override
   Widget build(BuildContext context) {
+    final title = context.l10n.headingHomeNavigationPreferences(widget.mediaType.name);
     final appDatabase = ref.watch(appDatabaseProvider);
     final fallbackRawValue = ref
         .read(settingsManagerProvider.notifier)
@@ -133,7 +138,7 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SettingsEditorHeader(title: _title, topPadding: 20, onReset: _isSaving ? null : _resetToDefaults),
+        SettingsEditorHeader(title: title, topPadding: 20, onReset: _isSaving ? null : _resetToDefaults),
         StreamBuilder<UserSettingEntry?>(
           stream: appDatabase.watchUserSetting(widget.userId, _settingKey),
           builder: (context, snapshot) {
@@ -223,8 +228,8 @@ class _HomeNavigationPreferenceRow extends StatelessWidget {
           ),
           IconButton(
             tooltip: isVisible
-                ? (isDefault ? 'Default view' : 'Set as default view')
-                : 'Enable this view to set it as default',
+                ? (isDefault ? context.l10n.statusDefaultView : context.l10n.actionSetAsDefaultView)
+                : context.l10n.hintEnableViewToSetDefault,
             onPressed: !isSaving && isVisible && !isDefault ? onSetDefault : null,
             icon: Icon(
               isDefault ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,

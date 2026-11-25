@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 part 'queue_source.freezed.dart';
 part 'queue_source.g.dart';
@@ -25,17 +26,21 @@ enum MediaSourceType {
   continueReading,
   listeningThreshold;
 
-  String get label => switch (this) {
-    podcast => 'Podcast',
-    series => 'Series',
-    playlist => 'Playlist',
-    collection => 'Collection',
-    latestEpisodes => 'Latest episodes',
-    continueListening => 'Continue Listening',
-    continueSeries => 'Continue Series',
-    continueReading => 'Continue Reading',
-    listeningThreshold => 'Download after listening',
-  };
+  String get label {
+    final l10n = currentAppLocalizations();
+
+    return switch (this) {
+      podcast => l10n.mediaTypePodcast,
+      series => l10n.navSeries,
+      playlist => l10n.navPlaylists,
+      collection => l10n.navCollections,
+      latestEpisodes => l10n.shelfLatestEpisodes,
+      continueListening => l10n.shelfContinueListening,
+      continueSeries => l10n.shelfContinueSeries,
+      continueReading => l10n.shelfContinueReading,
+      listeningThreshold => l10n.smartDownloadAfterListening,
+    };
+  }
 
   bool get supportsAllLibraries => switch (this) {
     continueListening || continueSeries || continueReading || listeningThreshold => true,

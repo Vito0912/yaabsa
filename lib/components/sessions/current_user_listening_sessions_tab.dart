@@ -13,6 +13,7 @@ import 'package:yaabsa/components/sessions/listening_session_list.dart';
 import 'package:yaabsa/components/sessions/listening_sessions_pagination_controls.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class CurrentUserListeningSessionsTab extends ConsumerStatefulWidget {
@@ -180,11 +181,11 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Selected Sessions'),
-          content: Text('Delete ${selectedSessions.length} selected session(s)? This cannot be undone.'),
+          title: Text(context.l10n.sessionDeleteTitle),
+          content: Text(context.l10n.sessionDeletePrompt(selectedSessions.length)),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(context.l10n.actionDelete)),
           ],
         );
       },
@@ -237,12 +238,10 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
 
     final messenger = ScaffoldMessenger.of(context);
     if (deletedCount > 0) {
-      messenger.showSnackBar(SnackBar(content: Text('Deleted $deletedCount session(s).')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.sessionDeleteSuccess(deletedCount))));
     }
     if (failedSessionIds.isNotEmpty) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete ${failedSessionIds.length} session(s). Check logs for details.')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.sessionDeleteFailure(failedSessionIds.length))));
     }
   }
 
@@ -308,7 +307,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Center(child: Text('No active user.'));
+          return Center(child: Text(context.l10n.errorNoActiveUser));
         }
 
         Widget centeredContent(Widget child) {
@@ -382,7 +381,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       children: [
-                        Text('${_selectedSessionIds.length} selected'),
+                        Text(context.l10n.selectedCount(_selectedSessionIds.length)),
                         const Spacer(),
                         FilledButton.icon(
                           onPressed: (_isBulkDeleting || !_canDeleteSelectedSessions(currentUser))
@@ -397,7 +396,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
                                   child: YaabsaCircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Icon(Icons.delete_outline_rounded),
-                          label: const Text('Delete Selected'),
+                          label: Text(context.l10n.actionDeleteSelected),
                         ),
                       ],
                     ),
@@ -419,7 +418,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
         );
       },
       loading: () => const Center(child: YaabsaCircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Failed to load user: $error')),
+      error: (error, _) => Center(child: Text(context.l10n.errorCouldNotLoadUser)),
     );
   }
 }

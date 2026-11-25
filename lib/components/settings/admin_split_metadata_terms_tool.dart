@@ -10,6 +10,7 @@ import 'package:yaabsa/components/settings/admin_tool_library_selector.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminSplitMetadataTermsTool extends ConsumerWidget {
   const AdminSplitMetadataTermsTool({super.key, required this.splitType, this.onCompleted});
@@ -17,21 +18,22 @@ class AdminSplitMetadataTermsTool extends ConsumerWidget {
   final MetadataSplitType splitType;
   final Future<void> Function()? onCompleted;
 
-  String get _label => splitType == MetadataSplitType.tags ? 'Split Tags' : 'Split Genres';
+  String get _termType => splitType == MetadataSplitType.tags ? 'tag' : 'genre';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FilledButton.icon(
       onPressed: () => _openDialog(context, ref),
       icon: const Icon(Icons.call_split_outlined),
-      label: Text(_label),
+      label: Text(context.l10n.metadataSplitTerms(_termType)),
     );
   }
 
   Future<void> _openDialog(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No active API client.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorNoActiveApiClient)));
       return;
     }
 
@@ -44,11 +46,16 @@ class AdminSplitMetadataTermsTool extends ConsumerWidget {
       return;
     }
 
-    final noun = splitType == MetadataSplitType.tags ? 'tag' : 'genre';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Split ${result.termsSplit} composite $noun value(s), touched ${result.itemsChanged} item(s), and applied ${result.itemsUpdated} update(s) across ${result.librariesProcessed} librar${result.librariesProcessed == 1 ? 'y' : 'ies'}.',
+          l10n.statusMetadataTermsSplit(
+            _termType,
+            result.termsSplit,
+            result.itemsChanged,
+            result.itemsUpdated,
+            result.librariesProcessed,
+          ),
         ),
       ),
     );
@@ -91,9 +98,10 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
     super.dispose();
   }
 
-  String get _noun => widget.splitType == MetadataSplitType.tags ? 'tags' : 'genres';
+  String get _termType => widget.splitType == MetadataSplitType.tags ? 'tag' : 'genre';
 
   Future<void> _loadLibraries() async {
+    final l10n = context.l10n;
     setState(() {
       _isLoadingLibraries = true;
       _errorMessage = null;
@@ -115,7 +123,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
       }
 
       setState(() {
-        _errorMessage = 'Failed to load libraries: $error';
+        _errorMessage = l10n.errorOperationFailed(l10n.operationLoadLibraries, error.toString());
       });
     } finally {
       if (mounted) {
@@ -127,13 +135,14 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
   }
 
   Future<void> _runTool() async {
+    final l10n = context.l10n;
     if (_isRunning || _isLoadingLibraries) {
       return;
     }
 
     if (_selectedLibraryIds.isEmpty) {
       setState(() {
-        _errorMessage = 'Select at least one library.';
+        _errorMessage = l10n.errorSelectAtLeastOneLibrary;
       });
       return;
     }
@@ -141,7 +150,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
     final delimiter = _delimiterController.text;
     if (delimiter.trim().isEmpty) {
       setState(() {
-        _errorMessage = 'Delimiter cannot be empty.';
+        _errorMessage = l10n.errorDelimiterRequired;
       });
       return;
     }
@@ -169,7 +178,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
       }
 
       setState(() {
-        _errorMessage = 'Failed to split $_noun: $error';
+        _errorMessage = l10n.errorOperationFailed(l10n.operationSplitMetadataTerms, error.toString());
       });
     } finally {
       if (mounted) {
@@ -182,10 +191,11 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final busy = _isRunning || _isLoadingLibraries;
 
     return AlertDialog(
-      title: Text('Split ${widget.splitType == MetadataSplitType.tags ? 'Tags' : 'Genres'}'),
+      title: Text(l10n.metadataSplitTerms(_termType)),
       content: SizedBox(
         width: 640,
         child: SingleChildScrollView(
@@ -193,16 +203,13 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'This tool splits combined $_noun values using the delimiter below and updates affected items in the selected libraries.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              Text(l10n.messageSplitMetadataTerms(_termType), style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 12),
               StyledTextField(
                 controller: _delimiterController,
                 enabled: !busy,
-                label: 'Delimiter',
-                helperText: 'Example: "," splits "Fantasy, Sci-Fi" into two values.',
+                label: l10n.fieldDelimiter,
+                helperText: l10n.messageDelimiterExample(','),
               ),
               const SizedBox(height: 10),
               if (_errorMessage != null && _errorMessage!.isNotEmpty)
@@ -232,8 +239,8 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: busy ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: busy ? null : _runTool, child: Text(_isRunning ? 'Running...' : 'Run Tool')),
+        TextButton(onPressed: busy ? null : () => Navigator.of(context).pop(), child: Text(l10n.actionCancel)),
+        FilledButton(onPressed: busy ? null : _runTool, child: Text(_isRunning ? l10n.statusRunning : l10n.actionRun)),
       ],
     );
   }

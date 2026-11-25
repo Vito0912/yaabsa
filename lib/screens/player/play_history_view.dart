@@ -7,6 +7,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_local_tab.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayHistoryView extends ConsumerWidget {
@@ -45,7 +46,7 @@ class PlayHistoryView extends ConsumerWidget {
     final horizontalPadding = context.isMobile ? 12.0 : 24.0;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Play history')),
+      appBar: AppBar(title: Text(context.l10n.navPlayHistory)),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -71,12 +72,12 @@ class PlayHistoryView extends ConsumerWidget {
                       tabs: [
                         ExpressiveTabViewItem(
                           id: 'activity',
-                          label: 'Activity',
+                          label: context.l10n.headingActivity,
                           child: PlayHistoryLocalTab(itemId: resolvedItemId, episodeId: resolvedEpisodeId),
                         ),
                         ExpressiveTabViewItem(
                           id: 'sessions',
-                          label: 'Sessions',
+                          label: context.l10n.fieldSessions,
                           child: _PlayHistorySessionsTab(itemId: resolvedItemId, episodeId: resolvedEpisodeId),
                         ),
                       ],
@@ -99,7 +100,7 @@ class _PlayHistoryUnavailableView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Play history')),
+      appBar: AppBar(title: Text(context.l10n.navPlayHistory)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -108,10 +109,10 @@ class _PlayHistoryUnavailableView extends StatelessWidget {
             children: [
               Icon(Icons.history_rounded, size: 40, color: colorScheme.onSurfaceVariant),
               const SizedBox(height: 12),
-              Text('Nothing to show yet', style: Theme.of(context).textTheme.titleMedium),
+              Text(context.l10n.statusNothingToShowYet, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 6),
               Text(
-                'Start playing an audiobook or podcast, then open its history again.',
+                context.l10n.hintOpenHistoryAfterPlayback,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
@@ -137,7 +138,7 @@ class _PlayHistorySessionsTab extends ConsumerWidget {
     final content = itemAsync.when(
       data: (item) => LibraryItemListeningSessionsTab(item: item, initialEpisodeId: episodeId),
       loading: () => const Center(child: YaabsaCircularProgressIndicator()),
-      error: (error, _) => _SessionLoadError(error: error),
+      error: (_, _) => const _SessionLoadError(),
     );
     return DesktopPageShortcuts(
       onRefresh: () async {
@@ -150,9 +151,7 @@ class _PlayHistorySessionsTab extends ConsumerWidget {
 }
 
 class _SessionLoadError extends StatelessWidget {
-  const _SessionLoadError({required this.error});
-
-  final Object error;
+  const _SessionLoadError();
 
   @override
   Widget build(BuildContext context) {
@@ -165,15 +164,8 @@ class _SessionLoadError extends StatelessWidget {
           children: [
             Icon(Icons.cloud_off_rounded, size: 36, color: colorScheme.onSurfaceVariant),
             const SizedBox(height: 12),
-            Text('Could not load sessions', style: Theme.of(context).textTheme.titleMedium),
+            Text(context.l10n.errorRetryCheckConnection, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
-            Text(
-              error.toString(),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
           ],
         ),
       ),

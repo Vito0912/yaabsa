@@ -3,15 +3,16 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/globals.dart' show audioHandler, isAudioHandlerInitialized;
+import 'package:yaabsa/util/l10n.dart';
 
 enum AaosSettingsBackTarget { mediaCenter, settingsHome }
 
 class AaosSettingsScaffold extends StatelessWidget {
-  const AaosSettingsScaffold({super.key, required this.child, required this.backTarget, this.title = 'Settings'});
+  const AaosSettingsScaffold({super.key, required this.child, required this.backTarget, this.title});
 
   final Widget child;
   final AaosSettingsBackTarget backTarget;
-  final String title;
+  final String? title;
 
   void _refreshCurrentRoute(BuildContext context) {
     final state = GoRouterState.of(context);
@@ -56,10 +57,10 @@ class AaosSettingsScaffold extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(title),
+          title: Text(title ?? context.l10n.navSettings),
           leading: IconButton(
             icon: Icon(isTopLevel ? Icons.close : Icons.arrow_back),
-            tooltip: isTopLevel ? 'Close' : 'Back',
+            tooltip: isTopLevel ? context.l10n.actionClose : context.l10n.actionBack,
             onPressed: () async {
               await _handleBack(context);
             },
@@ -67,7 +68,7 @@ class AaosSettingsScaffold extends StatelessWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh',
+              tooltip: context.l10n.actionRefresh,
               onPressed: () {
                 _refreshCurrentRoute(context);
               },

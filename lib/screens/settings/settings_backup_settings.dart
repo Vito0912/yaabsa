@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/settings_backup.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -23,6 +24,8 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
   bool _busy = false;
 
   Future<void> _run(Future<void> Function() operation) async {
+    final l10n = context.l10n;
+
     if (_busy) {
       return;
     }
@@ -36,7 +39,7 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
     } on FormatException catch (error) {
       _showMessage(error.message);
     } catch (_) {
-      _showMessage('Could not transfer settings. Please try again.');
+      _showMessage(l10n.errorOperationFailed(l10n.operationTransferSettings, l10n.errorUnknown));
     } finally {
       if (mounted) {
         setState(() {
@@ -54,22 +57,24 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
   }
 
   Future<void> _export() async {
+    final l10n = context.l10n;
     final backup = await ref.read(settingsManagerProvider.notifier).exportSettings();
     final date = DateTime.now().toIso8601String().substring(0, 10);
     final destination = await FilePicker.saveFile(
-      dialogTitle: 'Export settings',
+      dialogTitle: l10n.actionExport,
       fileName: 'yaabsa_settings_$date.json',
       bytes: Uint8List.fromList(utf8.encode(backup)),
     );
 
     if (destination != null) {
-      _showMessage('Settings exported');
+      _showMessage(l10n.statusSettingsExported);
     }
   }
 
   Future<void> _import() async {
+    final l10n = context.l10n;
     final file = await FilePicker.pickFile(
-      dialogTitle: 'Import settings',
+      dialogTitle: l10n.actionImport,
       type: FileType.custom,
       allowedExtensions: const ['json'],
     );
@@ -79,7 +84,7 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
 
     final fileLength = await file.length();
     if (fileLength != null && fileLength > SettingsBackup.maxBytes) {
-      throw const FormatException('The settings backup is too large.');
+      throw FormatException(l10n.errorSettingsBackupTooLarge);
     }
 
     final backup = SettingsBackup.decode(utf8.decode(await file.readAsBytes()));
@@ -90,12 +95,11 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
     final matchingUsers = await ref.read(settingsManagerProvider.notifier).matchingBackupUsers(backup.users);
     final userCount = matchingUsers.values.fold<int>(0, (count, settings) => count + settings.length);
     final skippedAccounts = backup.users.length - matchingUsers.length;
-    final skippedAccountsLabel = skippedAccounts == 1 ? 'account' : 'accounts';
     if (!mounted) {
       return;
     }
     if (backup.global.isEmpty && userCount == 0) {
-      _showMessage('No settings to import for saved accounts with matching user IDs');
+      _showMessage(l10n.statusNoMatchingSettingsToImport);
       return;
     }
 
@@ -104,17 +108,11 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
       builder: (context) {
         return AlertDialog(
           icon: const Icon(Icons.settings_backup_restore_rounded),
-          title: const Text('Import settings?'),
-          content: Text(
-            '${backup.global.length} app settings and $userCount account settings will be restored.'
-            '\n\nAccount settings are restored only for saved accounts with matching user IDs.'
-            '${skippedAccounts > 0 ? '\n\n$skippedAccounts unmatched $skippedAccountsLabel will be skipped.' : ''}'
-            '\n\nMatching settings will be replaced. Other settings will be kept.'
-            '\n\nRestart the app after importing to apply all changes.',
-          ),
+          title: Text(context.l10n.settingsBackupImportPrompt),
+          content: Text(context.l10n.settingsImportConfirmation(backup.global.length, userCount, skippedAccounts)),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Import')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.actionCancel)),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(context.l10n.actionImport)),
           ],
         );
       },
@@ -124,29 +122,33 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
     }
 
     await ref.read(settingsManagerProvider.notifier).importSettings(global: backup.global, users: backup.users);
-    _showMessage('Settings imported. Restart the app to apply all changes.');
+    if (!mounted) {
+      return;
+    }
+
+    _showMessage(l10n.statusSettingsImportedRestart);
   }
 
   @override
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
-      title: 'Settings backup',
+      title: context.l10n.settingsBackupTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         SettingsNavigationSection(
-          title: 'Transfer settings',
+          title: context.l10n.headingTransferSettings,
           topPadding: 0,
           items: [
             SettingsNavigationItem(
               icon: Icons.file_upload_outlined,
-              title: 'Export settings',
+              title: context.l10n.actionExport,
               enabled: !_busy,
               onTap: () => _run(_export),
             ),
             SettingsNavigationItem(
               icon: Icons.file_download_outlined,
-              title: 'Import settings',
+              title: context.l10n.actionImport,
               enabled: !_busy,
               onTap: () => _run(_import),
             ),

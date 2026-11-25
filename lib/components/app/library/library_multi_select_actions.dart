@@ -12,6 +12,7 @@ import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Future<void> addSelectedLibraryItemsToPlaylist({
   required BuildContext context,
@@ -21,6 +22,7 @@ Future<void> addSelectedLibraryItemsToPlaylist({
   required List<LibraryItem> items,
   required VoidCallback onSuccess,
 }) async {
+  final l10n = context.l10n;
   final selectedItems = <String, LibraryItem>{
     for (final item in items)
       if (isBulkSelectableLibraryItem(item)) libraryItemSelectionKey(item): item,
@@ -33,7 +35,7 @@ Future<void> addSelectedLibraryItemsToPlaylist({
     ref: ref,
     libraryId: libraryId,
     currentUserId: currentUserId,
-    title: 'Add to playlist',
+    title: l10n.actionAddToPlaylist,
   );
   if (!context.mounted || target == null) {
     return;
@@ -63,8 +65,8 @@ Future<void> addSelectedLibraryItemsToPlaylist({
           .read(playlistsProvider(libraryId).notifier)
           .refresh(withLoading: false, forceServer: true, invalidatePending: true);
     },
-    successMessage: 'Added ${selectedItems.length} selected item(s) to "${target.title}".',
-    errorFallback: 'Could not add selected items to playlist.',
+    successMessage: l10n.statusItemsAddedToPlaylist(selectedItems.length, target.title),
+    errorFallback: l10n.errorAddItemsToPlaylistFailed,
     onSuccess: onSuccess,
   );
 }
@@ -77,6 +79,7 @@ Future<void> addSelectedBooksToPlaylist({
   required List<String> selectedBookIds,
   required VoidCallback onSuccess,
 }) async {
+  final l10n = context.l10n;
   if (selectedBookIds.isEmpty || currentUserId == null || currentUserId.isEmpty) {
     return;
   }
@@ -86,7 +89,7 @@ Future<void> addSelectedBooksToPlaylist({
     ref: ref,
     libraryId: libraryId,
     currentUserId: currentUserId,
-    title: 'Add to playlist',
+    title: l10n.actionAddToPlaylist,
   );
 
   if (!context.mounted || targetOption == null) {
@@ -97,10 +100,8 @@ Future<void> addSelectedBooksToPlaylist({
     context: context,
     action: () =>
         ref.read(playlistsProvider(libraryId).notifier).addBooksToPlaylist(targetOption.id, bookIds: selectedBookIds),
-    successMessage: selectedBookIds.length == 1
-        ? 'Added 1 book to "${targetOption.title}".'
-        : 'Added ${selectedBookIds.length} books to "${targetOption.title}".',
-    errorFallback: 'Could not add books to playlist.',
+    successMessage: l10n.statusBooksAddedToTarget(selectedBookIds.length, targetOption.title),
+    errorFallback: l10n.errorAddBooksToPlaylistFailed,
     onSuccess: onSuccess,
   );
 }
@@ -114,6 +115,7 @@ Future<void> addSelectedPodcastEpisodesToPlaylist({
   required List<String> selectedEpisodeIds,
   required VoidCallback onSuccess,
 }) async {
+  final l10n = context.l10n;
   if (selectedEpisodeIds.isEmpty || currentUserId == null || currentUserId.isEmpty) {
     return;
   }
@@ -123,7 +125,7 @@ Future<void> addSelectedPodcastEpisodesToPlaylist({
     ref: ref,
     libraryId: libraryId,
     currentUserId: currentUserId,
-    title: 'Add episodes to playlist',
+    title: l10n.headingAddEpisodesToPlaylist,
   );
 
   if (!context.mounted || targetOption == null) {
@@ -135,10 +137,8 @@ Future<void> addSelectedPodcastEpisodesToPlaylist({
     action: () => ref
         .read(playlistsProvider(libraryId).notifier)
         .addPodcastEpisodesToPlaylist(targetOption.id, libraryItemId: podcastItemId, episodeIds: selectedEpisodeIds),
-    successMessage: selectedEpisodeIds.length == 1
-        ? 'Added 1 episode to "${targetOption.title}".'
-        : 'Added ${selectedEpisodeIds.length} episodes to "${targetOption.title}".',
-    errorFallback: 'Could not add episodes to playlist.',
+    successMessage: l10n.statusEpisodesAddedToPlaylist(selectedEpisodeIds.length, targetOption.title),
+    errorFallback: l10n.errorAddEpisodesToPlaylistFailed,
     onSuccess: onSuccess,
   );
 }
@@ -150,11 +150,12 @@ Future<LibraryTargetPickerOption?> _showEditablePlaylistPicker({
   required String currentUserId,
   required String title,
 }) {
+  final l10n = context.l10n;
   return showLibraryTargetPickerSheet(
     context: context,
     title: title,
-    emptyMessage: 'No editable playlists found.',
-    loadErrorMessage: 'Could not load playlists.',
+    emptyMessage: l10n.statusNoEditablePlaylistsFound,
+    loadErrorMessage: l10n.errorLoadPlaylistsFailed,
     loadOptions: () async {
       final playlistsNotifier = ref.read(playlistsProvider(libraryId).notifier);
       await playlistsNotifier.ensureAllLoaded();
@@ -187,15 +188,16 @@ Future<void> addSelectedBooksToCollection({
   required List<String> selectedBookIds,
   required VoidCallback onSuccess,
 }) async {
+  final l10n = context.l10n;
   if (selectedBookIds.isEmpty) {
     return;
   }
 
   final targetOption = await showLibraryTargetPickerSheet(
     context: context,
-    title: 'Add to collection',
-    emptyMessage: 'No collections found.',
-    loadErrorMessage: 'Could not load collections.',
+    title: l10n.actionAddToCollection,
+    emptyMessage: l10n.statusNoCollectionsFound,
+    loadErrorMessage: l10n.errorLoadCollectionsFailed,
     loadOptions: () async {
       final collectionsNotifier = ref.read(collectionsProvider(libraryId).notifier);
       await collectionsNotifier.ensureAllLoaded();
@@ -225,10 +227,8 @@ Future<void> addSelectedBooksToCollection({
     action: () => ref
         .read(collectionsProvider(libraryId).notifier)
         .addBooksToCollection(targetOption.id, bookIds: selectedBookIds),
-    successMessage: selectedBookIds.length == 1
-        ? 'Added 1 book to "${targetOption.title}".'
-        : 'Added ${selectedBookIds.length} books to "${targetOption.title}".',
-    errorFallback: 'Could not add books to collection.',
+    successMessage: l10n.statusBooksAddedToTarget(selectedBookIds.length, targetOption.title),
+    errorFallback: l10n.errorAddBooksToCollectionFailed,
     onSuccess: onSuccess,
   );
 }
@@ -240,6 +240,7 @@ Future<void> quickMatchSelectedBooks({
   required List<LibraryItem> selectedItems,
   required VoidCallback onSuccess,
 }) async {
+  final l10n = context.l10n;
   if (selectedItems.isEmpty) {
     return;
   }
@@ -252,8 +253,8 @@ Future<void> quickMatchSelectedBooks({
     context: context,
     mediaType: 'book',
     previewItems: selectedItems,
-    title: 'Quick match selected books',
-    confirmLabel: 'Start',
+    title: l10n.headingQuickMatchSelectedBooks,
+    confirmLabel: l10n.actionStart,
     initialProvider: defaultProvider,
   );
 
@@ -264,7 +265,7 @@ Future<void> quickMatchSelectedBooks({
   final api = ref.read(absApiProvider);
   if (api == null) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorConnectionUnavailable)));
     }
     return;
   }
@@ -279,19 +280,19 @@ Future<void> quickMatchSelectedBooks({
     }
 
     if (started) {
-      final label = selectedBookIds.length == 1 ? '1 book' : '${selectedBookIds.length} books';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Metadata change request sent for $label.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.statusQuickMatchBatchStarted(selectedBookIds.length))));
       onSuccess();
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Could not start metadata change request.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorStartQuickMatchBatchFailed)));
     }
   } catch (error) {
     if (!context.mounted) {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not quick match selected books: $error')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.errorQuickMatchBatchFailed(error.toString()))));
   }
 }
 

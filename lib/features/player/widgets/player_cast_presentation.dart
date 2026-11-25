@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 class PlayerCastButtonPresentation extends StatelessWidget {
@@ -15,7 +16,7 @@ class PlayerCastButtonPresentation extends StatelessWidget {
       iconSize: iconSize ?? 24,
       buttonSize: 48,
       compact: false,
-      tooltip: connected ? 'Manage cast device' : 'Connect to a cast device',
+      tooltip: context.l10n.castDevices,
       onPressed: onPressed,
     );
   }

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
@@ -23,7 +24,10 @@ class SignInServerStatus extends StatelessWidget {
             child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: 8),
-          Text('Checking server...', style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+          Text(
+            context.l10n.statusCheckingServer,
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
         ],
       );
     }

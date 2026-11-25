@@ -4,6 +4,7 @@ import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_draft.
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ChapterEditorToolbar extends StatelessWidget {
   const ChapterEditorToolbar({
@@ -47,12 +48,12 @@ class ChapterEditorToolbar extends StatelessWidget {
               FilledButton.tonalIcon(
                 onPressed: enabled ? onAdd : null,
                 icon: const Icon(Icons.add),
-                label: const Text('Add chapters'),
+                label: Text(context.l10n.actionAddChapters),
               ),
               if (context.isMobile)
                 YaabsaContextMenuButton<String>(
                   enabled: enabled,
-                  tooltip: 'Chapter tools',
+                  tooltip: context.l10n.actionChapterTools,
                   onSelected: (action) {
                     if (action == 'lookup') {
                       onLookup();
@@ -64,20 +65,28 @@ class ChapterEditorToolbar extends StatelessWidget {
                   },
                   itemBuilder: (context) {
                     return [
-                      const PopupMenuItem(value: 'lookup', child: Text('Find chapters')),
-                      PopupMenuItem(value: 'shift', enabled: draft.rows.isNotEmpty, child: const Text('Shift times')),
+                      PopupMenuItem(value: 'lookup', child: Text(context.l10n.actionFindChapters)),
+                      PopupMenuItem(
+                        value: 'shift',
+                        enabled: draft.rows.isNotEmpty,
+                        child: Text(context.l10n.actionShiftTimes),
+                      ),
                       PopupMenuItem(
                         value: 'tracks',
                         enabled: onFromTracks != null,
-                        child: const Text('Use audio tracks'),
+                        child: Text(context.l10n.actionUseAudioTracks),
                       ),
                     ];
                   },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [Icon(Icons.build_outlined), SizedBox(width: 8), Text('Tools')],
+                      children: [
+                        const Icon(Icons.build_outlined),
+                        const SizedBox(width: 8),
+                        Text(context.l10n.actionChapterTools),
+                      ],
                     ),
                   ),
                 ),
@@ -85,19 +94,19 @@ class ChapterEditorToolbar extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: enabled ? onLookup : null,
                   icon: const Icon(Icons.search),
-                  label: const Text('Find chapters'),
+                  label: Text(context.l10n.actionFindChapters),
                 ),
               if (!context.isMobile)
                 OutlinedButton.icon(
                   onPressed: enabled && draft.rows.isNotEmpty ? onShift : null,
                   icon: const Icon(Icons.more_time_rounded),
-                  label: const Text('Shift times'),
+                  label: Text(context.l10n.actionShiftTimes),
                 ),
               if (!context.isMobile)
                 OutlinedButton.icon(
                   onPressed: enabled ? onFromTracks : null,
                   icon: const Icon(Icons.queue_music_rounded),
-                  label: const Text('Use audio tracks'),
+                  label: Text(context.l10n.actionUseAudioTracks),
                 ),
             ],
           ),
@@ -106,7 +115,7 @@ class ChapterEditorToolbar extends StatelessWidget {
             controller: search,
             enabled: enabled,
             onChanged: onSearchChanged,
-            label: 'Find a chapter by title or number',
+            label: context.l10n.hintSearchChapters,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             prefixIcon: const Icon(Icons.search_rounded),
@@ -129,11 +138,13 @@ class ChapterEditorToolbar extends StatelessWidget {
                     onChanged: enabled && visibleRows.isNotEmpty
                         ? (_) => draft.selectAll(visibleSelected != visibleRows.length, visibleRows)
                         : null,
-                    semanticLabel: 'Select all visible chapters',
+                    semanticLabel: context.l10n.a11ySelectAllVisibleChapters,
                   ),
                   Expanded(
                     child: Text(
-                      selected > 0 ? '$selected selected' : '${draft.rows.length} chapters',
+                      selected > 0
+                          ? context.l10n.selectedCount(selected)
+                          : context.l10n.chapterCount(draft.rows.length),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -142,19 +153,19 @@ class ChapterEditorToolbar extends StatelessWidget {
                     TextButton.icon(
                       onPressed: enabled ? onRemoveSelected : null,
                       icon: const Icon(Icons.delete_outline_rounded),
-                      label: const Text('Remove selected'),
+                      label: Text(context.l10n.actionRemoveSelected),
                     ),
                 ],
               );
             },
           ),
           if (!context.isMobile)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(80, 0, 96, 4),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(80, 0, 96, 4),
               child: Row(
                 children: [
-                  SizedBox(width: 168, child: Text('Start')),
-                  Expanded(child: Text('Title')),
+                  SizedBox(width: 168, child: Text(context.l10n.fieldStartTime)),
+                  Expanded(child: Text(context.l10n.fieldTitle)),
                 ],
               ),
             ),
@@ -196,9 +207,9 @@ class ChapterEditorFooter extends StatelessWidget {
             final canSave = draft.hasChanges && draft.errorCount == 0 && !saving && !conflict;
             String? summary;
             if (draft.errorCount > 0) {
-              summary = '${draft.errorCount} chapters need attention';
+              summary = context.l10n.statusChapterErrors(draft.errorCount);
             } else if (draft.hasChanges) {
-              summary = 'Unsaved changes';
+              summary = context.l10n.statusUnsavedChanges;
             }
 
             return Column(
@@ -215,13 +226,13 @@ class ChapterEditorFooter extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: !saving && (draft.hasChanges || conflict) ? onReset : null,
-                      child: const Text('Discard edits'),
+                      child: Text(context.l10n.actionDiscardEdits),
                     ),
                     const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: canSave ? onSave : null,
                       icon: const Icon(Icons.save_outlined),
-                      label: Text(saving ? 'Working...' : 'Save'),
+                      label: Text(saving ? context.l10n.statusSaving : context.l10n.actionSave),
                     ),
                   ],
                 ),

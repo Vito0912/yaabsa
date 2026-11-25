@@ -16,6 +16,7 @@ import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/ui/components/dialogs/dialog_actions.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryUpsertFormResult {
   const LibraryUpsertFormResult({
@@ -55,23 +56,6 @@ class _LibraryUpsertFormDialog extends ConsumerStatefulWidget {
 }
 
 class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDialog> {
-  static const List<YaabsaDropdownOption<String>> _mediaTypeOptions = <YaabsaDropdownOption<String>>[
-    YaabsaDropdownOption<String>(value: 'book', label: 'Books'),
-    YaabsaDropdownOption<String>(value: 'podcast', label: 'Podcasts'),
-  ];
-
-  static const List<YaabsaDropdownOption<String>> _podcastRegionOptions = <YaabsaDropdownOption<String>>[
-    YaabsaDropdownOption<String>(value: 'us', label: 'United States'),
-    YaabsaDropdownOption<String>(value: 'gb', label: 'United Kingdom'),
-    YaabsaDropdownOption<String>(value: 'de', label: 'Germany'),
-    YaabsaDropdownOption<String>(value: 'fr', label: 'France'),
-    YaabsaDropdownOption<String>(value: 'es', label: 'Spain'),
-    YaabsaDropdownOption<String>(value: 'it', label: 'Italy'),
-    YaabsaDropdownOption<String>(value: 'jp', label: 'Japan'),
-    YaabsaDropdownOption<String>(value: 'au', label: 'Australia'),
-    YaabsaDropdownOption<String>(value: 'ca', label: 'Canada'),
-  ];
-
   static const List<String> _defaultMetadataPrecedenceIds = <String>[
     'folderStructure',
     'audioMetatags',
@@ -80,15 +64,6 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     'opfFile',
     'absMetadata',
   ];
-
-  static const Map<String, String> _metadataSourceLabels = <String, String>{
-    'folderStructure': 'Folder structure',
-    'audioMetatags': 'Audio and ebook metadata',
-    'nfoFile': 'NFO file',
-    'txtFiles': 'desc.txt and reader.txt',
-    'opfFile': 'OPF file',
-    'absMetadata': 'Audiobookshelf metadata file',
-  };
 
   static const List<YaabsaDropdownOption<String>> _bookProviderFallback = <YaabsaDropdownOption<String>>[
     YaabsaDropdownOption<String>(value: 'google', label: 'Google Books'),
@@ -235,6 +210,48 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     return mediaType == 'podcast' ? 'itunes' : 'google';
   }
 
+  List<YaabsaDropdownOption<String>> _mediaTypeOptions() {
+    final l10n = context.l10n;
+    return <YaabsaDropdownOption<String>>[
+      YaabsaDropdownOption<String>(value: 'book', label: l10n.mediaTypeAudiobooks),
+      YaabsaDropdownOption<String>(value: 'podcast', label: l10n.mediaTypePodcasts),
+    ];
+  }
+
+  List<YaabsaDropdownOption<String>> _podcastRegionOptions() {
+    final l10n = context.l10n;
+    return <YaabsaDropdownOption<String>>[
+      YaabsaDropdownOption<String>(value: 'us', label: l10n.countryUnitedStates),
+      YaabsaDropdownOption<String>(value: 'gb', label: l10n.countryUnitedKingdom),
+      YaabsaDropdownOption<String>(value: 'de', label: l10n.countryGermany),
+      YaabsaDropdownOption<String>(value: 'fr', label: l10n.countryFrance),
+      YaabsaDropdownOption<String>(value: 'es', label: l10n.countrySpain),
+      YaabsaDropdownOption<String>(value: 'it', label: l10n.countryItaly),
+      YaabsaDropdownOption<String>(value: 'jp', label: l10n.countryJapan),
+      YaabsaDropdownOption<String>(value: 'au', label: l10n.countryAustralia),
+      YaabsaDropdownOption<String>(value: 'ca', label: l10n.countryCanada),
+    ];
+  }
+
+  String? _metadataSourceLabel(String sourceId) {
+    final l10n = context.l10n;
+    return switch (sourceId) {
+      'folderStructure' => l10n.metadataSourceFolderStructure,
+      'audioMetatags' => l10n.metadataSourceAudioAndEbookMetadata,
+      'nfoFile' => l10n.metadataSourceNfoFile,
+      'txtFiles' => l10n.metadataSourceDescriptionFiles,
+      'opfFile' => l10n.metadataSourceOpfFile,
+      'absMetadata' => l10n.metadataSourceAudiobookshelfFile,
+      _ => null,
+    };
+  }
+
+  List<LibraryMetadataSourceEntry> _localizedMetadataSources() {
+    return _metadataSources
+        .map((source) => source.copyWith(label: _metadataSourceLabel(source.id) ?? source.label))
+        .toList(growable: false);
+  }
+
   double? _safeMarkAsFinishedPercent(LibrarySettings settings) {
     try {
       return settings.markAsFinishedPercentComplete;
@@ -255,7 +272,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
 
   List<LibraryMetadataSourceEntry> _buildMetadataSources(List<String>? precedence) {
     final normalizedPrecedence = (precedence ?? _defaultMetadataPrecedenceIds)
-        .where((id) => _metadataSourceLabels.containsKey(id))
+        .where(_defaultMetadataPrecedenceIds.contains)
         .toList(growable: false);
 
     final displayPrecedence = normalizedPrecedence.reversed.toList(growable: false);
@@ -264,12 +281,8 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     final includedIds = <String>{};
 
     for (final sourceId in displayPrecedence) {
-      final label = _metadataSourceLabels[sourceId];
-      if (label == null) {
-        continue;
-      }
       includedIds.add(sourceId);
-      entries.add(LibraryMetadataSourceEntry(id: sourceId, label: label, enabled: true));
+      entries.add(LibraryMetadataSourceEntry(id: sourceId, label: sourceId, enabled: true));
     }
 
     for (final sourceId in _defaultMetadataPrecedenceIds) {
@@ -277,12 +290,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
         continue;
       }
 
-      final label = _metadataSourceLabels[sourceId];
-      if (label == null) {
-        continue;
-      }
-
-      entries.add(LibraryMetadataSourceEntry(id: sourceId, label: label, enabled: false));
+      entries.add(LibraryMetadataSourceEntry(id: sourceId, label: sourceId, enabled: false));
     }
 
     return entries;
@@ -307,11 +315,11 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     for (final folder in _folders) {
       final normalizedExisting = _normalizePathForComparison(folder.path);
       if (normalizedCandidate == normalizedExisting) {
-        return 'Folder path already exists.';
+        return context.l10n.errorLibraryFolderPathAlreadyExists;
       }
 
       if (_isNestedPathPair(normalizedCandidate, normalizedExisting)) {
-        return 'Nested folder paths are not allowed.';
+        return context.l10n.errorNestedFolderPathsNotAllowed;
       }
     }
 
@@ -321,7 +329,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
   String? _validateName(String rawValue) {
     final name = rawValue.trim();
     if (name.isEmpty) {
-      return 'Library name is required.';
+      return context.l10n.errorLibraryNameRequired;
     }
 
     return null;
@@ -329,7 +337,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
 
   String? _validateFolders(List<LibraryFolderEditorEntry> folders) {
     if (folders.isEmpty) {
-      return 'Add at least one folder path.';
+      return context.l10n.errorAddAtLeastOneFolderPath;
     }
 
     final normalizedByPath = <String, String>{};
@@ -337,12 +345,12 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     for (final folder in folders) {
       final trimmedPath = folder.path.trim();
       if (trimmedPath.isEmpty) {
-        return 'Folder paths cannot be empty.';
+        return context.l10n.errorFolderPathsCannotBeEmpty;
       }
 
       final normalized = _normalizePathForComparison(trimmedPath);
       if (normalizedByPath.containsKey(normalized)) {
-        return 'Duplicate folder paths are not allowed.';
+        return context.l10n.errorDuplicateFolderPathsNotAllowed;
       }
 
       normalizedByPath[normalized] = trimmedPath;
@@ -352,7 +360,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     for (var index = 0; index < normalizedEntries.length; index++) {
       for (var nestedIndex = index + 1; nestedIndex < normalizedEntries.length; nestedIndex++) {
         if (_isNestedPathPair(normalizedEntries[index].key, normalizedEntries[nestedIndex].key)) {
-          return 'Nested folder paths are not allowed.';
+          return context.l10n.errorNestedFolderPathsNotAllowed;
         }
       }
     }
@@ -366,7 +374,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     }
 
     if (_autoScanCronController.text.trim().isEmpty) {
-      return 'Cron expression is required when scheduling is enabled.';
+      return context.l10n.errorCronRequiredWhenLibrarySchedulingEnabled;
     }
 
     return null;
@@ -381,14 +389,14 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     if (_markAsFinishedMode == 'percentComplete') {
       final percentValue = double.tryParse(rawValue);
       if (percentValue == null || percentValue < 0 || percentValue > 100) {
-        return 'Enter a value between 0 and 100.';
+        return context.l10n.errorPercentBetweenZeroAndHundred(0, 100);
       }
       return null;
     }
 
     final value = int.tryParse(rawValue);
     if (value == null || value <= 0) {
-      return 'Enter a positive number.';
+      return context.l10n.errorPositiveWholeNumberRequired;
     }
 
     return null;
@@ -479,7 +487,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     final nextPath = path.trim();
     if (nextPath.isEmpty) {
       setState(() {
-        _foldersError = 'Folder path cannot be empty.';
+        _foldersError = context.l10n.errorFolderPathsCannotBeEmpty;
       });
       return;
     }
@@ -513,9 +521,10 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     });
 
     final initialPath = _folders.isEmpty ? null : _folders.last.path;
+    final l10n = context.l10n;
     final selectedPath = await showFilesystemDirectoryPickerDialog(
       context,
-      title: 'Select library folder',
+      title: l10n.titleSelectLibraryFolder,
       initialPath: initialPath,
     );
 
@@ -609,9 +618,10 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       return;
     }
 
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -624,18 +634,18 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       final payload = response.data;
 
       if (payload == null || !payload.found) {
-        _showMessage('No .$extension metadata files were found.');
+        _showMessage(l10n.statusNoLibraryMetadataFilesFound(extension));
         return;
       }
 
       if (payload.numRemoved <= 0) {
-        _showMessage('No .$extension metadata files were removed.');
+        _showMessage(l10n.statusNoLibraryMetadataFilesRemoved(extension));
         return;
       }
 
-      _showMessage('Removed ${payload.numRemoved} .$extension metadata files.');
+      _showMessage(l10n.statusLibraryMetadataFilesRemoved(payload.numRemoved, extension));
     } catch (error) {
-      _showMessage('Failed removing .$extension metadata files: $error');
+      _showMessage(l10n.errorRemoveLibraryMetadataFilesFailed(extension, error.toString()));
     } finally {
       if (mounted) {
         setState(() {
@@ -651,9 +661,10 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       return;
     }
 
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -664,13 +675,13 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     try {
       final success = await api.getLibraryApi().matchAllBooks(sourceLibrary.id);
       if (!success) {
-        _showMessage('Failed to start match-all job.');
+        _showMessage(l10n.errorStartMatchAllMetadataFailed);
         return;
       }
 
-      _showMessage('Started match-all metadata job.');
+      _showMessage(l10n.statusMatchAllMetadataStarted);
     } catch (error) {
-      _showMessage('Failed to start match-all metadata job: $error');
+      _showMessage(l10n.errorMatchAllMetadataFailed(error.toString()));
     } finally {
       if (mounted) {
         setState(() {
@@ -727,11 +738,16 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       value: _selectedProvider,
       options: providerOptions,
       onChanged: _onProviderChanged,
-      decoration: yaabsaFieldDecoration(context, label: 'Provider', hintText: 'Select metadata provider'),
+      decoration: yaabsaFieldDecoration(
+        context,
+        label: context.l10n.fieldMetadataProvider,
+        hintText: context.l10n.hintSelectMetadataProvider,
+      ),
     );
   }
 
   Widget _buildLibrarySettingsTab(AsyncValue<List<SearchProviderOption>> providerOptionsAsync) {
+    final l10n = context.l10n;
     final providerOptions = _providerOptions(providerOptionsAsync.value ?? const <SearchProviderOption>[]);
     final iconOptions = _resolvedIconOptions();
 
@@ -741,19 +757,19 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
         children: [
           YaabsaExpressiveDropdownField<String>(
             value: _selectedMediaType,
-            options: _mediaTypeOptions,
+            options: _mediaTypeOptions(),
             onChanged: widget.isCreate ? _onMediaTypeChanged : null,
             decoration: yaabsaFieldDecoration(
               context,
-              label: 'Media type',
-              hintText: widget.isCreate ? null : 'Media type cannot be changed for existing libraries',
+              label: l10n.fieldMediaType,
+              hintText: widget.isCreate ? null : l10n.hintMediaTypeCannotBeChanged,
             ),
           ),
           const SizedBox(height: 10),
           StyledTextField(
-            label: 'Library name',
+            label: l10n.fieldLibrary,
             controller: _nameController,
-            hintText: 'My Audiobooks',
+            hintText: l10n.hintLibraryNameExample,
             errorText: _nameError,
             onChanged: (_) {
               if (_nameError == null) {
@@ -776,7 +792,11 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             value: _selectedIconName,
             options: iconOptions,
             onChanged: _onIconChanged,
-            decoration: yaabsaFieldDecoration(context, label: 'Icon name', hintText: 'Select library icon key'),
+            decoration: yaabsaFieldDecoration(
+              context,
+              label: l10n.fieldLibraryIcon,
+              hintText: l10n.hintSelectLibraryIcon,
+            ),
           ),
           const SizedBox(height: 12),
           LibraryFolderListEditor(
@@ -789,11 +809,11 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             errorText: _foldersError,
           ),
           const SizedBox(height: 12),
-          Text('Library behavior', style: Theme.of(context).textTheme.titleSmall),
+          Text(l10n.headingLibraryBehavior, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
           YaabsaSwitchTile.adaptive(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Use square book covers'),
+            title: Text(l10n.settingUseSquareBookCovers),
             value: _useSquareBookCovers,
             onChanged: (value) {
               setState(() {
@@ -804,7 +824,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           if (_selectedMediaType == 'book') ...[
             YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Audiobooks only'),
+              title: Text(l10n.settingAudiobooksOnly),
               value: _audiobooksOnly,
               onChanged: (value) {
                 setState(() {
@@ -814,7 +834,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             ),
             YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Hide single-book series'),
+              title: Text(l10n.settingHideSingleBookSeries),
               value: _hideSingleBookSeries,
               onChanged: (value) {
                 setState(() {
@@ -824,7 +844,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             ),
             YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Only show later books in continue series'),
+              title: Text(l10n.settingOnlyShowLaterBooksInContinueSeries),
               value: _showLaterBooks,
               onChanged: (value) {
                 setState(() {
@@ -834,7 +854,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             ),
             YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Allow scripted ebook content'),
+              title: Text(l10n.settingAllowScriptedEbookContent),
               value: _epubScriptedContent,
               onChanged: (value) {
                 setState(() {
@@ -843,16 +863,16 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
               },
             ),
             const SizedBox(height: 8),
-            Text('Mark as finished threshold', style: Theme.of(context).textTheme.titleSmall),
+            Text(l10n.headingMarkAsFinishedThreshold, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: YaabsaExpressiveDropdownField<String>(
                     value: _markAsFinishedMode,
-                    options: const [
-                      YaabsaDropdownOption<String>(value: 'timeRemaining', label: 'Time remaining (seconds)'),
-                      YaabsaDropdownOption<String>(value: 'percentComplete', label: 'Percent complete'),
+                    options: [
+                      YaabsaDropdownOption<String>(value: 'timeRemaining', label: l10n.optionTimeRemainingSeconds),
+                      YaabsaDropdownOption<String>(value: 'percentComplete', label: l10n.optionPercentComplete),
                     ],
                     onChanged: (value) {
                       if (value == null) {
@@ -863,14 +883,14 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
                         _markAsFinishedError = _validateMarkAsFinished();
                       });
                     },
-                    decoration: yaabsaFieldDecoration(context, label: 'Mode'),
+                    decoration: yaabsaFieldDecoration(context, label: l10n.fieldMode),
                   ),
                 ),
                 const SizedBox(width: 10),
                 SizedBox(
                   width: 140,
                   child: StyledTextField(
-                    label: _markAsFinishedMode == 'percentComplete' ? 'Percent' : 'Seconds',
+                    label: _markAsFinishedMode == 'percentComplete' ? l10n.fieldPercent : l10n.fieldSeconds,
                     controller: _markAsFinishedValueController,
                     keyboardType: _markAsFinishedMode == 'percentComplete'
                         ? const TextInputType.numberWithOptions(decimal: true)
@@ -893,7 +913,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             const SizedBox(height: 8),
             YaabsaExpressiveDropdownField<String>(
               value: _selectedPodcastRegion,
-              options: _podcastRegionOptions,
+              options: _podcastRegionOptions(),
               onChanged: (value) {
                 if (value == null) {
                   return;
@@ -902,7 +922,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
                   _selectedPodcastRegion = value;
                 });
               },
-              decoration: yaabsaFieldDecoration(context, label: 'Podcast search region'),
+              decoration: yaabsaFieldDecoration(context, label: l10n.fieldPodcastSearchRegion),
             ),
           ],
         ],
@@ -914,18 +934,19 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     if (_selectedMediaType != 'book') {
       return Center(
         child: Text(
-          'Scanner settings are available for book libraries.',
+          context.l10n.messageScannerSettingsBookLibrariesOnly,
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       );
     }
 
+    final metadataSources = _localizedMetadataSources();
     final controls = <Widget>[
       YaabsaSwitchTile.adaptive(
         contentPadding: EdgeInsets.zero,
-        title: const Text('Enable folder watcher'),
-        subtitle: const Text('Disable if your host cannot provide reliable filesystem watch events.'),
+        title: Text(context.l10n.settingEnableFolderWatcher),
+        subtitle: Text(context.l10n.settingEnableFolderWatcherDescription),
         value: _enableWatcher,
         onChanged: (value) {
           setState(() {
@@ -935,7 +956,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       ),
       YaabsaSwitchTile.adaptive(
         contentPadding: EdgeInsets.zero,
-        title: const Text('Skip matching books with ASIN'),
+        title: Text(context.l10n.settingSkipMatchingBooksWithAsin),
         value: _skipMatchingMediaWithAsin,
         onChanged: (value) {
           setState(() {
@@ -945,7 +966,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       ),
       YaabsaSwitchTile.adaptive(
         contentPadding: EdgeInsets.zero,
-        title: const Text('Skip matching books with ISBN'),
+        title: Text(context.l10n.settingSkipMatchingBooksWithIsbn),
         value: _skipMatchingMediaWithIsbn,
         onChanged: (value) {
           setState(() {
@@ -967,7 +988,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
                 SizedBox(
                   height: 280,
                   child: LibraryMetadataPrecedenceEditor(
-                    sources: _metadataSources,
+                    sources: metadataSources,
                     onReorderItem: _onMetadataSourceReorder,
                     onToggleSource: _onToggleMetadataSource,
                     onResetToDefault: _resetMetadataSources,
@@ -984,7 +1005,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             ...controls,
             Expanded(
               child: LibraryMetadataPrecedenceEditor(
-                sources: _metadataSources,
+                sources: metadataSources,
                 onReorderItem: _onMetadataSourceReorder,
                 onToggleSource: _onToggleMetadataSource,
                 onResetToDefault: _resetMetadataSources,
@@ -997,14 +1018,15 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
   }
 
   Widget _buildScheduleTab() {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           YaabsaSwitchTile.adaptive(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Enable scheduled scans'),
-            subtitle: const Text('Use cron syntax. Example: 0 0 * * 1 runs weekly on Monday at 00:00.'),
+            title: Text(l10n.settingEnableScheduledScans),
+            subtitle: Text(l10n.settingScheduledScansDescription('0 0 * * 1')),
             value: _scheduleEnabled,
             onChanged: (value) {
               setState(() {
@@ -1015,7 +1037,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           ),
           const SizedBox(height: 8),
           StyledTextField(
-            label: 'Cron expression',
+            label: l10n.fieldCronExpression,
             controller: _autoScanCronController,
             hintText: '0 0 * * 1',
             enabled: _scheduleEnabled,
@@ -1031,7 +1053,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           ),
           const SizedBox(height: 8),
           Text(
-            'Disable scheduling to clear the cron expression.',
+            l10n.hintDisableSchedulingToClearCron,
             style: Theme.of(context).textTheme.bodySmall
                 ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
@@ -1041,12 +1063,13 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
   }
 
   Widget _buildToolsTab() {
+    final l10n = context.l10n;
     final sourceLibrary = widget.library;
 
     if (sourceLibrary == null) {
       return Center(
         child: Text(
-          'Create the library first to access tools.',
+          l10n.messageCreateLibraryBeforeUsingTools,
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
@@ -1059,10 +1082,10 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Metadata file cleanup', style: Theme.of(context).textTheme.titleSmall),
+          Text(l10n.headingLibraryMetadataFileCleanup, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 4),
           Text(
-            'Remove generated metadata files from library folders.',
+            l10n.messageRemoveGeneratedLibraryMetadataFiles,
             style: Theme.of(context).textTheme.bodySmall
                 ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
@@ -1074,12 +1097,12 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
               OutlinedButton.icon(
                 onPressed: _isRunningToolAction ? null : () => _runRemoveMetadata('json'),
                 icon: const Icon(Icons.cleaning_services_outlined),
-                label: const Text('Remove metadata.json'),
+                label: Text(l10n.actionRemoveMetadataFile('metadata.json')),
               ),
               OutlinedButton.icon(
                 onPressed: _isRunningToolAction ? null : () => _runRemoveMetadata('abs'),
                 icon: const Icon(Icons.cleaning_services_outlined),
-                label: const Text('Remove metadata.abs'),
+                label: Text(l10n.actionRemoveMetadataFile('metadata.abs')),
               ),
             ],
           ),
@@ -1087,10 +1110,10 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             const SizedBox(height: 14),
             Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35)),
             const SizedBox(height: 10),
-            Text('Match all books', style: Theme.of(context).textTheme.titleSmall),
+            Text(l10n.actionMatchAllBooks, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 4),
             Text(
-              'Run the server match-all process for this library.',
+              l10n.messageRunMatchAllMetadataForLibrary,
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
@@ -1100,7 +1123,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
               icon: _isRunningToolAction
                   ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.auto_fix_high_rounded),
-              label: const Text('Start match-all'),
+              label: Text(l10n.actionStartMatchAll),
             ),
           ],
         ],
@@ -1110,6 +1133,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final providerOptionsAsync = ref.watch(uploadMetadataProvidersProvider(_selectedMediaType));
     final mediaQuery = MediaQuery.of(context);
     final dialogWidth = (mediaQuery.size.width - 48).clamp(280.0, 980.0).toDouble();
@@ -1127,18 +1151,18 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           tabs: [
             ExpressiveTabViewItem(
               id: 'library-settings',
-              label: 'Library Settings',
+              label: l10n.headingLibrarySettings,
               child: _buildLibrarySettingsTab(providerOptionsAsync),
             ),
-            ExpressiveTabViewItem(id: 'scanner', label: 'Scanner', child: _buildScannerTab()),
-            ExpressiveTabViewItem(id: 'schedule', label: 'Schedule', child: _buildScheduleTab()),
-            ExpressiveTabViewItem(id: 'tools', label: 'Tools', child: _buildToolsTab()),
+            ExpressiveTabViewItem(id: 'scanner', label: l10n.settingsCategoryScanner, child: _buildScannerTab()),
+            ExpressiveTabViewItem(id: 'schedule', label: l10n.settingsCategorySchedule, child: _buildScheduleTab()),
+            ExpressiveTabViewItem(id: 'tools', label: l10n.settingsCategoryTools, child: _buildToolsTab()),
           ],
         ),
       ),
       actions: [
         YaabsaDialogActions(
-          actionLabel: widget.isCreate ? 'Create library' : 'Save changes',
+          actionLabel: widget.isCreate ? l10n.actionCreate : l10n.actionSave,
           actionIcon: widget.isCreate ? Icons.add_rounded : Icons.save_rounded,
           onAction: _submit,
           onCancel: () => Navigator.of(context).pop(),

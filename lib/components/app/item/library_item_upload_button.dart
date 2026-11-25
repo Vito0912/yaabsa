@@ -6,6 +6,7 @@ import 'package:yaabsa/features/upload/library_upload_panel.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class LibraryItemUploadButton extends ConsumerWidget {
   const LibraryItemUploadButton({super.key, required this.itemId});
@@ -53,7 +54,7 @@ class LibraryItemUploadButton extends ConsumerWidget {
             );
           },
           icon: const Icon(Icons.upload_file_rounded),
-          label: const Text('Add files'),
+          label: Text(context.l10n.actionAddFiles),
         ),
       ),
     );
@@ -71,7 +72,7 @@ class LibraryItemUploadDialog extends StatelessWidget {
     return AlertDialog(
       constraints: const BoxConstraints.tightFor(width: 900),
       scrollable: true,
-      semanticLabel: 'Add files',
+      semanticLabel: context.l10n.actionAddFiles,
       contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
       actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
       content: LibraryUploadPanel(
@@ -81,7 +82,7 @@ class LibraryItemUploadDialog extends StatelessWidget {
         onUploadComplete: () => Navigator.of(context).pop(),
         onClose: () => Navigator.of(context).pop(),
       ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionClose))],
     );
   }
 }

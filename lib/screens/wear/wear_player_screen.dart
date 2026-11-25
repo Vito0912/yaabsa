@@ -9,6 +9,7 @@ import 'package:yaabsa/screens/wear/components/wear_player_pager.dart';
 import 'package:yaabsa/screens/wear/wear_item_screen.dart';
 import 'package:yaabsa/util/browse/compact_browse_models.dart';
 import 'package:yaabsa/screens/wear/components/wear_playback_progress.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class WearPlayerScreen extends StatelessWidget {
   const WearPlayerScreen({super.key});
@@ -23,14 +24,14 @@ class WearPlayerScreen extends StatelessWidget {
         final media = handler.media;
         if (media == null) {
           return WearBrowseScaffold(
-            title: 'Now playing',
+            title: context.l10n.playbackNowPlaying,
             itemCount: 2,
             itemBuilder: (context, index) {
               if (index == 0) {
-                return const Text('Choose something from your libraries or downloads.', textAlign: TextAlign.center);
+                return Text(context.l10n.playerEmptyPrompt, textAlign: TextAlign.center);
               }
               return WearBrowseButton(
-                title: 'Back',
+                title: context.l10n.actionBack,
                 icon: Icons.arrow_back,
                 onPressed: () => Navigator.of(context).maybePop(),
               );

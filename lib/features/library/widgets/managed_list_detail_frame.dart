@@ -6,6 +6,7 @@ import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/ui/components/cards/surface_card.dart';
 import 'package:yaabsa/ui/components/feedback/feedback_panel.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManagedListDetailFrame extends StatelessWidget {
   const ManagedListDetailFrame({
@@ -145,7 +146,11 @@ class _ManagedListDetailHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       child: Row(
         children: [
-          IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+          IconButton(
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back_rounded),
+            tooltip: context.l10n.actionBack,
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(

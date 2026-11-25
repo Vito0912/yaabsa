@@ -7,6 +7,7 @@ import 'package:yaabsa/util/cast/cast_backend.dart';
 import 'package:yaabsa/util/cast/upnp_seek.dart';
 import 'package:yaabsa/util/cast/upnp_formats.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class UpnpBackend extends CastBackend {
   UpnpBackend() : super(CastProtocol.upnp) {
@@ -41,7 +42,7 @@ class UpnpBackend extends CastBackend {
   AvTransportService get _transport {
     final transport = _renderer?.avTransport;
     if (transport == null) {
-      throw StateError('No UPnP playback device is connected');
+      throw StateError(currentAppLocalizations().errorCastNoDeviceConnected);
     }
 
     return transport;
@@ -106,7 +107,7 @@ class UpnpBackend extends CastBackend {
   Future<void> connect(CastDevice device) async {
     final renderer = _targets[device.id];
     if (renderer == null) {
-      throw StateError('This UPnP device is no longer available');
+      throw StateError(currentAppLocalizations().errorCastDeviceGone);
     }
 
     await renderer.avTransport!.getTransportInfo().timeout(const Duration(seconds: 8));
@@ -148,7 +149,7 @@ class UpnpBackend extends CastBackend {
       }
     } on UPnPException catch (error) {
       if ({501, 704, 714, 716}.contains(error.errorCode)) {
-        throw CastPlaybackException('The receiver could not play this audio: $error');
+        throw CastPlaybackException(currentAppLocalizations().errorCastReceiverCannotPlay);
       }
 
       rethrow;
@@ -173,9 +174,7 @@ class UpnpBackend extends CastBackend {
       await startup.future.timeout(
         _startupTimeout,
         onTimeout: () {
-          throw const CastPlaybackException(
-            'The receiver did not start playback. Check its audio format support and output',
-          );
+          throw CastPlaybackException(currentAppLocalizations().errorCastPlaybackStartFailed);
         },
       );
     } finally {
@@ -195,7 +194,7 @@ class UpnpBackend extends CastBackend {
       await transport.play();
       await _waitForAdvancement();
       if (generation != _generation) {
-        throw StateError('Cast playback was cancelled');
+        throw StateError(currentAppLocalizations().errorCastCancelled);
       }
 
       final target = _pendingStartPosition ?? Duration.zero;
@@ -204,15 +203,15 @@ class UpnpBackend extends CastBackend {
         await _waitForAdvancement();
       }
       if (generation != _generation) {
-        throw StateError('Cast playback was cancelled');
+        throw StateError(currentAppLocalizations().errorCastCancelled);
       }
 
       _primed = true;
       _pendingStartPosition = null;
       position.add(_lastReceiverPosition ?? target);
       _publishState(_requestedPlaying ? RemotePlayerState.playing : RemotePlayerState.paused);
-    } on UPnPException catch (error) {
-      throw CastPlaybackException('The receiver could not start playback: $error');
+    } on UPnPException catch (_) {
+      throw CastPlaybackException(currentAppLocalizations().errorCastPlaybackStartFailed);
     } finally {
       if (generation == _generation) {
         _starting = false;
@@ -283,7 +282,7 @@ class UpnpBackend extends CastBackend {
         if (stalledFor >= _startupTimeout) {
           reason = RemoteIdleReason.error;
           _pollTimer?.cancel();
-          _failStartup('The receiver stopped advancing playback. Check its audio format support and output');
+          _failStartup(currentAppLocalizations().errorCastPlaybackStalled);
           unawaited(_stopStalledPlayback(transport));
         } else if (_lastPositionAdvance == null || stalledFor >= _stallThreshold) {
           state = RemotePlayerState.buffering;
@@ -295,7 +294,7 @@ class UpnpBackend extends CastBackend {
 
       if (info.currentTransportStatus == TransportStatus.errorOccurred) {
         reason = RemoteIdleReason.error;
-        _failStartup('The receiver reported a playback error');
+        _failStartup(currentAppLocalizations().errorCastReceiverReportedError);
       } else if (state == RemotePlayerState.idle && !_starting) {
         final reportedDuration = parseUpnpTime(progress.trackDuration);
         final duration = reportedDuration != null && reportedDuration > Duration.zero
@@ -314,7 +313,7 @@ class UpnpBackend extends CastBackend {
       }
 
       if (reason != null) {
-        _failStartup('The receiver could not play this audio');
+        _failStartup(currentAppLocalizations().errorCastReceiverCannotPlay);
       }
 
       status.add(
@@ -331,7 +330,7 @@ class UpnpBackend extends CastBackend {
       if (generation == _generation && ++_pollFailures >= 3) {
         _pollTimer?.cancel();
         connected.add(false);
-        _failStartup('The receiver stopped responding');
+        _failStartup(currentAppLocalizations().errorCastReceiverUnresponsive);
         logger('UPnP receiver stopped responding', tag: 'Casting', level: InfoLevel.warning);
       }
     } finally {
@@ -402,7 +401,7 @@ class UpnpBackend extends CastBackend {
   Future<void> stop() async {
     _pollTimer?.cancel();
     _pollTimer = null;
-    _failStartup('Cast playback was cancelled');
+    _failStartup(currentAppLocalizations().errorCastCancelled);
     _generation++;
     _commandRevision++;
     _starting = false;
@@ -473,7 +472,7 @@ class UpnpBackend extends CastBackend {
   Future<void> setVolume(double volume) async {
     final control = _renderer?.renderingControl;
     if (control == null) {
-      throw UnsupportedError('This receiver does not support volume control');
+      throw UnsupportedError(currentAppLocalizations().errorCastVolumeUnsupported);
     }
 
     await control.setVolume(volume: (volume.clamp(0, 1) * 100).round());
@@ -481,12 +480,12 @@ class UpnpBackend extends CastBackend {
 
   @override
   Future<void> setSpeed(double speed) async {
-    throw UnsupportedError('Playback speed is unavailable on this UPnP device');
+    throw UnsupportedError(currentAppLocalizations().errorCastSpeedUnavailable);
   }
 
   @override
   Future<void> disconnect() async {
-    _failStartup('Cast playback was cancelled');
+    _failStartup(currentAppLocalizations().errorCastCancelled);
     _pollTimer?.cancel();
     _pollTimer = null;
     _generation++;

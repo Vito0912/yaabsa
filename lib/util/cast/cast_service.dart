@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/cast/cast_backend.dart';
 import 'package:yaabsa/util/cast/chromecast_backend.dart';
 import 'package:yaabsa/util/cast/upnp_backend.dart';
@@ -95,7 +96,7 @@ class CastService {
   CastBackend get _backend {
     final active = _active;
     if (active == null) {
-      throw StateError('No cast device is connected');
+      throw StateError(currentAppLocalizations().errorCastNoDeviceConnected);
     }
 
     return active;
@@ -148,7 +149,7 @@ class CastService {
 
   Future<void> connect(CastDevice device) async {
     if (_connecting) {
-      throw StateError('A cast connection is already being prepared');
+      throw StateError(currentAppLocalizations().errorCastConnectionBusy);
     }
 
     _connecting = true;
@@ -161,7 +162,7 @@ class CastService {
       await backend.connect(device);
       if (generation != _connectionGeneration) {
         await backend.disconnect();
-        throw StateError('Cast connection was cancelled');
+        throw StateError(currentAppLocalizations().errorCastCancelled);
       }
       features.add(backend.features.value);
       connected.add(backend.connected.value);
@@ -176,7 +177,7 @@ class CastService {
   Future<void> load(CastMedia media, {bool retainConnectionOnFailure = false}) async {
     if (_loading) {
       await _release(media);
-      throw StateError('A cast track is already being prepared');
+      throw StateError(currentAppLocalizations().errorCastConnectionBusy);
     }
 
     final backend = _backend;
@@ -190,7 +191,7 @@ class CastService {
     try {
       await backend.load(media);
       if (generation != _connectionGeneration) {
-        throw StateError('Cast playback was cancelled');
+        throw StateError(currentAppLocalizations().errorCastCancelled);
       }
 
       position.add(backend.position.value);

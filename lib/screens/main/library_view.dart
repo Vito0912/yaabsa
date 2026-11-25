@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
@@ -39,7 +40,7 @@ class LibraryView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
 
     final appDatabase = ref.watch(appDatabaseProvider);
@@ -155,8 +156,8 @@ class LibraryView extends HookConsumerWidget {
                                         child: Center(
                                           child: Text(
                                             state.filter == 'issues'
-                                                ? 'No missing or incomplete items found.'
-                                                : 'No items found in this library.',
+                                                ? context.l10n.statusNoMissingOrIncompleteItems
+                                                : context.l10n.statusNoItemsInLibrary,
                                           ),
                                         ),
                                       ),
@@ -183,7 +184,7 @@ class LibraryView extends HookConsumerWidget {
                                           if (episode == null) {
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text('This podcast has no playable episodes.')),
+                                                SnackBar(content: Text(context.l10n.statusPodcastNoPlayableEpisodes)),
                                               );
                                             }
                                             return;
@@ -199,7 +200,7 @@ class LibraryView extends HookConsumerWidget {
                                           if (context.mounted) {
                                             ScaffoldMessenger.of(
                                               context,
-                                            ).showSnackBar(SnackBar(content: Text('Could not play podcast: $error')));
+                                            ).showSnackBar(SnackBar(content: Text(context.l10n.errorMediaCannotPlay)));
                                           }
                                         }
                                         return;
@@ -289,7 +290,7 @@ class LibraryView extends HookConsumerWidget {
 
             return ConnectionIssueView.requestFailed(
               error: err,
-              title: 'Error loading library items',
+              title: context.l10n.errorLoadingNamedContent(context.l10n.libraryItems),
               onRetry: () async {
                 ref.invalidate(itemsProvider);
                 await ref.read(itemsProvider.future);

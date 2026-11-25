@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_paged_surface.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ReaderPdfView extends StatefulWidget {
   const ReaderPdfView({
@@ -161,11 +162,12 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
         final double? value;
         final String text;
         if (totalBytes != null && totalBytes > 0) {
-          value = bytesDownloaded / totalBytes;
-          text = 'Loading PDF... ${(value * 100).toStringAsFixed(0)}%';
+          final progress = bytesDownloaded / totalBytes;
+          value = progress;
+          text = context.l10n.statusLoadingPdfProgress(context.l10n.progressPercent(progress));
         } else {
           value = null;
-          text = 'Loading PDF...';
+          text = context.l10n.statusLoadingPdf;
         }
         return Center(
           child: Column(

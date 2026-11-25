@@ -1,8 +1,10 @@
+import 'package:intl/intl.dart';
 import 'package:yaabsa/ui/components/inputs/search_field.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/podcast/podcast_feed.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 Future<List<PodcastFeedEpisode>?> showPodcastFindEpisodesDialog({
@@ -104,13 +106,6 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
     return true;
   }
 
-  String get _downloadButtonLabel {
-    if (_selectedCount == 1) {
-      return 'Download episode';
-    }
-    return 'Download $_selectedCount episodes';
-  }
-
   @override
   Widget build(BuildContext context) {
     final visibleOptions = _visibleOptions;
@@ -136,7 +131,7 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: context.l10n.actionClose,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -154,11 +149,11 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
                         });
                       },
                       isDense: true,
-                      hintText: 'Search episodes',
+                      hintText: context.l10n.hintSearchEpisodes,
                       suffixIcon: _searchQuery.trim().isEmpty
                           ? null
                           : IconButton(
-                              tooltip: 'Clear search',
+                              tooltip: context.l10n.actionClear,
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() {
@@ -173,7 +168,7 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
                   YaabsaActionIconButton(
                     icon: _sortDescending ? Icons.expand_more_rounded : Icons.expand_less_rounded,
                     variant: YaabsaActionButtonVariant.filledTonal,
-                    tooltip: _sortDescending ? 'Sort newest first' : 'Sort oldest first',
+                    tooltip: _sortDescending ? context.l10n.sortNewestFirst : context.l10n.sortOldestFirst,
                     onPressed: () {
                       setState(() {
                         _sortDescending = !_sortDescending;
@@ -190,7 +185,7 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
                     TextButton.icon(
                       onPressed: _toggleSelectAllVisible,
                       icon: Icon(_allVisibleSelected ? Icons.deselect_rounded : Icons.select_all_rounded),
-                      label: Text(_allVisibleSelected ? 'Clear all' : 'Select all'),
+                      label: Text(_allVisibleSelected ? context.l10n.actionClear : context.l10n.actionSelectAll),
                     ),
                   ],
                 ),
@@ -200,13 +195,13 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
               const SizedBox(height: 10),
               if (_selectedCount == 0 && _episodeOptions.every((option) => option.isAlreadyDownloaded))
                 Text(
-                  'All episodes are already downloaded.',
+                  context.l10n.statusAllEpisodesDownloaded,
                   style: Theme.of(context).textTheme.bodyMedium
                       ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 )
               else
                 Text(
-                  '$_selectedCount selected',
+                  context.l10n.selectedCount(_selectedCount),
                   style: Theme.of(context).textTheme.bodyMedium
                       ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
@@ -214,9 +209,12 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                  TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.actionCancel)),
                   const SizedBox(width: 8),
-                  FilledButton(onPressed: _selectedCount == 0 ? null : _submit, child: Text(_downloadButtonLabel)),
+                  FilledButton(
+                    onPressed: _selectedCount == 0 ? null : _submit,
+                    child: Text(context.l10n.actionDownloadEpisodes(_selectedCount)),
+                  ),
                 ],
               ),
             ],
@@ -228,7 +226,7 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
 
   Widget _buildEpisodeList(List<_EpisodeOption> options) {
     if (options.isEmpty) {
-      return const Center(child: Text('No feed episodes match your search.'));
+      return Center(child: Text(context.l10n.statusNoSearchMatches));
     }
 
     return ListView.separated(
@@ -238,9 +236,12 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
         final option = options[index];
         final episode = option.episode;
         final isSelected = _selectedKeys.contains(option.selectionKey);
-        final title = (episode.title ?? '').trim().isEmpty ? 'Untitled episode' : episode.title!.trim();
+        final title = (episode.title ?? '').trim().isEmpty ? context.l10n.untitledEpisode : episode.title!.trim();
         final subtitle = (episode.subtitle ?? '').trim();
-        final dateLabel = _formatPublishedAt(episode.publishedAt);
+        final publishedAt = _formatPublishedAt(episode.publishedAt, Localizations.localeOf(context).toString());
+        final dateLabel = publishedAt == null
+            ? null
+            : context.l10n.metadataFieldValue(context.l10n.fieldPublished, publishedAt);
         final durationLabel = episode.durationSeconds == null || episode.durationSeconds! <= 0
             ? null
             : formatDurationShort(Duration(seconds: episode.durationSeconds!));
@@ -252,10 +253,10 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
           detailParts.add(dateLabel);
         }
         if (durationLabel != null) {
-          detailParts.add('Duration: $durationLabel');
+          detailParts.add(context.l10n.metadataFieldValue(context.l10n.fieldDuration, durationLabel));
         }
         if (sizeLabel != null) {
-          detailParts.add('Size: $sizeLabel');
+          detailParts.add(context.l10n.metadataFieldValue(context.l10n.fieldSize, sizeLabel));
         }
 
         return InkWell(
@@ -462,14 +463,11 @@ String _cleanEpisodeUrl(String rawUrl) {
   return uri.replace(queryParameters: <String, String>{'id': idValue}).toString();
 }
 
-String? _formatPublishedAt(int? timestampMillis) {
+String? _formatPublishedAt(int? timestampMillis, String localeName) {
   if (timestampMillis == null || timestampMillis <= 0) {
     return null;
   }
 
   final date = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
-  const months = <String>['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-  final month = months[date.month - 1];
-  return 'Published $month ${date.day}, ${date.year}';
+  return DateFormat.yMMMd(localeName).format(date);
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SettingPositiveInteger extends ConsumerStatefulWidget {
   const SettingPositiveInteger({
@@ -36,7 +37,7 @@ class _SettingPositiveIntegerState extends ConsumerState<SettingPositiveInteger>
   Future<void> _save() async {
     final value = int.tryParse(_controller.text);
     if (value == null || value < 1) {
-      setState(() => _error = 'Enter a positive whole number');
+      setState(() => _error = context.l10n.errorPositiveWholeNumberRequired);
       return;
     }
     setState(() => _error = null);
@@ -63,7 +64,7 @@ class _SettingPositiveIntegerState extends ConsumerState<SettingPositiveInteger>
         label: widget.label,
         errorText: _error,
         suffixIcon: IconButton(
-          tooltip: 'Save',
+          tooltip: context.l10n.actionSave,
           onPressed: widget.enabled ? _save : null,
           icon: const Icon(Icons.check),
         ),

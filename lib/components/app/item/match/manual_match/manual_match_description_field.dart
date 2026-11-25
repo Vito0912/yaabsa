@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_description_codec.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class ManualMatchDescriptionField extends StatefulWidget {
   const ManualMatchDescriptionField({
@@ -173,8 +174,8 @@ class _ManualMatchDescriptionFieldState extends State<ManualMatchDescriptionFiel
                     height: 170,
                     child: QuillEditor.basic(
                       controller: _quillController,
-                      config: const QuillEditorConfig(
-                        placeholder: 'Write a formatted description...',
+                      config: QuillEditorConfig(
+                        placeholder: context.l10n.fieldDescriptionHint,
                         padding: EdgeInsets.fromLTRB(8, 6, 8, 8),
                       ),
                     ),

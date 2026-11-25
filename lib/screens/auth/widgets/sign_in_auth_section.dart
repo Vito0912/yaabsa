@@ -2,6 +2,7 @@ import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SignInAuthSection extends StatelessWidget {
   const SignInAuthSection({
@@ -48,7 +49,7 @@ class SignInAuthSection extends StatelessWidget {
             enabled: !isLoading,
             obscureText: true,
             onSubmitted: (_) => onValidateAndSignIn(),
-            label: 'API Key',
+            label: context.l10n.fieldApiKey,
             prefixIcon: const Icon(Icons.key_rounded),
           ),
           const SizedBox(height: 14),
@@ -61,7 +62,7 @@ class SignInAuthSection extends StatelessWidget {
                     child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                   )
                 : const Icon(Icons.vpn_key_rounded),
-            label: Text(isLoading ? 'Signing in...' : 'Connect with API Key'),
+            label: Text(isLoading ? context.l10n.statusSigningIn : context.l10n.authConnectWithApiKey),
           ),
         ] else if (allowsLocal) ...[
           const SizedBox(height: 18),
@@ -74,7 +75,7 @@ class SignInAuthSection extends StatelessWidget {
                   enabled: !isLoading && !lockImportedIdentity,
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.username, AutofillHints.email],
-                  label: 'Username',
+                  label: context.l10n.fieldUsername,
                   prefixIcon: const Icon(Icons.person_outline_rounded),
                 ),
                 const SizedBox(height: 12),
@@ -91,7 +92,7 @@ class SignInAuthSection extends StatelessWidget {
                     TextInput.finishAutofillContext(shouldSave: true);
                     onValidateAndSignIn();
                   },
-                  label: 'Password',
+                  label: context.l10n.fieldPassword,
                   prefixIcon: const Icon(Icons.password_rounded),
                 ),
               ],
@@ -112,7 +113,7 @@ class SignInAuthSection extends StatelessWidget {
                     child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                   )
                 : const Icon(Icons.login_rounded),
-            label: Text(isLoading ? 'Signing in...' : 'Sign In'),
+            label: Text(isLoading ? context.l10n.statusSigningIn : context.l10n.actionSignIn),
           ),
         ],
         if (!useApiKey && allowsOpenId) ...[
@@ -125,10 +126,7 @@ class SignInAuthSection extends StatelessWidget {
         ],
         if (!useApiKey && !allowsLocal && !allowsOpenId) ...[
           const SizedBox(height: 12),
-          Text(
-            'No supported authentication method is enabled on this server.',
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-          ),
+          Text(context.l10n.authNoSupportedMethod, style: textTheme.bodyMedium?.copyWith(color: colorScheme.error)),
         ],
       ],
     );

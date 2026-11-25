@@ -24,7 +24,9 @@ extension _ReaderNavigation on _ReaderState {
         if (_pdfBookmarks.any((entry) => entry.cfi == cfi)) {
           _pdfBookmarks.removeWhere((entry) => entry.cfi == cfi);
         } else {
-          _pdfBookmarks.add(InternalAnnotation(cfi: cfi, type: AnnotationType.bookmark, text: 'Page $page'));
+          _pdfBookmarks.add(
+            InternalAnnotation(cfi: cfi, type: AnnotationType.bookmark, text: context.l10n.readerPageNumber(page)),
+          );
         }
       });
       _scheduleAutoAnnotationSync(isEpubMode: false);
@@ -44,7 +46,7 @@ extension _ReaderNavigation on _ReaderState {
       return;
     }
 
-    final chapter = location.tocItem?.label ?? 'Bookmark';
+    final chapter = location.tocItem?.label ?? context.l10n.readerBookmark;
     final annotation = FoliateAnnotation(
       value: cfi,
       color: 'none',
@@ -56,7 +58,7 @@ extension _ReaderNavigation on _ReaderState {
       _epubAnnotations.add(annotation);
     });
     _scheduleAutoAnnotationSync(isEpubMode: true);
-    _showSnackBar('Bookmark added');
+    _showSnackBar(context.l10n.readerBookmarkAdded);
   }
 
   Widget _buildDrawer({required bool isEpubMode, required String title}) {
@@ -85,17 +87,17 @@ extension _ReaderNavigation on _ReaderState {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Close contents',
+                      tooltip: context.l10n.actionClose,
                       onPressed: () => _scaffoldKey.currentState?.closeDrawer(),
                       icon: const Icon(Icons.close_rounded),
                     ),
                   ],
                 ),
               ),
-              const TabBar(
+              TabBar(
                 tabs: [
-                  Tab(text: 'Contents'),
-                  Tab(text: 'Saved'),
+                  Tab(text: context.l10n.readerContentsTab),
+                  Tab(text: context.l10n.readerSavedTab),
                 ],
               ),
               Expanded(
@@ -108,10 +110,10 @@ extension _ReaderNavigation on _ReaderState {
                                 ? _epubToc!.map(_buildEpubTocTile).toList()
                                 : _pdfToc!.map(_buildPdfTocTile).toList(),
                           )
-                        : const Center(
+                        : Center(
                             child: Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Text('This book has no table of contents.', textAlign: TextAlign.center),
+                              padding: const EdgeInsets.all(24),
+                              child: Text(context.l10n.statusNoTableOfContents, textAlign: TextAlign.center),
                             ),
                           ),
                     _buildSavedReaderEntries(isEpubMode: isEpubMode),
@@ -128,7 +130,9 @@ extension _ReaderNavigation on _ReaderState {
                         : Icons.bookmark_add_outlined,
                   ),
                   label: Text(
-                    _isReaderLocationBookmarked(isEpubMode: isEpubMode) ? 'Remove bookmark' : 'Bookmark this page',
+                    _isReaderLocationBookmarked(isEpubMode: isEpubMode)
+                        ? context.l10n.actionRemoveBookmark
+                        : context.l10n.actionBookmarkThisPage,
                   ),
                 ),
               ),
@@ -161,7 +165,7 @@ extension _ReaderNavigation on _ReaderState {
         selected: selected,
         selectedTileColor: _readerColors.secondaryContainer,
         leading: selected ? const Icon(Icons.menu_book_outlined, size: 20) : const SizedBox(width: 20),
-        title: Text(item.label ?? 'Untitled chapter'),
+        title: Text(item.label ?? context.l10n.untitledChapter),
         onTap: item.href == null ? null : () => _openEpubChapter(item),
       );
     }
@@ -171,7 +175,7 @@ extension _ReaderNavigation on _ReaderState {
       initiallyExpanded: _containsCurrentChapter(item),
       title: InkWell(
         onTap: item.href == null ? null : () => _openEpubChapter(item),
-        child: Text(item.label ?? 'Untitled chapter'),
+        child: Text(item.label ?? context.l10n.untitledChapter),
       ),
       childrenPadding: const EdgeInsets.only(left: 12),
       children: item.subitems!.map(_buildEpubTocTile).toList(),
@@ -210,12 +214,12 @@ extension _ReaderNavigation on _ReaderState {
               const Icon(Icons.bookmarks_outlined, size: 40),
               const SizedBox(height: 16),
               Text(
-                'Keep the passages you love',
+                context.l10n.readerSavedPassagesTitle,
                 style: _readerThemeData.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              const Text('Select text to highlight it or add a note.', textAlign: TextAlign.center),
+              Text(context.l10n.readerSavedPassagesPrompt, textAlign: TextAlign.center),
             ],
           ),
         ),
@@ -233,10 +237,10 @@ extension _ReaderNavigation on _ReaderState {
 
             return ListTile(
               leading: const Icon(Icons.bookmark_rounded),
-              title: Text(bookmark.text ?? 'Page $page'),
-              subtitle: const Text('Bookmark'),
+              title: Text(bookmark.text ?? context.l10n.readerPageNumber(page)),
+              subtitle: Text(context.l10n.readerBookmark),
               trailing: YaabsaDeleteIconButton(
-                tooltip: 'Remove bookmark',
+                tooltip: context.l10n.actionRemoveBookmark,
                 onPressed: () {
                   _readerSetState(() {
                     _pdfBookmarks.remove(bookmark);
@@ -256,11 +260,14 @@ extension _ReaderNavigation on _ReaderState {
           return ListTile(
             leading: Icon(entry.type == AnnotationType.underline ? Icons.format_underlined : Icons.highlight_outlined),
             title: Text(
-              entry.noteText ?? (entry.type == AnnotationType.underline ? 'Underlined passage' : 'Highlighted passage'),
+              entry.noteText ??
+                  (entry.type == AnnotationType.underline
+                      ? context.l10n.readerUnderlinedPassage
+                      : context.l10n.readerHighlightedPassage),
             ),
-            subtitle: Text('Page ${entry.pageNumber}'),
+            subtitle: Text(context.l10n.readerPageNumber(entry.pageNumber)),
             trailing: YaabsaDeleteIconButton(
-              tooltip: 'Remove saved passage',
+              tooltip: context.l10n.actionRemoveSavedPassage,
               onPressed: () => _removePdfAnnotation(entry.cfi),
             ),
             onTap: () {
@@ -272,9 +279,9 @@ extension _ReaderNavigation on _ReaderState {
 
         final entry = _epubAnnotations[index];
         final label = switch (entry.type) {
-          'bookmark' => 'Bookmark',
-          'underline' => 'Underlined passage',
-          _ => 'Highlighted passage',
+          'bookmark' => context.l10n.readerBookmark,
+          'underline' => context.l10n.readerUnderlinedPassage,
+          _ => context.l10n.readerHighlightedPassage,
         };
 
         return ListTile(
@@ -290,7 +297,7 @@ extension _ReaderNavigation on _ReaderState {
           ),
           subtitle: entry.note?.isNotEmpty == true ? Text(label) : null,
           trailing: YaabsaDeleteIconButton(
-            tooltip: 'Remove $label',
+            tooltip: context.l10n.removeNamedItem(label),
             onPressed: () => unawaited(_removeEpubAnnotation(entry)),
           ),
           onTap: () {

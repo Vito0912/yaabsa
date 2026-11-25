@@ -19,6 +19,7 @@ import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -301,8 +302,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                 right: 4,
                 child: isCollapsedSeriesCard
                     ? Tooltip(
-                        message:
-                            '$collapsedSeriesBookCount ${collapsedSeriesBookCount == 1 ? 'book' : 'books'} in series',
+                        message: context.l10n.seriesBookCount(collapsedSeriesBookCount),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(100),
@@ -319,7 +319,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '$collapsedSeriesBookCount',
+                                context.l10n.numberValue(collapsedSeriesBookCount),
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(color: colorScheme.onSecondaryContainer, fontWeight: FontWeight.w700),
                               ),

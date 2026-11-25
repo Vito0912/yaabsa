@@ -1,9 +1,11 @@
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 final double textfieldWidth = 130;
 
@@ -56,8 +58,8 @@ class LibraryItemEncoderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (audioFiles.isEmpty) {
-      return const Center(
-        child: Padding(padding: EdgeInsets.all(24), child: Text('No audio tracks are available for M4B encoding.')),
+      return Center(
+        child: Padding(padding: const EdgeInsets.all(24), child: Text(context.l10n.statusNoAudioTracksAvailable)),
       );
     }
 
@@ -150,11 +152,27 @@ class _EncoderActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progressPercent = _tryParsePercent(progressLabel);
-    final startButtonLabel = isStarting
-        ? 'Submitting...'
-        : isTaskRunning
-        ? 'Running...'
-        : 'Start Encode';
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final percentFormat = NumberFormat.percentPattern(locale)..maximumFractionDigits = 0;
+    final double? progressValue;
+    final String progressText;
+    if (progressPercent == null) {
+      progressValue = null;
+      progressText = progressLabel?.trim() ?? '';
+    } else {
+      progressValue = progressPercent / 100;
+      progressText = percentFormat.format(progressValue);
+    }
+
+    final String startButtonLabel;
+    if (isStarting) {
+      startButtonLabel = l10n.statusSubmitting;
+    } else if (isTaskRunning) {
+      startButtonLabel = l10n.statusRunning;
+    } else {
+      startButtonLabel = l10n.actionStartEncoding;
+    }
 
     return Card(
       child: Padding(
@@ -162,7 +180,7 @@ class _EncoderActionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('M4B Encoder', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.headingM4bEncoder, style: Theme.of(context).textTheme.titleMedium),
             if (currentEncodingHint != null && currentEncodingHint!.trim().isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 2),
@@ -175,12 +193,12 @@ class _EncoderActionCard extends StatelessWidget {
             const SizedBox(height: 4),
             if (isTaskRunning && progressLabel != null && progressLabel!.trim().isNotEmpty) ...[
               Text(
-                'Progress: ${progressLabel!.trim()}',
+                l10n.encoderProgress(progressText),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               YaabsaLinearProgressIndicator(
-                value: progressPercent == null ? null : progressPercent / 100,
+                value: progressValue,
                 minHeight: 6,
                 borderRadius: BorderRadius.circular(999),
               ),
@@ -191,9 +209,9 @@ class _EncoderActionCard extends StatelessWidget {
                 Expanded(
                   child: SegmentedButton<bool>(
                     showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment<bool>(value: false, label: Text('Presets')),
-                      ButtonSegment<bool>(value: true, label: Text('Advanced')),
+                    segments: [
+                      ButtonSegment<bool>(value: false, label: Text(l10n.optionPresets)),
+                      ButtonSegment<bool>(value: true, label: Text(l10n.optionAdvanced)),
                     ],
                     selected: <bool>{advancedMode},
                     onSelectionChanged: (selection) {
@@ -234,7 +252,7 @@ class _EncoderActionCard extends StatelessWidget {
                   icon: isCanceling
                       ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.1))
                       : const Icon(Icons.stop_circle_outlined),
-                  label: Text(isCanceling ? 'Canceling...' : 'Cancel'),
+                  label: Text(isCanceling ? l10n.statusCanceling : l10n.actionCancel),
                 ),
                 FilledButton.icon(
                   onPressed: (isStarting || isCanceling || isTaskRunning) ? null : onStartEncoding,
@@ -280,7 +298,7 @@ class _PresetOptions extends StatelessWidget {
         SizedBox(
           width: textfieldWidth,
           child: _DropdownCard<String>(
-            label: 'Codec',
+            label: context.l10n.fieldCodec,
             value: _safeStringValue(codec, const <String>['copy', 'aac', 'opus']),
             values: const <String>['copy', 'aac', 'opus'],
             display: (value) => value,
@@ -295,7 +313,7 @@ class _PresetOptions extends StatelessWidget {
           SizedBox(
             width: textfieldWidth,
             child: _DropdownCard<String>(
-              label: 'Bitrate',
+              label: context.l10n.fieldBitrate,
               value: _safeStringValue(bitrate, const <String>['32k', '64k', '128k', '192k']),
               values: const <String>['32k', '64k', '128k', '192k'],
               display: (value) => value,
@@ -310,10 +328,10 @@ class _PresetOptions extends StatelessWidget {
           SizedBox(
             width: textfieldWidth,
             child: _DropdownCard<int>(
-              label: 'Channels',
+              label: context.l10n.fieldChannels,
               value: channels == 1 || channels == 2 ? channels : 2,
               values: const <int>[1, 2],
-              display: (value) => value == 1 ? 'Mono' : 'Stereo',
+              display: (value) => value == 1 ? context.l10n.channelMono : context.l10n.channelStereo,
               onChanged: (value) {
                 if (value != null) {
                   onChannelsChanged(value);
@@ -354,11 +372,19 @@ class _AdvancedOptions extends StatelessWidget {
           children: [
             SizedBox(
               width: textfieldWidth,
-              child: StyledTextFormField(initialValue: codec, onChanged: onCodecChanged, label: 'Codec'),
+              child: StyledTextFormField(
+                initialValue: codec,
+                onChanged: onCodecChanged,
+                label: context.l10n.fieldCodec,
+              ),
             ),
             SizedBox(
               width: textfieldWidth,
-              child: StyledTextFormField(initialValue: bitrate, onChanged: onBitrateChanged, label: 'Bitrate'),
+              child: StyledTextFormField(
+                initialValue: bitrate,
+                onChanged: onBitrateChanged,
+                label: context.l10n.fieldBitrate,
+              ),
             ),
             SizedBox(
               width: textfieldWidth,
@@ -371,7 +397,7 @@ class _AdvancedOptions extends StatelessWidget {
                     onChannelsChanged(parsed);
                   }
                 },
-                label: 'Channels',
+                label: context.l10n.fieldChannels,
               ),
             ),
           ],
@@ -404,7 +430,7 @@ class _TrackPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Audio Tracks', style: Theme.of(context).textTheme.titleMedium),
+            Text(context.l10n.fieldAudioTracks, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             SizedBox(
               height: _trackListHeight,
@@ -448,6 +474,8 @@ class _TrackRow extends StatelessWidget {
     final normalizedProgress = progress?.trim();
     final showProgress = normalizedProgress != null && normalizedProgress.isNotEmpty;
     final showFinished = isFinished || normalizedProgress == '100%';
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final trackNumber = NumberFormat.decimalPattern(locale).format(audioFile.index ?? index + 1);
 
     return Container(
       width: double.infinity,
@@ -459,7 +487,7 @@ class _TrackRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 28, child: Text('${audioFile.index ?? index + 1}.')),
+          SizedBox(width: 28, child: Text(trackNumber)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,7 +500,7 @@ class _TrackRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _trackMeta(audioFile),
+                  _trackMeta(audioFile, context.l10n),
                   style: Theme.of(context).textTheme.bodySmall
                       ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
@@ -579,18 +607,45 @@ double? _tryParsePercent(String? value) {
   return parsed.clamp(0, 100).toDouble();
 }
 
-String _trackMeta(AudioFile file) {
-  final codec = file.codec ?? 'unknown codec';
-  final bitrate = file.bitRate == null ? 'unknown bitrate' : '${(file.bitRate! / 1000).round()}k';
-  final channels = file.channels == null ? 'unknown channels' : '${file.channels}ch';
-  final duration = file.duration == null
-      ? 'unknown duration'
-      : formatDurationLong(Duration(seconds: file.duration!.round()));
+String _trackMeta(AudioFile file, AppLocalizations l10n) {
+  final codecValue = file.codec?.trim();
+  final String codec;
+  if (codecValue == null || codecValue.isEmpty) {
+    codec = l10n.statusUnknown;
+  } else {
+    codec = codecValue.toUpperCase();
+  }
 
-  return '$codec • $bitrate • $channels • $duration • ${formatBytes(file.metadata.size)}';
+  final bitRate = file.bitRate;
+  final String bitrate;
+  if (bitRate == null || bitRate <= 0) {
+    bitrate = l10n.statusUnknown;
+  } else {
+    bitrate = l10n.encoderBitrateKbps((bitRate / 1000).round());
+  }
+
+  final channelCount = file.channels;
+  final String channels;
+  if (channelCount == null || channelCount <= 0) {
+    channels = l10n.statusUnknown;
+  } else {
+    channels = l10n.encoderChannelCount(channelCount);
+  }
+
+  final durationSeconds = file.duration;
+  final String duration;
+  if (durationSeconds == null || durationSeconds <= 0) {
+    duration = l10n.statusUnknown;
+  } else {
+    duration = formatDurationLong(Duration(seconds: durationSeconds.round()), localizations: l10n);
+  }
+
+  final size = formatBytes(file.metadata.size, localizations: l10n);
+
+  return l10n.audioTrackMetadata(codec, bitrate, channels, duration, size);
 }
 
-String? describeCurrentEncoding(List<AudioFile> audioFiles) {
+String? describeCurrentEncoding(List<AudioFile> audioFiles, AppLocalizations l10n) {
   if (audioFiles.isEmpty) {
     return null;
   }
@@ -608,16 +663,36 @@ String? describeCurrentEncoding(List<AudioFile> audioFiles) {
       .toSet();
   final channels = audioFiles.map((file) => file.channels).whereType<int>().where((value) => value > 0).toSet();
 
-  final parts = <String>[];
-  if (codecs.isNotEmpty) {
-    parts.add(codecs.length == 1 ? codecs.first.toUpperCase() : 'Mixed codecs');
-  }
-  if (bitrates.isNotEmpty) {
-    parts.add(bitrates.length == 1 ? '${bitrates.first} kbps' : 'Mixed bitrates');
-  }
-  if (channels.isNotEmpty) {
-    parts.add(channels.length == 1 ? '${channels.first} channel${channels.first == 1 ? '' : 's'}' : 'Mixed channels');
+  if (codecs.isEmpty && bitrates.isEmpty && channels.isEmpty) {
+    return null;
   }
 
-  return parts.isEmpty ? null : 'Current encoding: ${parts.join(' • ')}';
+  final String codec;
+  if (codecs.isEmpty) {
+    codec = l10n.statusUnknown;
+  } else if (codecs.length == 1) {
+    codec = codecs.first.toUpperCase();
+  } else {
+    codec = l10n.encoderMixedCodecs;
+  }
+
+  final String bitrate;
+  if (bitrates.isEmpty) {
+    bitrate = l10n.statusUnknown;
+  } else if (bitrates.length == 1) {
+    bitrate = l10n.encoderBitrateKbps(bitrates.first);
+  } else {
+    bitrate = l10n.encoderMixedBitrates;
+  }
+
+  final String channelCount;
+  if (channels.isEmpty) {
+    channelCount = l10n.statusUnknown;
+  } else if (channels.length == 1) {
+    channelCount = l10n.encoderChannelCount(channels.first);
+  } else {
+    channelCount = l10n.encoderMixedChannels;
+  }
+
+  return l10n.encoderCurrentEncoding(codec, bitrate, channelCount);
 }

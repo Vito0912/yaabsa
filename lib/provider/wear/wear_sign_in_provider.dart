@@ -6,6 +6,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/auth/account_sign_in.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 
 part 'wear_sign_in_provider.g.dart';
@@ -27,7 +28,10 @@ class WearSignIn extends _$WearSignIn {
 
     final serverUrl = normalizeServerAddress(serverAddress);
     if (serverUrl == null) {
-      state = AsyncError(const FormatException('Enter a valid server address.'), StackTrace.current);
+      state = AsyncError(
+        FormatException(currentAppLocalizations().validationServerAddressRequired),
+        StackTrace.current,
+      );
       return;
     }
 
@@ -50,10 +54,10 @@ class WearSignIn extends _$WearSignIn {
       final statusResponse = await api.getMeApi().getStatus(cancelToken: cancelToken);
       final status = statusResponse.data;
       if (status == null || status.app.toLowerCase() != 'audiobookshelf') {
-        throw const FormatException('This address is not an Audiobookshelf server.');
+        throw FormatException(currentAppLocalizations().errorServerNotAudiobookshelf);
       }
       if (!status.authMethods.contains('local')) {
-        throw const FormatException('Password sign in is disabled. Continue on phone to use OpenID Connect.');
+        throw FormatException(currentAppLocalizations().errorLocalLoginDisabled);
       }
 
       final login = await signInWithPassword(
@@ -89,18 +93,22 @@ class WearSignIn extends _$WearSignIn {
 }
 
 String wearRequestError(Object error) {
+  final l10n = currentAppLocalizations();
+
   if (error is FormatException) {
     return error.message;
   }
+
   if (error is DioException) {
     final code = error.response?.statusCode;
     if (code == 401 || code == 403) {
-      return 'Access denied. Check your account details and server permissions.';
+      return l10n.errorCredentialsRejected;
     }
+
     if (error.type == DioExceptionType.badCertificate) {
-      return 'The server certificate could not be verified.';
+      return l10n.errorCertificateUnverified;
     }
-    return 'Could not reach the server. Check your connection and try again.';
   }
-  return 'Could not complete this action. Please try again.';
+
+  return l10n.errorRetryCheckConnection;
 }

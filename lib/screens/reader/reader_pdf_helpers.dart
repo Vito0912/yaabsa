@@ -12,7 +12,7 @@ extension _ReaderPdfHelpers on _ReaderState {
   }) async {
     final nonEmptyRanges = ranges.where((range) => range.start < range.end).toList();
     if (nonEmptyRanges.isEmpty) {
-      _showSnackBar('Please select some text first');
+      _showSnackBar(context.l10n.readerSelectTextFirst);
       return false;
     }
 
@@ -100,7 +100,7 @@ extension _ReaderPdfHelpers on _ReaderState {
 
     items.add(
       ContextMenuButtonItem(
-        label: 'Highlight',
+        label: context.l10n.actionHighlightText,
         onPressed: () {
           params.dismissContextMenu();
           _applyPdfAnnotationFromDelegate(
@@ -115,7 +115,7 @@ extension _ReaderPdfHelpers on _ReaderState {
 
     items.add(
       ContextMenuButtonItem(
-        label: 'Underline',
+        label: context.l10n.actionUnderlineText,
         onPressed: () {
           params.dismissContextMenu();
           _applyPdfAnnotationFromDelegate(
@@ -214,8 +214,8 @@ extension _ReaderPdfHelpers on _ReaderState {
                   controller: noteController,
                   maxLines: 3,
                   minLines: 1,
-                  label: 'Note',
-                  hintText: 'Add an optional note',
+                  label: bottomSheetContext.l10n.fieldNote,
+                  hintText: bottomSheetContext.l10n.readerAnnotationNoteHint,
                 ),
               ),
               Row(
@@ -247,14 +247,14 @@ extension _ReaderPdfHelpers on _ReaderState {
                     onPressed: () {
                       Navigator.pop(bottomSheetContext);
                     },
-                    child: const Text('Cancel'),
+                    child: Text(bottomSheetContext.l10n.actionCancel),
                   ),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(bottomSheetContext);
                       unawaited(_editPdfAnnotation(annotation, noteText: noteController.text));
                     },
-                    child: const Text('Save'),
+                    child: Text(bottomSheetContext.l10n.actionSave),
                   ),
                   TextButton(
                     onPressed: () {
@@ -262,7 +262,7 @@ extension _ReaderPdfHelpers on _ReaderState {
                       _removePdfAnnotation(annotation.cfi);
                     },
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child: const Text('Delete'),
+                    child: Text(bottomSheetContext.l10n.actionDelete),
                   ),
                 ],
               ),

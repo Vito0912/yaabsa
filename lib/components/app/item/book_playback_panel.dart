@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class BookPlaybackPanel extends StatelessWidget {
   const BookPlaybackPanel({
@@ -27,7 +29,7 @@ class BookPlaybackPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!hasAudio) {
-      return actionsBuilder('Read', null);
+      return actionsBuilder(context.l10n.actionRead, null);
     }
 
     final isCurrentItem = audioHandler.currentMediaItem?.itemId == itemId;
@@ -50,22 +52,23 @@ class BookPlaybackPanel extends StatelessWidget {
         final hasProgress = position > 0 || fraction > 0;
         final remaining = total > 0 ? (total - position).clamp(0.0, total).toDouble() : null;
 
-        var label = hasProgress && !isFinished ? 'Resume' : 'Play';
+        var label = hasProgress && !isFinished ? context.l10n.actionResume : context.l10n.playbackPlay;
         if (isFinished) {
-          label = 'Listen again';
+          label = context.l10n.shelfListenAgain;
         }
         if (isPlaying) {
-          label = 'Pause';
+          label = context.l10n.playbackPause;
         }
         if (isLoading) {
-          label = 'Loading';
+          label = context.l10n.statusLoading;
         }
 
         String? detail;
         if (hasProgress && !isFinished && remaining != null) {
-          detail = '${formatDurationLong(Duration(minutes: (remaining / 60).ceil()))} left';
+          final duration = formatDurationLong(Duration(minutes: (remaining / 60).ceil()), localizations: context.l10n);
+          detail = context.l10n.historyDurationLeft(duration);
           if (remaining > 0 && remaining < 60) {
-            detail = '< 1 min left';
+            detail = context.l10n.statusLessThanOneMinuteLeft;
           }
         }
 
@@ -77,7 +80,9 @@ class BookPlaybackPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Semantics(
-                  label: 'Listening progress ${(fraction * 100).toStringAsFixed(1)}%',
+                  label: context.l10n.labelListeningProgress(
+                    (NumberFormat.percentPattern(context.l10n.localeName)..maximumFractionDigits = 1).format(fraction),
+                  ),
                   child: actionsBuilder(label, detail),
                 ),
               ],

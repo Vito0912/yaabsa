@@ -1,15 +1,20 @@
 import 'dart:convert';
 
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 enum LibraryViewSubtitleView { library, series, authors }
 
 extension LibraryViewSubtitleViewX on LibraryViewSubtitleView {
-  String get label => switch (this) {
-    LibraryViewSubtitleView.library => 'Library items',
-    LibraryViewSubtitleView.series => 'Series',
-    LibraryViewSubtitleView.authors => 'Authors',
-  };
+  String get label {
+    final l10n = currentAppLocalizations();
+
+    return switch (this) {
+      LibraryViewSubtitleView.library => l10n.libraryItems,
+      LibraryViewSubtitleView.series => l10n.navSeries,
+      LibraryViewSubtitleView.authors => l10n.navAuthors,
+    };
+  }
 
   String get settingKey => switch (this) {
     LibraryViewSubtitleView.library => SettingKeys.libraryViewSubtitlePreferences,
@@ -23,17 +28,25 @@ enum LibraryViewSubtitleMode { sort, none, custom }
 extension LibraryViewSubtitleModeX on LibraryViewSubtitleMode {
   String get storageKey => name;
 
-  String get label => switch (this) {
-    LibraryViewSubtitleMode.sort => 'Automatic',
-    LibraryViewSubtitleMode.none => 'Hidden',
-    LibraryViewSubtitleMode.custom => 'Choose fields',
-  };
+  String get label {
+    final l10n = currentAppLocalizations();
 
-  String get description => switch (this) {
-    LibraryViewSubtitleMode.sort => 'Shows the information based on the current filter',
-    LibraryViewSubtitleMode.none => 'Never show any information',
-    LibraryViewSubtitleMode.custom => 'Choose up to three fields to show below the item/series/author',
-  };
+    return switch (this) {
+      LibraryViewSubtitleMode.sort => l10n.optionAutomatic,
+      LibraryViewSubtitleMode.none => l10n.optionHidden,
+      LibraryViewSubtitleMode.custom => l10n.librarySubtitleModeChooseFields,
+    };
+  }
+
+  String get description {
+    final l10n = currentAppLocalizations();
+
+    return switch (this) {
+      LibraryViewSubtitleMode.sort => l10n.librarySubtitleModeAutomaticDescription,
+      LibraryViewSubtitleMode.none => l10n.librarySubtitleModeHiddenDescription,
+      LibraryViewSubtitleMode.custom => l10n.librarySubtitleModeChooseFieldsDescription,
+    };
+  }
 
   static LibraryViewSubtitleMode? tryParse(String? raw) {
     for (final mode in LibraryViewSubtitleMode.values) {
@@ -64,28 +77,36 @@ enum LibraryViewSubtitleField {
 extension LibraryViewSubtitleFieldX on LibraryViewSubtitleField {
   String get storageKey => name;
 
-  String get label => switch (this) {
-    LibraryViewSubtitleField.author => 'Author',
-    LibraryViewSubtitleField.series => 'Series',
-    LibraryViewSubtitleField.duration => 'Duration',
-    LibraryViewSubtitleField.size => 'Size',
-    LibraryViewSubtitleField.tracks => 'Tracks',
-    LibraryViewSubtitleField.addedAt => 'Added date',
-    LibraryViewSubtitleField.publishedYear => 'Published year',
-    LibraryViewSubtitleField.narrator => 'Narrator',
-    LibraryViewSubtitleField.birthtime => 'File birth date',
-    LibraryViewSubtitleField.modified => 'File modified date',
-    LibraryViewSubtitleField.numBooks => 'Books',
-    LibraryViewSubtitleField.totalDuration => 'Total duration',
-    LibraryViewSubtitleField.updatedAt => 'Updated date',
-  };
+  String get label {
+    final l10n = currentAppLocalizations();
 
-  String get subtitleLabel => switch (this) {
-    LibraryViewSubtitleField.addedAt => 'Added',
-    LibraryViewSubtitleField.modified => 'Modified',
-    LibraryViewSubtitleField.updatedAt => 'Updated',
-    _ => label,
-  };
+    return switch (this) {
+      LibraryViewSubtitleField.author => l10n.fieldAuthor,
+      LibraryViewSubtitleField.series => l10n.navSeries,
+      LibraryViewSubtitleField.duration => l10n.fieldDuration,
+      LibraryViewSubtitleField.size => l10n.fieldSize,
+      LibraryViewSubtitleField.tracks => l10n.fieldTracks,
+      LibraryViewSubtitleField.addedAt => l10n.fieldAddedDate,
+      LibraryViewSubtitleField.publishedYear => l10n.fieldPublishedYear,
+      LibraryViewSubtitleField.narrator => l10n.fieldNarrator,
+      LibraryViewSubtitleField.birthtime => l10n.fieldFileBirthDate,
+      LibraryViewSubtitleField.modified => l10n.fieldFileModifiedDate,
+      LibraryViewSubtitleField.numBooks => l10n.fieldBooks,
+      LibraryViewSubtitleField.totalDuration => l10n.fieldTotalDuration,
+      LibraryViewSubtitleField.updatedAt => l10n.fieldUpdatedDate,
+    };
+  }
+
+  String get subtitleLabel {
+    final l10n = currentAppLocalizations();
+
+    return switch (this) {
+      LibraryViewSubtitleField.addedAt => l10n.dateAdded,
+      LibraryViewSubtitleField.modified => l10n.dateModified,
+      LibraryViewSubtitleField.updatedAt => l10n.dateUpdated,
+      _ => label,
+    };
+  }
 
   String get subtitleSeparator => switch (this) {
     LibraryViewSubtitleField.addedAt ||

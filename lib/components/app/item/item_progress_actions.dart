@@ -10,6 +10,7 @@ import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 Episode? selectablePodcastEpisode(LibraryItem item) {
   if (!supportsPodcastEpisodeFinishedProgressUpdates(item)) {
@@ -116,11 +117,9 @@ Future<void> _setLibraryItemFinishedState({
   required LibraryItem item,
   required bool isFinished,
 }) async {
-  const stateLabel = 'finished';
-
   if (!supportsFinishedProgressUpdates(item)) {
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Progress updates are currently available for books only.')));
+        .showSnackBar(SnackBar(content: Text(context.l10n.errorProgressUpdatesAudiobooksOnly)));
     return;
   }
 
@@ -140,8 +139,12 @@ Future<void> _setLibraryItemFinishedState({
 
       await _deleteMediaProgressRecord(ref: ref, api: api, libraryItemId: item.id);
     },
-    successMessage: isFinished ? 'Marked "${item.title}" as $stateLabel.' : 'Cleared progress for "${item.title}".',
-    errorFallback: isFinished ? 'Could not mark item as $stateLabel.' : 'Could not clear progress for "${item.title}".',
+    successMessage: isFinished
+        ? context.l10n.statusNamedProgressMarkedFinished(item.title)
+        : context.l10n.statusNamedProgressCleared(item.title),
+    errorFallback: isFinished
+        ? context.l10n.errorMarkNamedProgressFinishedFailed(item.title)
+        : context.l10n.errorClearNamedProgressFailed(item.title),
   );
 }
 
@@ -260,8 +263,8 @@ Future<void> setLibraryItemProgress({
       await api.getMeApi().patchMediaProgress(item.id, episodeId: episode?.id, updatePayload: updatePayload);
       await progressNotifier.fetchOrRefreshIndividualProgress(item.id, episodeId: episode?.id);
     },
-    successMessage: 'Progress updated for "${episode?.title ?? item.title}".',
-    errorFallback: 'Could not update progress.',
+    successMessage: context.l10n.statusNamedProgressUpdated(episode?.title ?? item.title),
+    errorFallback: context.l10n.errorUpdateProgressFailed,
   );
 }
 
@@ -342,17 +345,14 @@ Future<void> _setPodcastEpisodeFinishedState({
   required Episode episode,
   required bool isFinished,
 }) async {
-  const stateLabel = 'finished';
-
   if (!supportsPodcastEpisodeFinishedProgressUpdates(item)) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Progress updates are currently available for podcast episodes only.')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.l10n.errorProgressUpdatesPodcastEpisodesOnly)));
     return;
   }
 
   final rawTitle = episode.title?.trim();
-  final episodeTitle = (rawTitle == null || rawTitle.isEmpty) ? 'Episode' : rawTitle;
+  final episodeTitle = (rawTitle == null || rawTitle.isEmpty) ? context.l10n.headingEpisode : rawTitle;
 
   await runManagedListMutation(
     context: context,
@@ -374,10 +374,12 @@ Future<void> _setPodcastEpisodeFinishedState({
 
       await _deleteMediaProgressRecord(ref: ref, api: api, libraryItemId: item.id, episodeId: episode.id);
     },
-    successMessage: isFinished ? 'Marked "$episodeTitle" as $stateLabel.' : 'Cleared progress for "$episodeTitle".',
+    successMessage: isFinished
+        ? context.l10n.statusNamedProgressMarkedFinished(episodeTitle)
+        : context.l10n.statusNamedProgressCleared(episodeTitle),
     errorFallback: isFinished
-        ? 'Could not mark episode as $stateLabel.'
-        : 'Could not clear progress for "$episodeTitle".',
+        ? context.l10n.errorMarkNamedProgressFinishedFailed(episodeTitle)
+        : context.l10n.errorClearNamedProgressFailed(episodeTitle),
   );
 }
 
@@ -406,8 +408,6 @@ Future<void> _setLibraryItemsFinishedState({
   required bool isFinished,
   VoidCallback? onSuccess,
 }) async {
-  final stateLabel = isFinished ? 'finished' : 'unfinished';
-
   final selectedItems = <String, LibraryItem>{
     for (final item in items)
       if (isBulkSelectableLibraryItem(item)) libraryItemSelectionKey(item): item,
@@ -438,8 +438,12 @@ Future<void> _setLibraryItemsFinishedState({
       await api.getMeApi().batchUpdateMediaProgress(payloads);
       await ref.read(mediaProgressProvider.notifier).refreshAllProgress(clearBefore: false);
     },
-    successMessage: 'Marked ${selectedItems.length} selected item(s) as $stateLabel.',
-    errorFallback: 'Could not mark selected items as $stateLabel.',
+    successMessage: isFinished
+        ? context.l10n.statusSelectedItemsMarkedFinished(selectedItems.length)
+        : context.l10n.statusSelectedItemsMarkedUnfinished(selectedItems.length),
+    errorFallback: isFinished
+        ? context.l10n.errorMarkSelectedItemsFinishedFailed
+        : context.l10n.errorMarkSelectedItemsUnfinishedFailed,
     onSuccess: onSuccess,
   );
 }

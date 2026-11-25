@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 typedef MetadataTermRenameCallback = Future<MetadataTermUpdateResponse> Function(String currentTerm, String newTerm);
 typedef MetadataTermDeleteCallback = Future<MetadataTermUpdateResponse> Function(String term);
@@ -72,14 +73,14 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
               final nextTerm = controller.text.trim();
               if (nextTerm.isEmpty) {
                 setDialogState(() {
-                  validationError = 'Name cannot be empty.';
+                  validationError = dialogContext.l10n.errorNameRequired;
                 });
                 return;
               }
 
               if (nextTerm == currentTerm) {
                 setDialogState(() {
-                  validationError = 'Enter a different name.';
+                  validationError = dialogContext.l10n.errorNameMustChange;
                 });
                 return;
               }
@@ -88,18 +89,21 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
             }
 
             return AlertDialog(
-              title: Text('Rename ${widget.entityLabel}'),
+              title: Text(dialogContext.l10n.metadataTermRenameTitle(widget.entityLabel)),
               content: StyledTextField(
                 controller: controller,
                 autofocus: true,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => submit(),
-                label: 'Name',
+                label: dialogContext.l10n.fieldName,
                 errorText: validationError.isEmpty ? null : validationError,
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
-                FilledButton(onPressed: submit, child: const Text('Save')),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(dialogContext.l10n.actionCancel),
+                ),
+                FilledButton(onPressed: submit, child: Text(dialogContext.l10n.actionSave)),
               ],
             );
           },
@@ -133,16 +137,19 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
 
       final merged = response.tagMerged ?? response.genreMerged ?? false;
       final updatedCount = response.numItemsUpdated;
-      final mergeMessage = merged ? ' Existing ${widget.entityLabel} values were merged.' : '';
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Updated $updatedCount item(s).$mergeMessage')));
+      final message = merged
+          ? context.l10n.statusMetadataItemsMerged(updatedCount)
+          : context.l10n.statusMetadataItemsUpdated(updatedCount);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = listManagementErrorMessage(error, fallback: 'Failed to rename ${widget.entityLabel}.');
+      final message = listManagementErrorMessage(
+        error,
+        fallback: context.l10n.errorMetadataTermRenameFailed(widget.entityLabel),
+      );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -160,8 +167,8 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
 
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Delete ${widget.entityLabel}?',
-      message: 'Remove "$term" from all items?',
+      title: context.l10n.metadataTermDeleteTitle(widget.entityLabel),
+      message: context.l10n.promptRemoveMetadataTermFromItems(term),
     );
 
     if (!mounted || !confirmed) {
@@ -179,13 +186,16 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
       }
 
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Updated ${response.numItemsUpdated} item(s).')));
+          .showSnackBar(SnackBar(content: Text(context.l10n.statusMetadataItemsUpdated(response.numItemsUpdated))));
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = listManagementErrorMessage(error, fallback: 'Failed to delete ${widget.entityLabel}.');
+      final message = listManagementErrorMessage(
+        error,
+        fallback: context.l10n.errorMetadataTermDeleteFailed(widget.entityLabel),
+      );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -207,7 +217,7 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
             children: [
               const Spacer(),
               IconButton(
-                tooltip: 'Refresh ${widget.entityLabel}s',
+                tooltip: context.l10n.actionRefresh,
                 onPressed: _isBusy ? null : _handleRefresh,
                 icon: const Icon(Icons.refresh_outlined),
               ),
@@ -248,12 +258,12 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
                                 )
                               else ...[
                                 IconButton(
-                                  tooltip: 'Rename ${widget.entityLabel}',
+                                  tooltip: context.l10n.actionEdit,
                                   onPressed: _isBusy ? null : () => _renameTerm(term),
                                   icon: const Icon(Icons.edit_outlined),
                                 ),
                                 YaabsaDeleteIconButton(
-                                  tooltip: 'Delete ${widget.entityLabel}',
+                                  tooltip: context.l10n.actionDelete,
                                   onPressed: _isBusy ? null : () => _deleteTerm(term),
                                 ),
                               ],

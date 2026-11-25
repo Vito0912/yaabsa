@@ -20,6 +20,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerLibrariesView extends ConsumerStatefulWidget {
   const AdminServerLibrariesView({super.key});
@@ -47,6 +48,10 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
   }
 
   void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) {
       return;
@@ -80,6 +85,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
   }
 
   Future<void> _loadLibraries({bool showLoading = true}) async {
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (!mounted) {
@@ -88,7 +94,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
 
       setState(() {
         _isLoading = false;
-        _errorMessage = 'No active API client.';
+        _errorMessage = l10n.errorNoActiveApiClient;
       });
       return;
     }
@@ -118,7 +124,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       }
 
       setState(() {
-        _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to load libraries.');
+        _errorMessage = listManagementErrorMessage(error, fallback: l10n.errorLoadLibrariesFailed);
       });
     } finally {
       if (mounted) {
@@ -248,6 +254,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       return;
     }
 
+    final l10n = context.l10n;
     final result = await showLibraryUpsertFormDialog(context);
     if (result == null) {
       return;
@@ -255,7 +262,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -285,9 +292,9 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       }
 
       _invalidateLibraryProviders();
-      _showMessage('Library created successfully.');
+      _showMessage(l10n.statusLibraryCreated);
     } catch (error) {
-      _showMessage(listManagementErrorMessage(error, fallback: 'Failed to create library.'));
+      _showMessage(listManagementErrorMessage(error, fallback: l10n.errorCreateLibraryFailed));
     } finally {
       if (mounted) {
         setState(() {
@@ -302,6 +309,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       return;
     }
 
+    final l10n = context.l10n;
     final result = await showLibraryUpsertFormDialog(context, library: library);
     if (result == null) {
       return;
@@ -309,7 +317,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -328,7 +336,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
         changedIcon == null &&
         changedFolders == null &&
         changedSettings == null) {
-      _showMessage('No changes to save.');
+      _showMessage(l10n.statusNoChangesToSave);
       return;
     }
 
@@ -353,9 +361,9 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       }
 
       _invalidateLibraryProviders();
-      _showMessage('Library updated successfully.');
+      _showMessage(l10n.statusLibraryUpdated);
     } catch (error) {
-      _showMessage(listManagementErrorMessage(error, fallback: 'Failed to update library.'));
+      _showMessage(listManagementErrorMessage(error, fallback: l10n.errorUpdateLibraryFailed));
     } finally {
       _setLibraryBusy(library.id, false);
     }
@@ -366,9 +374,10 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       return;
     }
 
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -377,13 +386,13 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
     try {
       final success = await api.getLibraryApi().scanLibrary(library.id, forceRescan: forceRescan);
       if (!success) {
-        _showMessage('Failed to start library scan.');
+        _showMessage(l10n.errorStartLibraryScanFailed);
         return;
       }
 
-      _showMessage(forceRescan ? 'Force rescan started.' : 'Library scan started.');
+      _showMessage(forceRescan ? l10n.statusLibraryForceRescanStarted : l10n.statusLibraryScanStarted);
     } catch (error) {
-      _showMessage(listManagementErrorMessage(error, fallback: 'Failed to start library scan.'));
+      _showMessage(listManagementErrorMessage(error, fallback: l10n.errorStartLibraryScanFailed));
     } finally {
       _setLibraryBusy(library.id, false);
     }
@@ -394,11 +403,12 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       return;
     }
 
+    final l10n = context.l10n;
     final confirmed = await showListManagementDeleteDialog(
       context: context,
-      title: 'Delete library?',
-      message: 'Delete "${library.name}"? This action cannot be undone.',
-      confirmLabel: 'Delete',
+      title: l10n.headingDeleteLibrary,
+      message: l10n.promptDeleteLibrary(library.name),
+      confirmLabel: l10n.actionDelete,
     );
 
     if (!confirmed) {
@@ -407,7 +417,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -417,9 +427,9 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       await api.getLibraryApi().deleteLibrary(library.id);
       _removeLibrary(library.id);
       _invalidateLibraryProviders();
-      _showMessage('Library deleted.');
+      _showMessage(l10n.statusLibraryDeleted);
     } catch (error) {
-      _showMessage(listManagementErrorMessage(error, fallback: 'Failed to delete library.'));
+      _showMessage(listManagementErrorMessage(error, fallback: l10n.errorDeleteLibraryFailed));
     } finally {
       _setLibraryBusy(library.id, false);
     }
@@ -430,6 +440,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       return;
     }
 
+    final l10n = context.l10n;
     final previousOrder = List<Library>.from(_libraries);
     final reordered = List<Library>.from(_libraries);
     final movedLibrary = reordered.removeAt(oldIndex);
@@ -450,7 +461,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
         _libraries = previousOrder;
         _isSavingOrder = false;
       });
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -472,7 +483,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       });
 
       _invalidateLibraryProviders();
-      _showMessage('Library order updated.');
+      _showMessage(l10n.statusLibraryOrderUpdated);
     } catch (error) {
       if (!mounted) {
         return;
@@ -481,7 +492,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       setState(() {
         _libraries = previousOrder;
       });
-      _showMessage(listManagementErrorMessage(error, fallback: 'Failed to save library order.'));
+      _showMessage(listManagementErrorMessage(error, fallback: l10n.errorSaveLibraryOrderFailed));
     } finally {
       if (mounted) {
         setState(() {
@@ -523,9 +534,10 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       return;
     }
 
+    final l10n = context.l10n;
     final api = ref.read(absApiProvider);
     if (api == null) {
-      _showMessage('No active API client.');
+      _showMessage(l10n.errorNoActiveApiClient);
       return;
     }
 
@@ -534,23 +546,24 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
     try {
       final success = await api.getLibraryApi().matchAllBooks(library.id);
       if (!success) {
-        _showMessage('Failed to start match-all job.');
+        _showMessage(l10n.errorStartMatchAllMetadataFailed);
         return;
       }
 
-      _showMessage('Started match-all metadata job.');
+      _showMessage(l10n.statusMatchAllMetadataStarted);
     } catch (error) {
-      _showMessage(listManagementErrorMessage(error, fallback: 'Failed to start match-all metadata job.'));
+      _showMessage(listManagementErrorMessage(error, fallback: l10n.errorStartMatchAllMetadataFailed));
     } finally {
       _setLibraryBusy(library.id, false);
     }
   }
 
   String _mediaTypeLabel(String mediaType) {
-    return mediaType.toLowerCase() == 'podcast' ? 'Podcast' : 'Book';
+    return mediaType.toLowerCase() == 'podcast' ? context.l10n.mediaTypePodcast : context.l10n.mediaTypeAudiobook;
   }
 
   Widget _buildErrorCard() {
+    final l10n = context.l10n;
     final message = _errorMessage;
     if (message == null || message.isEmpty) {
       return const SizedBox.shrink();
@@ -567,7 +580,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: () => unawaited(_loadLibraries(showLoading: true)), child: const Text('Retry')),
+            TextButton(onPressed: () => unawaited(_loadLibraries(showLoading: true)), child: Text(l10n.actionRetry)),
           ],
         ),
       ),
@@ -575,17 +588,18 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
   }
 
   Widget _buildToolbar({required bool compact, required int totalCount, required int filteredCount}) {
+    final l10n = context.l10n;
     final summaryText = filteredCount == totalCount
-        ? '$totalCount libraries'
-        : '$filteredCount of $totalCount libraries';
+        ? l10n.statusLibraryCount(totalCount)
+        : l10n.statusLibraryFilteredCount(filteredCount, totalCount);
 
     if (compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           StyledTextField(
-            label: 'Search libraries',
-            hintText: 'Filter by name, provider, media type, or path',
+            label: l10n.fieldSearchLibraries,
+            hintText: l10n.hintSearchLibraries,
             prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
@@ -604,7 +618,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
           Row(
             children: [
               IconButton.filledTonal(
-                tooltip: 'Refresh',
+                tooltip: l10n.actionRefresh,
                 onPressed: _isLoading ? null : () => unawaited(_loadLibraries(showLoading: true)),
                 icon: const Icon(Icons.refresh_rounded),
               ),
@@ -613,7 +627,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
                 const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
               const Spacer(),
               IconButton.filled(
-                tooltip: 'Add library',
+                tooltip: l10n.actionAdd,
                 onPressed: _isLoading || _isCreating ? null : _createLibrary,
                 icon: _isCreating
                     ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
@@ -632,8 +646,8 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
           children: [
             Expanded(
               child: StyledTextField(
-                label: 'Search libraries',
-                hintText: 'Filter by name, provider, media type, or path',
+                label: l10n.fieldSearchLibraries,
+                hintText: l10n.hintSearchLibraries,
                 prefixIcon: const Icon(Icons.search_rounded),
                 enabled: !_isLoading,
                 onChanged: (value) {
@@ -657,14 +671,14 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
             OutlinedButton.icon(
               onPressed: _isLoading ? null : () => unawaited(_loadLibraries(showLoading: true)),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Refresh'),
+              label: Text(l10n.actionRefresh),
             ),
             const SizedBox(width: 10),
             if (_isSavingOrder) ...[
               const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
               const SizedBox(width: 8),
               Text(
-                'Saving order...',
+                l10n.statusSavingLibraryOrder,
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
@@ -675,7 +689,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
               icon: _isCreating
                   ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.library_add_rounded),
-              label: const Text('Add library'),
+              label: Text(l10n.actionAdd),
             ),
           ],
         ),
@@ -684,6 +698,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
   }
 
   Widget _buildLibrariesList(List<Library> filteredLibraries, {required String? selectedLibraryId}) {
+    final l10n = context.l10n;
     final canReorder =
         _searchQuery.trim().isEmpty &&
         !_isLoading &&
@@ -710,10 +725,10 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
             FilledButton.tonal(
               onPressed: () => _scanLibrary(library, forceRescan: false),
               style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
-              child: const Text('Scan'),
+              child: Text(l10n.actionScan),
             ),
             YaabsaContextMenuButton<String>(
-              tooltip: 'Library actions',
+              tooltip: l10n.headingLibraryActions,
               onSelected: (value) {
                 if (value == 'edit') {
                   unawaited(_editLibrary(library));
@@ -736,24 +751,20 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem<String>(value: 'edit', child: Text('Edit library')),
-                const PopupMenuItem<String>(value: 'scan-force', child: Text('Force rescan')),
+                PopupMenuItem<String>(value: 'edit', child: Text(l10n.actionEdit)),
+                PopupMenuItem<String>(value: 'scan-force', child: Text(l10n.actionForceRescan)),
                 if (library.mediaType == 'book')
-                  const PopupMenuItem<String>(value: 'match-all', child: Text('Match all books')),
+                  PopupMenuItem<String>(value: 'match-all', child: Text(l10n.actionMatchAllBooks)),
                 const PopupMenuDivider(),
-                const PopupMenuItem<String>(value: 'delete', child: Text('Delete library')),
+                PopupMenuItem<String>(value: 'delete', child: Text(l10n.actionDelete)),
               ],
               icon: const Icon(Icons.more_vert_rounded),
             ),
           ];
         },
         loading: _isLoading,
-        emptyTitle: _searchQuery.trim().isEmpty
-            ? 'No libraries available on this server.'
-            : 'No libraries match your search query.',
-        emptySubtitle: _searchQuery.trim().isEmpty
-            ? 'Create a library to add books or podcasts.'
-            : 'Try adjusting your search query.',
+        emptyTitle: _searchQuery.trim().isEmpty ? l10n.statusNoLibrariesAvailable : l10n.statusNoLibrariesMatchSearch,
+        emptySubtitle: _searchQuery.trim().isEmpty ? l10n.messageCreateLibraryToAddContent : l10n.hintAdjustSearchQuery,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 12),
       ),
@@ -768,16 +779,16 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage libraries.'),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Text(context.l10n.promptSignInForAdminAccess),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Text(context.l10n.errorAdminRequired),
           );
         }
 
@@ -820,7 +831,10 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          context.l10n.errorLoadAdminUserData(error.toString()),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

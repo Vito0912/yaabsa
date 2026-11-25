@@ -20,6 +20,7 @@ import 'package:yaabsa/features/statistics/widgets/stats_weekday_breakdown.dart'
 import 'package:yaabsa/features/statistics/widgets/stats_year_rewind_section.dart';
 import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class StatsView extends ConsumerStatefulWidget {
@@ -77,13 +78,11 @@ class _StatsViewState extends ConsumerState<StatsView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Load advanced analytics?'),
-          content: const Text(
-            'Advanced mode fetches every listening-session page and can take time on large accounts.',
-          ),
+          title: Text(context.l10n.statsLoadAdvancedPrompt),
+          content: Text(context.l10n.statsAdvancedLoadDescription),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Load')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(context.l10n.actionLoad)),
           ],
         );
       },
@@ -140,10 +139,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           StatsSection(
-                            title: 'Your listening',
+                            title: context.l10n.headingYourListening,
                             icon: Icons.insights_rounded,
                             trailing: IconButton(
-                              tooltip: 'Refresh stats',
+                              tooltip: context.l10n.actionRefresh,
                               onPressed: _refreshAll,
                               icon: const Icon(Icons.refresh_rounded),
                             ),
@@ -152,7 +151,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                               children: [
                                 StatsSummaryGrid(stats: stats),
                                 const SizedBox(height: 20),
-                                Text('Recent pace', style: Theme.of(context).textTheme.titleMedium),
+                                Text(context.l10n.headingRecentPace, style: Theme.of(context).textTheme.titleMedium),
                                 const SizedBox(height: 10),
                                 StatsActivityTotalsCard(
                                   activityAsync: activityAsync,
@@ -163,10 +162,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
                           ),
                           const SizedBox(height: 16),
                           StatsSection(
-                            title: 'Activity',
+                            title: context.l10n.headingActivity,
                             icon: Icons.stacked_line_chart_rounded,
                             trailing: IconButton(
-                              tooltip: 'Refresh activity',
+                              tooltip: context.l10n.actionRefresh,
                               onPressed: () => ref.invalidate(listeningActivityStatsProvider),
                               icon: const Icon(Icons.refresh_rounded),
                             ),
@@ -178,16 +177,16 @@ class _StatsViewState extends ConsumerState<StatsView> {
                           const SizedBox(height: 16),
                           _ResponsiveOverviewPair(
                             first: StatsSection(
-                              title: 'Weekday rhythm',
+                              title: context.l10n.headingWeekdayRhythm,
                               icon: Icons.view_week_rounded,
                               child: StatsWeekdayBreakdown(dayOfWeek: stats.dayOfWeek),
                             ),
                             second: StatsSection(
-                              title: 'Recent sessions',
+                              title: context.l10n.headingRecentSessions,
                               icon: Icons.history_rounded,
                               trailing: TextButton(
                                 onPressed: () => context.push(UserListeningSessionsView.routeName),
-                                child: const Text('View all'),
+                                child: Text(context.l10n.actionViewAll),
                               ),
                               child: StatsRecentSessionsList(
                                 sessions: recentSessions,
@@ -209,10 +208,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
                           ),
                           const SizedBox(height: 16),
                           StatsSection(
-                            title: 'Achievements',
+                            title: context.l10n.headingAchievements,
                             icon: Icons.emoji_events_rounded,
                             trailing: IconButton(
-                              tooltip: _achievementsExpanded ? 'Collapse achievements' : 'Open achievements',
+                              tooltip: _achievementsExpanded ? context.l10n.actionCollapse : context.l10n.actionExpand,
                               onPressed: () => _setAchievementsExpanded(!_achievementsExpanded),
                               icon: Icon(_achievementsExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
                             ),
@@ -239,7 +238,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                     ),
                     error: (error, _) => ConnectionIssueView.requestFailed(
                       error: error,
-                      title: 'Unable to load listening stats',
+                      title: context.l10n.statsListeningUnavailable,
                       showDownloadsShortcut: false,
                       onRetry: () async {
                         ref.invalidate(listeningStatsProvider);
@@ -249,10 +248,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
                   ),
                   const SizedBox(height: 16),
                   StatsSection(
-                    title: 'Year in Rewind',
+                    title: context.l10n.headingYearInRewind,
                     icon: Icons.auto_awesome_rounded,
                     trailing: IconButton(
-                      tooltip: _yearInRewindExpanded ? 'Collapse Year in Rewind' : 'Open Year in Rewind',
+                      tooltip: _yearInRewindExpanded ? context.l10n.actionCollapse : context.l10n.actionExpand,
                       onPressed: () => _setYearExpanded(!_yearInRewindExpanded),
                       icon: Icon(_yearInRewindExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
                     ),
@@ -272,10 +271,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
                   ),
                   const SizedBox(height: 16),
                   StatsSection(
-                    title: 'Advanced analytics',
+                    title: context.l10n.headingAdvancedAnalytics,
                     icon: Icons.analytics_rounded,
                     trailing: IconButton(
-                      tooltip: _advancedExpanded ? 'Collapse advanced analytics' : 'Open advanced analytics',
+                      tooltip: _advancedExpanded ? context.l10n.actionCollapse : context.l10n.actionExpand,
                       onPressed: () => _setAdvancedExpanded(!_advancedExpanded),
                       icon: Icon(_advancedExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
                     ),
@@ -288,7 +287,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                             child: OutlinedButton.icon(
                               onPressed: _enableAdvancedMode,
                               icon: const Icon(Icons.analytics_outlined),
-                              label: const Text('Load Advanced Analytics'),
+                              label: Text(context.l10n.statsLoadAdvancedAnalytics),
                             ),
                           )
                         : Consumer(

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/previews/preview_theme.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 void main() {
   testWidgets('mobile finished item uses the shared unfinished action', (tester) async {
@@ -39,6 +40,8 @@ void main() {
   testWidgets('overflow button supports the shape of its owning action row', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: ItemMoreActionsButton(onActionSelected: (_) async {}, shape: YaabsaActionButtonShape.rounded),
         ),
@@ -58,6 +61,8 @@ void main() {
     ItemMoreAction? selectedAction;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: yaabsaLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: ItemMoreActionsButton(
             onActionSelected: (action) async {

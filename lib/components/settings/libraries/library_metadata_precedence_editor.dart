@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/tables/expressive_tile_list.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 @immutable
 class LibraryMetadataSourceEntry {
@@ -30,30 +31,31 @@ class LibraryMetadataPrecedenceEditor extends StatelessWidget {
   final VoidCallback onResetToDefault;
   final bool enabled;
 
-  String _priorityLabel(LibraryMetadataSourceEntry source) {
+  String _priorityLabel(BuildContext context, LibraryMetadataSourceEntry source) {
+    final l10n = context.l10n;
     if (!source.enabled) {
-      return 'Disabled';
+      return l10n.statusDisabled;
     }
 
     final enabledSources = sources.where((entry) => entry.enabled).toList(growable: false);
     final index = enabledSources.indexWhere((entry) => entry.id == source.id);
     if (index < 0) {
-      return 'Enabled';
+      return l10n.statusEnabled;
     }
 
     if (enabledSources.length == 1) {
-      return 'Only active source';
+      return l10n.statusOnlyActiveMetadataSource;
     }
 
     if (index == 0) {
-      return 'Highest priority';
+      return l10n.statusHighestMetadataPriority;
     }
 
     if (index == enabledSources.length - 1) {
-      return 'Lowest priority';
+      return l10n.statusLowestMetadataPriority;
     }
 
-    return 'Priority ${index + 1} of ${enabledSources.length}';
+    return l10n.statusMetadataPriority(index + 1, enabledSources.length);
   }
 
   @override
@@ -63,11 +65,13 @@ class LibraryMetadataPrecedenceEditor extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text('Metadata precedence', style: Theme.of(context).textTheme.titleSmall)),
+            Expanded(
+              child: Text(context.l10n.headingMetadataPrecedence, style: Theme.of(context).textTheme.titleSmall),
+            ),
             TextButton.icon(
               onPressed: enabled ? onResetToDefault : null,
               icon: const Icon(Icons.restart_alt_rounded),
-              label: const Text('Reset'),
+              label: Text(context.l10n.actionReset),
             ),
           ],
         ),
@@ -79,7 +83,7 @@ class LibraryMetadataPrecedenceEditor extends StatelessWidget {
               items: sources,
               itemId: (entry) => entry.id,
               titleBuilder: (entry) => entry.label,
-              subtitleBuilder: _priorityLabel,
+              subtitleBuilder: (source) => _priorityLabel(context, source),
               onReorderItem: enabled ? onReorderItem : null,
               trailingBuilder: (context, entry) {
                 return [
@@ -90,7 +94,7 @@ class LibraryMetadataPrecedenceEditor extends StatelessWidget {
                 ];
               },
               physics: const AlwaysScrollableScrollPhysics(),
-              emptyTitle: 'No metadata sources available.',
+              emptyTitle: context.l10n.statusNoMetadataSourcesAvailable,
             ),
           ),
         ),

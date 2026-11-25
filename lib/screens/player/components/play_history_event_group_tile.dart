@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LocalHistoryEventGroup {
@@ -52,11 +53,11 @@ class PlayHistoryEventGroupTile extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
         leading: _EventIcon(type: group.type, color: eventColor),
         title: Text(
-          'Progress updates',
+          context.l10n.historyEventProgressUpdates,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          '${group.entries.length} events',
+          context.l10n.eventCount(group.entries.length),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         trailing: Icon(expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
@@ -99,7 +100,7 @@ class _HistoryEventRow extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        _eventTitle(type),
+                        _eventTitle(type, context.l10n),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -107,14 +108,14 @@ class _HistoryEventRow extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _timeLabel(entry),
+                      _timeLabel(entry, Localizations.localeOf(context).toLanguageTag()),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  _eventDescription(entry, type),
+                  _eventDescription(entry, type, context.l10n),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -123,7 +124,7 @@ class _HistoryEventRow extends StatelessWidget {
           if (canPlay) ...[
             const SizedBox(width: 6),
             IconButton(
-              tooltip: 'Play from here',
+              tooltip: context.l10n.playbackPlayFromHere,
               visualDensity: VisualDensity.compact,
               onPressed: pending ? null : () => onPlayFromHere(entry),
               icon: pending
@@ -161,13 +162,16 @@ class PlayHistoryGroupedEventDetail extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              '${_timeLabel(entry)} • ${_eventDescription(entry, type)}',
+              context.l10n.historyTimeAndDescription(
+                _timeLabel(entry, Localizations.localeOf(context).toLanguageTag()),
+                _eventDescription(entry, type, context.l10n),
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           ),
           if (canPlay)
             IconButton(
-              tooltip: 'Play from here',
+              tooltip: context.l10n.playbackPlayFromHere,
               visualDensity: VisualDensity.compact,
               onPressed: pending ? null : () => onPlayFromHere(entry),
               icon: pending
@@ -198,7 +202,7 @@ class _EventIcon extends StatelessWidget {
   }
 }
 
-String _timeLabel(PlayerHistoryEntry entry) => DateFormat.Hms().format(entry.created.toLocal());
+String _timeLabel(PlayerHistoryEntry entry, String locale) => DateFormat.jms(locale).format(entry.created.toLocal());
 
 String _positionLabel(num seconds) =>
     Duration(microseconds: (seconds.toDouble() * Duration.microsecondsPerSecond).round()).toHhMmString();
@@ -208,7 +212,7 @@ num? _numberDetail(Map<String, dynamic> details, String key) {
   return value is num ? value : null;
 }
 
-String _eventDescription(PlayerHistoryEntry entry, PlayerHistoryType type) {
+String _eventDescription(PlayerHistoryEntry entry, PlayerHistoryType type, AppLocalizations l10n) {
   final details = decodePlayerHistoryDetails(entry.detailsJson);
   final position = _positionLabel(entry.currentTime);
   final fromPosition = _numberDetail(details, 'fromPosition');
@@ -222,100 +226,116 @@ String _eventDescription(PlayerHistoryEntry entry, PlayerHistoryType type) {
     case PlayerHistoryType.play:
       return position;
     case PlayerHistoryType.pause:
-      return 'Paused at $position';
+      return l10n.historyPausedAt(position);
     case PlayerHistoryType.stop:
-      return 'Stopped at $position';
+      return l10n.historyStoppedAt(position);
     case PlayerHistoryType.completed:
       return 'Finished';
     case PlayerHistoryType.seek:
       if (fromPosition != null && toPosition != null) {
-        return '${_positionLabel(fromPosition)} - ${_positionLabel(toPosition)}';
+        return l10n.historyPositionRange(_positionLabel(fromPosition), _positionLabel(toPosition));
       }
-      return 'To $position';
+      return l10n.historyToPosition(position);
     case PlayerHistoryType.skipForward:
-      return chapterTitle == null ? 'To $position' : 'To $chapterTitle';
+      return chapterTitle == null ? l10n.historyToPosition(position) : l10n.historyToChapter(chapterTitle);
     case PlayerHistoryType.skipBackward:
-      return chapterTitle == null ? 'To $position' : 'To $chapterTitle';
+      return chapterTitle == null ? l10n.historyToPosition(position) : l10n.historyToChapter(chapterTitle);
     case PlayerHistoryType.speedChanged:
       final previousSpeed = _numberDetail(details, 'previousSpeed');
       final speed = _numberDetail(details, 'speed');
-      return previousSpeed == null || speed == null
-          ? 'Changed'
-          : '${previousSpeed.toStringAsFixed(2)}× - ${speed.toStringAsFixed(2)}×';
-    case PlayerHistoryType.sleepTimerStarted:
-      if (details['mode'] == 'chapters') return 'For ${_chapterCountLabel(details['chapters'])}';
-      if (details['source'] == 'resume') {
-        return duration == null ? 'Resumed' : '${_positionLabel(duration)} left';
+      if (previousSpeed == null || speed == null) {
+        return l10n.historyEventSpeedChanged;
       }
-      return duration == null ? 'Started' : 'For ${_positionLabel(duration)}';
+      return l10n.historySpeedRange(previousSpeed.toDouble(), speed.toDouble());
+    case PlayerHistoryType.sleepTimerStarted:
+      if (details['mode'] == 'chapters') {
+        return l10n.historyForValue(_chapterCountLabel(l10n, details['chapters']));
+      }
+      if (details['source'] == 'resume') {
+        return duration == null ? l10n.historySleepTimerResumed : l10n.historyDurationLeft(_positionLabel(duration));
+      }
+      return duration == null ? l10n.historySleepTimerStarted : l10n.historyForValue(_positionLabel(duration));
     case PlayerHistoryType.sleepTimerAutoStarted:
-      if (details['mode'] == 'chapters') return 'For ${_chapterCountLabel(details['chapters'])}';
-      return duration == null ? 'Auto-started' : 'For ${_positionLabel(duration)}';
+      if (details['mode'] == 'chapters') {
+        return l10n.historyForValue(_chapterCountLabel(l10n, details['chapters']));
+      }
+      return duration == null ? l10n.historySleepTimerAutoStarted : l10n.historyForValue(_positionLabel(duration));
     case PlayerHistoryType.sleepTimerExtended:
       if (details['mode'] == 'chapters') {
-        return '+${_chapterCountLabel(details['additionalChapters'])} • ${details['remainingChapters']} left';
+        final additionalChapters = _chapterCountLabel(l10n, details['additionalChapters']);
+        final remainingChapters = _chapterCountLabel(l10n, details['remainingChapters']);
+        return l10n.historySleepTimerExtended(additionalChapters, remainingChapters);
       }
       if (additional != null && remaining != null) {
-        return '+${_positionLabel(additional)} • ${_positionLabel(remaining)} left';
+        return l10n.historySleepTimerExtended(_positionLabel(additional), _positionLabel(remaining));
       }
-      return 'Extended';
+      return l10n.historyEventSleepTimerExtended;
     case PlayerHistoryType.sleepTimerStopped:
-      if (details['mode'] == 'chapters') return '${_chapterCountLabel(details['remainingChapters'])} left';
-      final prefix = details['source'] == 'playback'
-          ? 'Paused with'
-          : details['source'] == 'reset'
-          ? 'Reset with'
-          : 'Stopped with';
-      return remaining == null ? 'Stopped' : '$prefix ${_positionLabel(remaining)} left';
+      if (details['mode'] == 'chapters') {
+        return l10n.historyDurationLeft(_chapterCountLabel(l10n, details['remainingChapters']));
+      }
+      if (remaining == null) {
+        return l10n.historySleepTimerStopped;
+      }
+      final source = details['source'];
+      String action;
+      if (source == 'playback') {
+        action = 'pause';
+      } else if (source == 'reset') {
+        action = 'reset';
+      } else {
+        action = 'stop';
+      }
+      return l10n.historySleepTimerRemaining(action, _positionLabel(remaining));
     case PlayerHistoryType.sleepTimerExpired:
-      return details['action'] == 'pause' ? 'Paused playback' : 'Stopped playback';
+      return l10n.historyPlaybackEndedByTimer(details['action'] as String? ?? 'stop');
     case PlayerHistoryType.sync:
-      return 'Synced at $position';
+      return l10n.historyProgressAtPosition(l10n.statusSynced, position);
     case PlayerHistoryType.syncOffline:
-      return 'Saved at $position';
+      return l10n.historyProgressAtPosition(l10n.statusSaved, position);
     case PlayerHistoryType.localSync:
-      return 'Uploaded at $position';
+      return l10n.historyProgressAtPosition(l10n.statusUploaded, position);
     case PlayerHistoryType.unknown:
       return position;
   }
 }
 
-String _eventTitle(PlayerHistoryType type) {
+String _eventTitle(PlayerHistoryType type, AppLocalizations l10n) {
   switch (type) {
     case PlayerHistoryType.play:
-      return 'Playback started';
+      return l10n.historyEventPlaybackStarted;
     case PlayerHistoryType.pause:
-      return 'Paused';
+      return l10n.statusPaused;
     case PlayerHistoryType.stop:
-      return 'Stopped';
+      return l10n.historyEventStopped;
     case PlayerHistoryType.completed:
-      return 'Completed';
+      return l10n.statusFinished;
     case PlayerHistoryType.seek:
-      return 'Position changed';
+      return l10n.historyEventPositionChanged;
     case PlayerHistoryType.skipForward:
-      return 'Skipped forward';
+      return l10n.historyEventSkippedForward;
     case PlayerHistoryType.skipBackward:
-      return 'Skipped back';
+      return l10n.historyEventSkippedBack;
     case PlayerHistoryType.speedChanged:
-      return 'Speed changed';
+      return l10n.historyEventSpeedChanged;
     case PlayerHistoryType.sleepTimerStarted:
-      return 'Sleep timer started';
+      return l10n.historyEventSleepTimerStarted;
     case PlayerHistoryType.sleepTimerAutoStarted:
-      return 'Sleep timer auto-started';
+      return l10n.historyEventSleepTimerAutoStarted;
     case PlayerHistoryType.sleepTimerExtended:
-      return 'Sleep timer extended';
+      return l10n.historyEventSleepTimerExtended;
     case PlayerHistoryType.sleepTimerStopped:
-      return 'Sleep timer stopped';
+      return l10n.historyEventSleepTimerStopped;
     case PlayerHistoryType.sleepTimerExpired:
-      return 'Sleep timer ended';
+      return l10n.historyEventSleepTimerEnded;
     case PlayerHistoryType.sync:
-      return 'Progress synced';
+      return l10n.historyEventProgressSynced;
     case PlayerHistoryType.syncOffline:
-      return 'Offline progress saved';
+      return l10n.historyEventOfflineProgressSaved;
     case PlayerHistoryType.localSync:
-      return 'Offline progress synced';
+      return l10n.historyEventOfflineProgressSynced;
     case PlayerHistoryType.unknown:
-      return 'Activity';
+      return l10n.headingActivity;
   }
 }
 
@@ -369,4 +389,13 @@ bool _canPlayFrom(PlayerHistoryType type) {
   return type.category == PlayerHistoryCategory.playback && type != PlayerHistoryType.completed;
 }
 
-String _chapterCountLabel(Object? count) => '$count chapter${count == 1 ? '' : 's'}';
+String _chapterCountLabel(AppLocalizations l10n, Object? value) {
+  final int count;
+  if (value is num) {
+    count = value.round();
+  } else {
+    count = int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  return l10n.chapterCount(count);
+}

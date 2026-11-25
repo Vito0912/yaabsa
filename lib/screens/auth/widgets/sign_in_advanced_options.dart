@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
+import 'package:yaabsa/util/l10n.dart';
 
 class SignInAdvancedOptions extends StatelessWidget {
   const SignInAdvancedOptions({
@@ -42,7 +43,7 @@ class SignInAdvancedOptions extends StatelessWidget {
         TextButton.icon(
           onPressed: isLoading ? null : () => onExpandedChanged(!isExpanded),
           icon: Icon(isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
-          label: const Text('Advanced Options'),
+          label: Text(context.l10n.headingAdvancedOptions),
         ),
         if (isExpanded)
           Container(
@@ -62,8 +63,8 @@ class SignInAdvancedOptions extends StatelessWidget {
                       value: useApiKey,
                       contentPadding: EdgeInsets.zero,
                       onChanged: isLoading ? null : onUseApiKeyChanged,
-                      title: const Text('Use API Key'),
-                      subtitle: const Text('Authenticate with a generated API key instead of username/password.'),
+                      title: Text(context.l10n.authUseApiKey),
+                      subtitle: Text(context.l10n.authApiKeyHelp),
                     ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -71,18 +72,21 @@ class SignInAdvancedOptions extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Text('Custom Headers', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                            Text(
+                              context.l10n.headingCustomHeaders,
+                              style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                            ),
                             const Spacer(),
                             TextButton.icon(
                               onPressed: isLoading ? null : onAddHeader,
                               icon: const Icon(Icons.add_rounded),
-                              label: const Text('Add Header'),
+                              label: Text(context.l10n.actionAdd),
                             ),
                           ],
                         ),
                         if (customHeaders.isEmpty)
                           Text(
-                            'No custom headers configured.',
+                            context.l10n.statusNoCustomHeadersConfigured,
                             style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                           )
                         else
@@ -97,7 +101,7 @@ class SignInAdvancedOptions extends StatelessWidget {
                                 children: [
                                   YaabsaActionIconButton(
                                     icon: Icons.edit_outlined,
-                                    tooltip: 'Edit header',
+                                    tooltip: context.l10n.actionEdit,
                                     onPressed: isLoading ? null : () => onEditHeader(entry.key),
                                     iconSize: 24,
                                     buttonSize: 48,
@@ -106,7 +110,7 @@ class SignInAdvancedOptions extends StatelessWidget {
                                     shape: YaabsaActionButtonShape.rounded,
                                   ),
                                   YaabsaDeleteIconButton(
-                                    tooltip: 'Remove header',
+                                    tooltip: context.l10n.actionRemove,
                                     onPressed: isLoading ? null : () => onRemoveHeader(entry.key),
                                     iconSize: 24,
                                     buttonSize: 48,
@@ -124,7 +128,7 @@ class SignInAdvancedOptions extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: isLoading ? null : onImportMagicConfig,
                       icon: const Icon(Icons.qr_code_2_rounded),
-                      label: const Text('Import Authentication Code'),
+                      label: Text(context.l10n.actionImport),
                     ),
                   ),
                 ],

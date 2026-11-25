@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/components/common/feature_gate.dart';
 import 'package:yaabsa/features/player/widgets/playback_speed_sheet.dart';
 import 'package:yaabsa/models/playback_feature.dart';
@@ -40,7 +41,7 @@ class SpeedSlider extends StatelessWidget {
     return FeatureGate(
       enabled: audioHandler.supportsFeature(PlaybackFeature.speed),
       availability: audioHandler.featureAvailability(PlaybackFeature.speed),
-      disabledReason: 'Playback speed is unavailable for this playback',
+      disabledReason: context.l10n.errorPlaybackSpeedUnavailable,
       child: _buildControl(context),
     );
   }
@@ -50,11 +51,11 @@ class SpeedSlider extends StatelessWidget {
       stream: audioHandler.effectivePlaybackSpeedStream,
       initialData: audioHandler.effectivePlaybackSpeed,
       builder: (context, snapshot) {
-        final speed = (snapshot.data ?? defaultSpeed).clamp(minSpeed, maxSpeed);
+        final speed = (snapshot.data ?? defaultSpeed).clamp(minSpeed, maxSpeed).toDouble();
 
         return YaabsaActionIconButton(
           iconWidget: Text(
-            '${speed.toStringAsFixed(1)}x',
+            context.l10n.playbackSpeedMultiplier(speed),
             style: TextStyle(
               letterSpacing: -1.25,
               fontFeatures: [const FontFeature.tabularFigures()],
@@ -65,7 +66,7 @@ class SpeedSlider extends StatelessWidget {
           iconSize: 24,
           buttonSize: 48,
           compact: false,
-          tooltip: 'Playback speed',
+          tooltip: context.l10n.playbackSpeed,
           onPressed: () => showPlaybackSpeedSheet(context, currentSpeed: speed),
         );
       },
