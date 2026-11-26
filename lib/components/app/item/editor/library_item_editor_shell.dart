@@ -15,6 +15,11 @@ class LibraryItemEditorShell extends StatefulWidget {
     required this.onClose,
     required this.child,
     this.onBackToSelector,
+    this.initialShowMobileDestinations = false,
+    this.footer,
+    this.mobileDestinationsTitle,
+    this.desktopTitle,
+    this.expandMobileLayout = false,
   });
 
   final String itemTitle;
@@ -27,20 +32,122 @@ class LibraryItemEditorShell extends StatefulWidget {
   final VoidCallback onClose;
   final Widget child;
   final VoidCallback? onBackToSelector;
+  final bool initialShowMobileDestinations;
+  final Widget? footer;
+  final String? mobileDestinationsTitle;
+  final String? desktopTitle;
+  final bool expandMobileLayout;
 
   @override
   State<LibraryItemEditorShell> createState() => _LibraryItemEditorShellState();
 }
 
 class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
-  var _showMobileDestinations = false;
+  late bool _showMobileDestinations;
+
+  @override
+  void initState() {
+    super.initState();
+    _showMobileDestinations = widget.initialShowMobileDestinations;
+  }
+
+  int get _safeSelectedIndex {
+    if (widget.destinations.isEmpty) {
+      return 0;
+    }
+
+    return widget.selectedIndex.clamp(0, widget.destinations.length - 1);
+  }
+
+  Widget _buildDestinationList(BuildContext context, ColorScheme colorScheme) {
+    final safeIndex = _safeSelectedIndex;
+
+    return ListView(
+      shrinkWrap: !widget.expandMobileLayout,
+      primary: false,
+      padding: const EdgeInsets.all(12),
+      children: [
+        for (var index = 0; index < widget.destinations.length; index++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Material(
+              color: safeIndex == index ? colorScheme.secondaryContainer : colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                leading: Icon(widget.destinations[index].icon),
+                title: Text(widget.destinations[index].label),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                selected: safeIndex == index,
+                selectedColor: colorScheme.onSecondaryContainer,
+                onTap: () {
+                  setState(() {
+                    _showMobileDestinations = false;
+                  });
+                  widget.onSelectDestination(index);
+                },
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final safeIndex = _safeSelectedIndex;
 
     if (context.isMobile) {
+      if (widget.expandMobileLayout) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return SizedBox(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Offstage(
+                      offstage: _showMobileDestinations,
+                      child: TickerMode(
+                        enabled: !_showMobileDestinations,
+                        child: Material(
+                          color: colorScheme.surface,
+                          child: Column(
+                            children: [
+                              _buildMobileHeader(context, showSelector: false),
+                              const Divider(height: 1),
+                              Expanded(child: widget.child),
+                              if (widget.footer != null) ...[const Divider(height: 1), widget.footer!],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_showMobileDestinations)
+                    Positioned.fill(
+                      child: Material(
+                        color: colorScheme.surface,
+                        child: Column(
+                          children: [
+                            _buildMobileHeader(context, showSelector: true),
+                            const Divider(height: 1),
+                            Expanded(child: _buildDestinationList(context, colorScheme)),
+                            if (widget.footer != null) ...[const Divider(height: 1), widget.footer!],
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      }
+
       return LayoutBuilder(
         builder: (context, constraints) {
           return Center(
@@ -64,6 +171,7 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
                           children: [
                             _buildMobileHeader(context, showSelector: false),
                             Expanded(child: widget.child),
+                            if (widget.footer != null) ...[const Divider(height: 1), widget.footer!],
                           ],
                         ),
                       ),
@@ -79,40 +187,8 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildMobileHeader(context, showSelector: true),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: ListView(
-                            shrinkWrap: true,
-                            primary: false,
-                            padding: const EdgeInsets.all(12),
-                            children: [
-                              for (var index = 0; index < widget.destinations.length; index++)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
-                                  child: Material(
-                                    color: widget.selectedIndex == index
-                                        ? colorScheme.secondaryContainer
-                                        : colorScheme.surface,
-                                    borderRadius: BorderRadius.circular(16),
-                                    clipBehavior: Clip.antiAlias,
-                                    child: ListTile(
-                                      leading: Icon(widget.destinations[index].icon),
-                                      title: Text(widget.destinations[index].label),
-                                      trailing: const Icon(Icons.chevron_right_rounded),
-                                      selected: widget.selectedIndex == index,
-                                      selectedColor: colorScheme.onSecondaryContainer,
-                                      onTap: () {
-                                        setState(() {
-                                          _showMobileDestinations = false;
-                                        });
-                                        widget.onSelectDestination(index);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+                        Flexible(fit: FlexFit.loose, child: _buildDestinationList(context, colorScheme)),
+                        if (widget.footer != null) ...[const Divider(height: 1), widget.footer!],
                       ],
                     ),
                   ),
@@ -123,7 +199,7 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
       );
     }
 
-    return Row(
+    final railAndContent = Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
@@ -137,7 +213,7 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
                   _EditorRailDestination(
                     label: widget.destinations[index].label,
                     icon: widget.destinations[index].icon,
-                    selected: widget.selectedIndex == index,
+                    selected: safeIndex == index,
                     onTap: () => widget.onSelectDestination(index),
                   ),
               ],
@@ -154,7 +230,12 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
                   padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
                   child: Row(
                     children: [
-                      Expanded(child: Text(context.l10n.headingEditItem, style: theme.textTheme.titleSmall)),
+                      Expanded(
+                        child: Text(
+                          widget.desktopTitle ?? context.l10n.headingEditItem,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ),
                       if (widget.showItemNavigation) ...[
                         IconButton(
                           onPressed: widget.onPreviousItem,
@@ -183,9 +264,25 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
         ),
       ],
     );
+
+    if (widget.footer == null) {
+      return railAndContent;
+    }
+
+    return Column(
+      children: [
+        Expanded(child: railAndContent),
+        const Divider(height: 1),
+        widget.footer!,
+      ],
+    );
   }
 
   Widget _buildMobileHeader(BuildContext context, {required bool showSelector}) {
+    final safeIndex = _safeSelectedIndex;
+    final selectorTitle = widget.mobileDestinationsTitle ?? widget.itemTitle;
+    final detailTitle = widget.destinations.isEmpty ? selectorTitle : widget.destinations[safeIndex].label;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
@@ -204,7 +301,7 @@ class _LibraryItemEditorShellState extends State<LibraryItemEditorShell> {
             ),
           Expanded(
             child: Text(
-              showSelector ? widget.itemTitle : widget.destinations[widget.selectedIndex].label,
+              showSelector ? selectorTitle : detailTitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleMedium,

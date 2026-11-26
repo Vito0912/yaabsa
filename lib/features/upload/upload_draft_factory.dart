@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 import 'package:yaabsa/features/upload/library_upload_models.dart';
+import 'package:yaabsa/features/upload/upload_file_access.dart';
 import 'package:yaabsa/util/file_formats.dart';
 import 'package:yaabsa/util/l10n.dart';
 
@@ -29,7 +28,7 @@ class UploadDraftFactory {
   final String libraryName;
 
   UploadPickedFile classifyFile({required String absolutePath, required String relativePath}) {
-    final fileName = p.basename(absolutePath);
+    final fileName = p.basename(relativePath);
     final extension = p.extension(fileName).toLowerCase().replaceFirst('.', '');
     final isItem = isBookLibrary
         ? FileFormats.audioExtensions.contains(extension) || FileFormats.ebookExtensions.contains(extension)
@@ -128,45 +127,43 @@ class UploadDraftFactory {
     required Set<String> existingAbsolutePaths,
     required int Function() nextId,
   }) async {
-    final rootDirectory = Directory(folderPath);
-    if (!await rootDirectory.exists()) {
-      return null;
+    final folderUri = Uri.tryParse(folderPath);
+    final Uri source;
+    if (folderUri != null && folderUri.scheme == 'content') {
+      source = folderUri;
+    } else {
+      source = Uri.directory(folderPath);
     }
 
     final byDirectory = <String, List<UploadPickedFile>>{};
     final allFiles = <UploadPickedFile>[];
+    String? rootPath;
 
-    await for (final entity in rootDirectory.list(recursive: true, followLinks: false)) {
-      if (entity is! File) {
+    await for (final entry in UploadFileAccess.listFolder(source)) {
+      if (existingAbsolutePaths.contains(entry.location)) {
         continue;
       }
 
-      final absolutePath = entity.path;
-      if (existingAbsolutePaths.contains(absolutePath)) {
-        continue;
-      }
-
-      final relativeToRoot = p.relative(absolutePath, from: folderPath);
-      final displayRelativePath = p.join(p.basename(folderPath), relativeToRoot);
-      final pickedFile = classifyFile(absolutePath: absolutePath, relativePath: displayRelativePath);
+      rootPath ??= p.split(entry.relativePath).first;
+      final pickedFile = classifyFile(absolutePath: entry.location, relativePath: entry.relativePath);
       allFiles.add(pickedFile);
 
-      final directoryPath = p.dirname(absolutePath);
+      final directoryPath = p.dirname(entry.relativePath);
       byDirectory.putIfAbsent(directoryPath, () => <UploadPickedFile>[]).add(pickedFile);
     }
 
-    if (allFiles.isEmpty) {
+    if (allFiles.isEmpty || rootPath == null) {
       return null;
     }
 
-    final targetDirectoryPath = _findTargetDirectory(folderPath, byDirectory);
+    final targetDirectoryPath = _findTargetDirectory(rootPath, byDirectory);
     if (targetDirectoryPath == null) {
       return null;
     }
 
     final scopedFiles = allFiles
         .where((file) {
-          final fileDirectory = p.dirname(file.absolutePath);
+          final fileDirectory = p.dirname(file.relativePath);
           return fileDirectory == targetDirectoryPath || p.isWithin(targetDirectoryPath, fileDirectory);
         })
         .toList(growable: false);
@@ -178,7 +175,7 @@ class UploadDraftFactory {
       return null;
     }
 
-    final targetRelativeToParent = p.relative(targetDirectoryPath, from: p.dirname(folderPath));
+    final targetRelativeToParent = targetDirectoryPath;
     final segments = p
         .split(targetRelativeToParent)
         .where((segment) => segment.trim().isNotEmpty && segment.trim() != '.')

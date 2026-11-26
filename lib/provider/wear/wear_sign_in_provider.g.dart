@@ -32,7 +32,7 @@ final class WearSignInProvider extends $AsyncNotifierProvider<WearSignIn, void> 
   WearSignIn create() => WearSignIn();
 }
 
-String _$wearSignInHash() => r'7a9da6d0f93265b205ddaad19c82accb988812ef';
+String _$wearSignInHash() => r'12838066cdafd8b2fc6946ee10882286f5d719af';
 
 abstract class _$WearSignIn extends $AsyncNotifier<void> {
   FutureOr<void> build();

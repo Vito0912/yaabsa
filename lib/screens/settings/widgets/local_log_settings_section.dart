@@ -15,6 +15,7 @@ class LocalLogSettingsSection extends StatelessWidget {
     return SettingsNavigationSection(
       title: l10n.settingsCategoryLogs,
       topPadding: 0,
+      showSectionTitle: false,
       settings: [
         SettingDropdown<String>(
           label: l10n.settingLogLevel,

@@ -536,6 +536,8 @@ class DesktopWindowState {
       case WindowDockedEvent():
       case WindowUndockedEvent():
         break;
+      case WindowEvent():
+        _scheduleSave();
     }
   }
 }

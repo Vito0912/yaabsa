@@ -13,8 +13,11 @@ import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/components/app/library/library_filter_sheet.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
 import 'package:yaabsa/components/app/library/library_series_sort_sheet.dart';
+import 'package:yaabsa/components/app/series/series_rename_dialog.dart';
 import 'package:yaabsa/api/library/request/library_series_sort.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/features/settings/model/setting_definition.dart';
+import 'package:yaabsa/features/settings/model/setting_definitions.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
@@ -43,6 +46,8 @@ class SeriesView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     final currentUser = ref.watch(currentUserProvider).value;
     ref.watch(userSettingsWatcherProvider);
+    final renameSeriesEnabled = watchSettingDefinition(ref, AppSettingDefs.toolsRenameSeries, userId: currentUser?.id);
+    final canRenameSeries = renameSeriesEnabled && (currentUser?.permissions.update ?? false);
 
     if (selectedLibrary == null) {
       return Center(child: Text(context.l10n.errorNoLibrarySelected));
@@ -207,6 +212,15 @@ class SeriesView extends HookConsumerWidget {
                                       onTap: () {
                                         context.push('/series/${series.id}', extra: seriesEntry);
                                       },
+                                      onLongPress: canRenameSeries
+                                          ? () => _showSeriesActionsSheet(
+                                              context: context,
+                                              ref: ref,
+                                              libraryId: libraryId,
+                                              seriesId: series.id,
+                                              currentName: series.name,
+                                            )
+                                          : null,
                                     );
                                   },
                                 ),
@@ -246,12 +260,19 @@ class SeriesView extends HookConsumerWidget {
 }
 
 class _SeriesProgressEntry extends ConsumerWidget {
-  const _SeriesProgressEntry({required this.api, required this.entry, required this.compact, required this.onTap});
+  const _SeriesProgressEntry({
+    required this.api,
+    required this.entry,
+    required this.compact,
+    required this.onTap,
+    this.onLongPress,
+  });
 
   final ABSApi api;
   final MultiBookEntryData entry;
   final bool compact;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -278,8 +299,43 @@ class _SeriesProgressEntry extends ConsumerWidget {
       progress: seriesProgress,
       maxBooksToShow: defaultMultiBookPreviewLimit,
       onTap: onTap,
+      onLongPress: onLongPress,
     );
   }
+}
+
+Future<void> _showSeriesActionsSheet({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required String seriesId,
+  required String currentName,
+}) async {
+  final renameSelected = await showModalBottomSheet<bool>(
+    context: context,
+    builder: (sheetContext) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(title: Text(currentName, maxLines: 1, overflow: TextOverflow.ellipsis)),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(context.l10n.actionRenameSeries),
+              onTap: () => Navigator.of(sheetContext).pop(true),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+
+  if (renameSelected != true || !context.mounted) {
+    return;
+  }
+
+  await showRenameSeriesDialog(context, ref, libraryId: libraryId, seriesId: seriesId, currentName: currentName);
 }
 
 int _estimatedItemCount({required int loadedCount, required int totalItems, required bool hasNextPage}) {

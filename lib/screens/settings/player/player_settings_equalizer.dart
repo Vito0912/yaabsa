@@ -6,7 +6,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
-import 'package:yaabsa/screens/settings/player/player_settings.dart';
+import 'package:yaabsa/features/settings/registry/settings_routes.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/l10n.dart';
@@ -27,8 +27,12 @@ const Map<String, List<double>> equalizerPresets = {
 
 double getPresetGainForBand(String presetName, int bandIndex, int totalBands) {
   final preset = equalizerPresets[presetName];
-  if (preset == null || preset.isEmpty) return 0.0;
-  if (totalBands == 1) return preset[0];
+  if (preset == null || preset.isEmpty) {
+    return 0.0;
+  }
+  if (totalBands == 1) {
+    return preset[0];
+  }
 
   final double t = bandIndex / (totalBands - 1);
   final double idxDouble = t * (preset.length - 1);
@@ -66,7 +70,7 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
         title: l10n.navEqualizer,
         embedded: true,
         showEmbeddedBackButton: true,
-        embeddedBackFallbackRoute: PlayerSettings.routeName,
+        embeddedBackFallbackRoute: SettingsRoutes.player,
         children: [
           Padding(
             padding: EdgeInsets.all(24.0),
@@ -84,7 +88,7 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
       title: l10n.navEqualizer,
       embedded: true,
       showEmbeddedBackButton: true,
-      embeddedBackFallbackRoute: PlayerSettings.routeName,
+      embeddedBackFallbackRoute: SettingsRoutes.player,
       children: [
         StreamBuilder<AudioEffectStatus>(
           stream: equalizer?.statusStream,
@@ -352,7 +356,9 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
   }
 
   void _applyPreset(String presetName, List<AndroidEqualizerBand> bands) {
-    if (presetName == 'Custom') return;
+    if (presetName == 'Custom') {
+      return;
+    }
     final updatedGains = <int, double>{};
     for (final band in bands) {
       final gain = getPresetGainForBand(presetName, band.index, bands.length);

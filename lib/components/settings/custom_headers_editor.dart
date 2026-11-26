@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/util/l10n.dart';
 
 class CustomHeadersEditor extends StatelessWidget {
@@ -42,10 +43,11 @@ class CustomHeadersEditor extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         Align(
-          alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
+          alignment: AlignmentDirectional.centerStart,
+          child: YaabsaButton.small(
+            variant: YaabsaButtonVariant.outlined,
             onPressed: enabled ? onAdd : null,
-            icon: const Icon(Icons.add_rounded),
+            icon: const Icon(Icons.add_rounded, size: 18),
             label: Text(context.l10n.actionAddCustomHeader),
           ),
         ),
@@ -90,11 +92,16 @@ class _HeaderCard extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
+          const SizedBox(width: 8),
+          YaabsaActionIconButton(
+            icon: Icons.edit_outlined,
             tooltip: context.l10n.actionEdit,
+            enabled: enabled,
             onPressed: enabled ? () => onEdit(entry.key) : null,
-            icon: const Icon(Icons.edit_outlined),
+            variant: YaabsaActionButtonVariant.outlined,
+            shape: YaabsaActionButtonShape.rounded,
           ),
+          const SizedBox(width: 8),
           YaabsaDeleteIconButton(
             tooltip: context.l10n.actionRemove,
             onPressed: enabled ? () => onRemove(entry.key) : null,

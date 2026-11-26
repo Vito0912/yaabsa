@@ -6,7 +6,6 @@ import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/custom_metadata_provider.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/components/settings/admin_custom_metadata_provider_manager.dart';
-import 'package:yaabsa/components/settings/admin_force_metadata_refresh_tool.dart';
 import 'package:yaabsa/components/settings/admin_metadata_term_manager.dart';
 import 'package:yaabsa/components/settings/admin_split_metadata_terms_tool.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -253,9 +252,6 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
         }
 
         ref.watch(userSettingsWatcherProvider);
-        final forceMetadataRefreshEnabled = ref
-            .read(settingsManagerProvider.notifier)
-            .getUserSetting<bool>(currentUser.id, SettingKeys.toolsForceMetadataRefresh, defaultValue: false);
         final splitGenresTagsEnabled = ref
             .read(settingsManagerProvider.notifier)
             .getUserSetting<bool>(currentUser.id, SettingKeys.toolsSplitGenresTags, defaultValue: false);
@@ -276,11 +272,6 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: _MetadataUtilsErrorCard(message: _errorMessage!, onRetry: _loadMetadataUtilsData),
-                ),
-              if (forceMetadataRefreshEnabled)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: AdminForceMetadataRefreshTool(onCompleted: _loadMetadataUtilsData),
                 ),
               const SizedBox(height: 12),
               Expanded(

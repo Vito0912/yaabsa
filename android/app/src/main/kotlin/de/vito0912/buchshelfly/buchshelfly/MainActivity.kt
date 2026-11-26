@@ -237,6 +237,9 @@ class MainActivity : AudioServiceFragmentActivity() {
 		if (!flutterEngine.plugins.has(LiveUpdatesPlugin::class.java)) {
 			flutterEngine.plugins.add(LiveUpdatesPlugin())
 		}
+		if (!flutterEngine.plugins.has(UploadSafPlugin::class.java)) {
+			flutterEngine.plugins.add(UploadSafPlugin())
+		}
 
 		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL)
 			.setMethodCallHandler { call, result ->

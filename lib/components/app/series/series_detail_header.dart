@@ -15,6 +15,7 @@ class SeriesDetailHeader extends StatelessWidget {
     this.isTitleLoading = false,
     this.hasTitleError = false,
     this.isSortBusy = false,
+    this.actions = const <Widget>[],
   });
 
   final VoidCallback onBack;
@@ -25,6 +26,7 @@ class SeriesDetailHeader extends StatelessWidget {
   final bool isTitleLoading;
   final bool hasTitleError;
   final bool isSortBusy;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +57,7 @@ class SeriesDetailHeader extends StatelessWidget {
                 iconOnly: context.isMobile,
                 isLoading: isSortBusy,
               ),
+              if (actions.isNotEmpty) ...[const SizedBox(width: 4), ...actions],
             ],
           ),
           if (hasSubtitle)

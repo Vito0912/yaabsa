@@ -35,6 +35,24 @@ Future<String?> showChapterUnsavedDialog(BuildContext context) {
   );
 }
 
+Future<bool> showChapterReplaceDialog(BuildContext context, String title) {
+  return showListManagementDeleteDialog(
+    context: context,
+    title: title,
+    message: context.l10n.warningReplaceChapterDraft,
+    confirmLabel: context.l10n.actionReplace,
+  );
+}
+
+Future<bool> showChapterDiscardDialog(BuildContext context) {
+  return showListManagementDeleteDialog(
+    context: context,
+    title: context.l10n.confirmDiscardChapterEdits,
+    message: context.l10n.promptRestoreChapterDraft,
+    confirmLabel: context.l10n.actionDiscardEdits,
+  );
+}
+
 Future<ChapterAddOptions?> showChapterAddDialog(BuildContext context, {required double initialStart}) {
   return showDialog<ChapterAddOptions>(
     context: context,

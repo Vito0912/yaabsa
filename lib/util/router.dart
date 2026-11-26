@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
@@ -23,52 +23,11 @@ import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
 import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
 import 'package:yaabsa/screens/reader/reader.dart';
-import 'package:yaabsa/screens/settings/settings_backup_settings.dart';
-import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settings.dart';
-import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
-import 'package:yaabsa/screens/settings/android_auto_settings.dart';
-import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_authentication_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_libraries_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_settings.dart';
-import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
-import 'package:yaabsa/screens/settings/appearance_settings.dart';
-import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
-import 'package:yaabsa/screens/settings/caching/caching_route_settings.dart';
-import 'package:yaabsa/screens/settings/caching_settings.dart';
-import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
-import 'package:yaabsa/screens/settings/library_order_settings.dart';
-import 'package:yaabsa/screens/settings/library_settings.dart';
-import 'package:yaabsa/screens/settings/download_settings.dart';
-import 'package:yaabsa/screens/settings/smart_downloads_settings.dart';
-import 'package:yaabsa/screens/settings/library_views_settings.dart';
-import 'package:yaabsa/screens/settings/library_view_subtitle_settings.dart';
-import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
-import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_notification.dart';
-import 'package:yaabsa/screens/settings/player/player_settings.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_compatibility.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_shake_controls.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_sleep_timer.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_smart_rewind.dart';
-import 'package:yaabsa/screens/settings/player/player_settings_subtitles.dart';
-import 'package:yaabsa/screens/settings/reader_settings.dart';
-import 'package:yaabsa/screens/settings/reader_tts_settings.dart';
-import 'package:yaabsa/screens/settings/server_connection_settings.dart';
-import 'package:yaabsa/screens/settings/server_management_settings.dart';
+import 'package:yaabsa/features/settings/presentation/declarative_settings_page.dart';
+import 'package:yaabsa/features/settings/presentation/settings_shell.dart';
+import 'package:yaabsa/features/settings/registry/settings_registry.dart';
+import 'package:yaabsa/features/settings/registry/settings_routes.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
-import 'package:yaabsa/screens/settings/theme_settings.dart';
-import 'package:yaabsa/screens/settings/tools_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/desktop_navigation_history.dart';
@@ -161,6 +120,34 @@ Page<void> _buildAdaptiveHomeShellPage(BuildContext context, GoRouterState state
   return NoTransitionPage<void>(key: state.pageKey, child: child);
 }
 
+Page<void> _buildPersistentSettingsShellPage(BuildContext context, GoRouterState state, Widget child) {
+  final matchedPage = SettingsRegistry.instance.findPageByRoute(state.uri.path);
+
+  return NoTransitionPage<void>(
+    key: const ValueKey<String>('settings-persistent-shell'),
+    child: SettingsShell(
+      initialPageId: matchedPage?.id,
+      focusEntryId: state.uri.queryParameters['focus'],
+      focusToken: state.uri.queryParameters['t'],
+      detailChild: child,
+    ),
+  );
+}
+
+Page<void> _buildSettingsDetailPage(BuildContext context, GoRouterState state, String pageId) {
+  final child = DeclarativeSettingsPage(
+    pageId: pageId,
+    focusEntryId: state.uri.queryParameters['focus'],
+    focusToken: state.uri.queryParameters['t'],
+  );
+
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS && context.isMobile) {
+    return MaterialPage<void>(key: state.pageKey, child: child);
+  }
+
+  return NoTransitionPage<void>(key: state.pageKey, child: child);
+}
+
 final desktopNavigationHistory = DesktopNavigationHistory();
 
 final globalRouter = GoRouter(
@@ -245,10 +232,6 @@ final globalRouter = GoRouter(
             return PlayHistoryView(itemId: itemId, episodeId: episodeId, itemTitle: itemTitle);
           },
         ),
-        GoRoute(
-          path: UserListeningSessionsView.routeName,
-          builder: (context, state) => const UserListeningSessionsView(),
-        ),
         ShellRoute(
           observers: [desktopNavigationHistory.createObserver()],
           builder: (BuildContext context, GoRouterState state, Widget child) {
@@ -272,149 +255,27 @@ final globalRouter = GoRouter(
                     return _buildAdaptiveHomeShellPage(context, state, LayoutHome(child: child));
                   },
                   routes: [
-                    GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
-                    GoRoute(path: ThemeSettings.routeName, builder: (context, state) => const ThemeSettings()),
-                    GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
-                    GoRoute(
-                      path: PlayerSettingsNotification.routeName,
-                      builder: (context, state) => const PlayerSettingsNotification(),
-                    ),
-                    GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
-                    GoRoute(path: DownloadSettings.routeName, builder: (context, state) => const DownloadSettings()),
-                    GoRoute(
-                      path: SmartDownloadsSettings.routeName,
-                      builder: (context, state) => const SmartDownloadsSettings(),
-                    ),
-                    GoRoute(
-                      path: LibraryViewsSettings.routeName,
-                      builder: (context, state) => const LibraryViewsSettings(),
-                    ),
-                    GoRoute(
-                      path: LibraryViewSubtitleSettings.routeName,
-                      builder: (context, state) => const LibraryViewSubtitleSettings(),
-                    ),
-                    GoRoute(
-                      path: LibraryShelfSettings.routeName,
-                      builder: (context, state) => const LibraryShelfSettings(),
-                    ),
-                    GoRoute(
-                      path: LibraryOrderSettings.routeName,
-                      builder: (context, state) => const LibraryOrderSettings(),
-                    ),
-                    GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
-                    GoRoute(
-                      path: SettingsBackupSettings.routeName,
-                      builder: (context, state) => const SettingsBackupSettings(),
-                    ),
-                    GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
-                    GoRoute(
-                      path: ServerConnectionSettings.routeName,
-                      builder: (context, state) => const ServerConnectionSettings(),
-                    ),
-                    GoRoute(
-                      path: ServerManagementSettings.routeName,
-                      builder: (context, state) => const ServerManagementSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerSettings.routeName,
-                      builder: (context, state) => const AdminServerSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerConfigurationSettings.routeName,
-                      builder: (context, state) => const AdminServerConfigurationSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerLogsSettings.routeName,
-                      builder: (context, state) => const AdminServerLogsSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerBackupsSettings.routeName,
-                      builder: (context, state) => const AdminServerBackupsSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerLibrariesSettings.routeName,
-                      builder: (context, state) => const AdminServerLibrariesSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerLibraryStatsSettings.routeName,
-                      builder: (context, state) => const AdminServerLibraryStatsSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerApiKeysSettings.routeName,
-                      builder: (context, state) => const AdminServerApiKeysSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerSessionsSettings.routeName,
-                      builder: (context, state) => const AdminServerSessionsSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerRssFeedsSettings.routeName,
-                      builder: (context, state) => const AdminServerRssFeedsSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerEmailSettings.routeName,
-                      builder: (context, state) => const AdminServerEmailSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerAuthenticationSettings.routeName,
-                      builder: (context, state) => const AdminServerAuthenticationSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminServerUsersSettings.routeName,
-                      builder: (context, state) => const AdminServerUsersSettings(),
-                    ),
-                    GoRoute(
-                      path: AdminItemMetadataUtilsSettings.routeName,
-                      builder: (context, state) => const AdminItemMetadataUtilsSettings(),
-                    ),
-                    GoRoute(path: ToolsSettings.routeName, builder: (context, state) => const ToolsSettings()),
-                    GoRoute(
-                      path: PathTagGenreUpdateSettings.routeName,
-                      builder: (context, state) => const PathTagGenreUpdateSettings(),
-                    ),
-                    GoRoute(
-                      path: CachingGeneralSettings.routeName,
-                      builder: (context, state) => CachingGeneralSettings(),
-                    ),
-                    GoRoute(path: CachingRouteSettings.routeName, builder: (context, state) => CachingRouteSettings()),
-                    GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
-                    GoRoute(
-                      path: PlayerSettingsCompatibility.routeName,
-                      builder: (context, state) => const PlayerSettingsCompatibility(),
-                    ),
-                    GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
-                    GoRoute(path: ReaderTtsSettings.routeName, builder: (context, state) => const ReaderTtsSettings()),
-                    GoRoute(
-                      path: PlayerSettingsEqualizer.routeName,
-                      builder: (context, state) => const PlayerSettingsEqualizer(),
-                    ),
-                    GoRoute(
-                      path: PlayerSettingsGeneral.routeName,
-                      builder: (context, state) => PlayerSettingsGeneral(),
-                    ),
-                    GoRoute(
-                      path: PlayerSettingsSmartRewind.routeName,
-                      builder: (context, state) => PlayerSettingsSmartRewind(),
-                    ),
-                    GoRoute(
-                      path: PlayerSettingsSleepTimer.routeName,
-                      builder: (context, state) => PlayerSettingsSleepTimer(),
-                    ),
-                    GoRoute(
-                      path: PlayerSettingsSubtitles.routeName,
-                      builder: (context, state) => PlayerSettingsSubtitles(),
-                    ),
-                    GoRoute(
-                      path: PlayerSettingsShakeControls.routeName,
-                      builder: (context, state) => PlayerSettingsShakeControls(),
-                    ),
-                    GoRoute(
-                      path: AndroidAutoLibrarySettings.routeName,
-                      builder: (context, state) => AndroidAutoLibrarySettings(),
-                    ),
-                    GoRoute(
-                      path: AndroidAutoPodcastLibrarySettings.routeName,
-                      builder: (context, state) => AndroidAutoPodcastLibrarySettings(),
+                    ShellRoute(
+                      observers: [desktopNavigationHistory.createObserver()],
+                      pageBuilder: (BuildContext context, GoRouterState state, Widget child) {
+                        return _buildPersistentSettingsShellPage(context, state, child);
+                      },
+                      routes: [
+                        for (final page in SettingsRegistry.instance.allPages)
+                          if (page.registerRoute)
+                            GoRoute(
+                              path: page.route,
+                              pageBuilder: (context, state) => _buildSettingsDetailPage(context, state, page.id),
+                            ),
+                        GoRoute(
+                          path: SettingsRoutes.legacyCachingGeneral,
+                          redirect: (context, state) => SettingsRoutes.caching,
+                        ),
+                        GoRoute(
+                          path: SettingsRoutes.legacyGlobalPlayer,
+                          redirect: (context, state) => SettingsRoutes.playerStartupBackground,
+                        ),
+                      ],
                     ),
                     GoRoute(
                       path: '/item/:id',
@@ -466,6 +327,17 @@ final globalRouter = GoRouter(
                         final extra = state.extra;
                         final initialEntry = extra is MultiBookEntryData ? extra : null;
                         return SeriesDetailView(seriesId: state.pathParameters['id']!, initialEntry: initialEntry);
+                      },
+                    ),
+                    GoRoute(
+                      path: UserListeningSessionsView.routeName,
+                      pageBuilder: (context, state) {
+                        const child = UserListeningSessionsView();
+                        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS && context.isMobile) {
+                          return MaterialPage<void>(key: state.pageKey, child: child);
+                        }
+
+                        return NoTransitionPage<void>(key: state.pageKey, child: child);
                       },
                     ),
                   ],

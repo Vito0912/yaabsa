@@ -14,10 +14,13 @@ import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/app/library/library_sort_sheet.dart';
 import 'package:yaabsa/components/app/series/series_book_grid_item.dart';
 import 'package:yaabsa/components/app/series/series_detail_header.dart';
+import 'package:yaabsa/components/app/series/series_rename_dialog.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/features/settings/model/setting_definition.dart';
+import 'package:yaabsa/features/settings/model/setting_definitions.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
@@ -27,6 +30,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 const int _seriesBooksPrefetchThreshold = 8;
 const int _seriesBooksApproxScrollPastCount = 24;
@@ -42,10 +46,13 @@ class SeriesDetailView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final sortUpdateInFlight = useState(false);
     final editingItemId = useState<String?>(null);
+    final renamedTitle = useState<String?>(null);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final currentUser = ref.watch(currentUserProvider).value;
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
+    final renameSeriesEnabled = watchSettingDefinition(ref, AppSettingDefs.toolsRenameSeries, userId: currentUser?.id);
+    final canRenameSeries = renameSeriesEnabled && (currentUser?.permissions.update ?? false);
     if (selectedLibrary == null) {
       return Center(child: Text(context.l10n.errorNoLibrarySelected));
     }
@@ -66,7 +73,7 @@ class SeriesDetailView extends HookConsumerWidget {
         ? ref.watch(seriesByIdProvider(seriesId))
         : const AsyncValue<Series>.loading();
     final resolvedSeries = seriesDetailsAsync.value;
-    final seriesTitle = resolvedEntry?.title ?? resolvedSeries?.name;
+    final seriesTitle = renamedTitle.value ?? resolvedEntry?.title ?? resolvedSeries?.name;
     final seriesSubtitle = resolvedEntry?.subtitle?.text ?? _seriesSubtitleFromSeries(resolvedSeries, context.l10n);
 
     final booksArgs = SeriesBooksArgs(libraryId: libraryId, seriesId: seriesId);
@@ -173,6 +180,32 @@ class SeriesDetailView extends HookConsumerWidget {
                             isSortBusy: sortUpdateInFlight.value,
                             onBack: () => context.pop(),
                             onSortPressed: openSortSheet,
+                            actions: [
+                              if (canRenameSeries && seriesTitle != null && seriesTitle.trim().isNotEmpty)
+                                YaabsaContextMenuButton<_SeriesDetailAction>(
+                                  tooltip: context.l10n.actionMore,
+                                  onSelected: (action) async {
+                                    if (action == _SeriesDetailAction.rename) {
+                                      final updatedName = await showRenameSeriesDialog(
+                                        context,
+                                        ref,
+                                        libraryId: libraryId,
+                                        seriesId: seriesId,
+                                        currentName: seriesTitle,
+                                      );
+                                      if (updatedName != null && context.mounted) {
+                                        renamedTitle.value = updatedName;
+                                      }
+                                    }
+                                  },
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem<_SeriesDetailAction>(
+                                      value: _SeriesDetailAction.rename,
+                                      child: Text(context.l10n.actionRenameSeries),
+                                    ),
+                                  ],
+                                ),
+                            ],
                           ),
                           if (state.items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage)
                             Expanded(child: Center(child: Text(context.l10n.statusNoBooksInSeries)))
@@ -348,3 +381,5 @@ MultiBookEntryData? _resolveEntry(String seriesId, MultiBookEntryData? initialEn
 
   return initialEntry;
 }
+
+enum _SeriesDetailAction { rename }

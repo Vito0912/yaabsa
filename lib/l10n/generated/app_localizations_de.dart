@@ -4716,15 +4716,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingForceMetadataRefresh => 'Metadatenaktualisierung erzwingen';
 
   @override
-  String get settingForceMetadataRefreshDescription =>
-      'Metadatendateien für Einträge in den ausgewählten Bibliotheken neu erstellen';
-
-  @override
   String get settingMatchAudiobookChapters => 'Hörbuchkapitel abgleichen';
-
-  @override
-  String get settingMatchAudiobookChaptersDescription =>
-      'Werkzeuge zum schnellen und gesammelten Abgleich von Kapiteln hinzufügen';
 
   @override
   String get settingSplitGenresAndTags => 'Genres und Tags aufteilen';
@@ -10072,4 +10064,406 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get optionBoth => 'Beides';
+
+  @override
+  String get settingsScopeApp => 'App';
+
+  @override
+  String get settingsScopeAccount => 'Konto';
+
+  @override
+  String get settingsScopeServer => 'Server';
+
+  @override
+  String settingsAccountScopedHeading(String username) {
+    return 'Konto ($username)';
+  }
+
+  @override
+  String settingsServerScopedHeading(String server) {
+    return 'Server ($server)';
+  }
+
+  @override
+  String get settingsSectionPlaybackAndReader => 'Wiedergabe und Reader';
+
+  @override
+  String get settingsSectionAppAndSystem => 'App und System';
+
+  @override
+  String get settingsServerActions => 'Serveraktionen';
+
+  @override
+  String get settingsServerActionsDescription => 'Serveraktionen für dieses Konto ein- oder ausblenden';
+
+  @override
+  String get settingsServerConnectionDescription => 'Serveradressen, lokale Verbindung und benutzerdefinierte Header';
+
+  @override
+  String get settingsToolsDescription => 'Sammelaktionen für Einträge und experimentelle Serverwerkzeuge';
+
+  @override
+  String settingsAdminServerDescription(String server) {
+    return 'Serverweite Verwaltung für $server';
+  }
+
+  @override
+  String get settingsUpdatesTitle => 'Aktualisierungen';
+
+  @override
+  String get settingsUpdatesDescription => 'Automatische Prüfung auf Aktualisierungen für yaabsa und deinen Server';
+
+  @override
+  String get settingsStartupAndBackgroundTitle => 'Start, Puffer und Hintergrund';
+
+  @override
+  String get settingsStartupAndBackgroundDescription =>
+      'Audiopuffer, Bildschirmaktivierung, Wiedergabe beim Start und Synchronisierung im Hintergrund';
+
+  @override
+  String get settingsMediaNotificationsDescription =>
+      'Fortschrittsstil, Sperrbildschirmverhalten und Android-Steuerelemente für Benachrichtigungen';
+
+  @override
+  String get settingsCompatibilityDescription =>
+      'Plattformspezifische Umgehungen für Audiodekodierung und Springen in der Wiedergabe';
+
+  @override
+  String get settingsCachingDescription => 'Offline-Antwortcache und Regeln für Routen-Caching';
+
+  @override
+  String get settingsLogsDescription => 'Protokollierungsstufe und lokaler Diagnoseprotokoll-Viewer';
+
+  @override
+  String get settingsLibrarySettingsDescription =>
+      'Bibliotheksreihenfolge, Navigation, Regalbereiche und Rasteransicht';
+
+  @override
+  String get settingsLibraryOrderDescription => 'Bibliotheken neu anordnen und Musikbibliotheken kennzeichnen';
+
+  @override
+  String get settingsDownloadsDescription => 'Downloadort, WLAN-Regeln und intelligente Downloads';
+
+  @override
+  String get settingsReaderDescription => 'Schriftgestaltung, Seitenlayout, Vorlesen und Lesesitzungen';
+
+  @override
+  String get settingsAppearanceDescription => 'Designmodus, Farbpalette, Akzentfarbe und Sprache';
+
+  @override
+  String settingsNumberRangeError(int min, int max) {
+    final intl.NumberFormat minNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String minString = minNumberFormat.format(min);
+    final intl.NumberFormat maxNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String maxString = maxNumberFormat.format(max);
+
+    return 'Gib eine ganze Zahl zwischen $minString und $maxString ein';
+  }
+
+  @override
+  String get actionDecrease => 'Verringern';
+
+  @override
+  String get actionIncrease => 'Erhöhen';
+
+  @override
+  String get hintEmptyLibrarySelectionIncludesAll => 'Keine Auswahl schließt alle Bibliotheken ein';
+
+  @override
+  String get settingRenameSeries => 'Serie umbenennen';
+
+  @override
+  String get settingRenameSeriesDescription => 'Option hinzufügen, um eine Serie für alle ihre Bücher umzubenennen';
+
+  @override
+  String get actionRenameSeries => 'Serie umbenennen';
+
+  @override
+  String get fieldNewSeriesName => 'Neuer Serienname';
+
+  @override
+  String get errorEnterSeriesName => 'Gib einen Seriennamen ein';
+
+  @override
+  String statusSeriesRenamed(int updated) {
+    final intl.NumberFormat updatedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String updatedString = updatedNumberFormat.format(updated);
+
+    String _temp0 = intl.Intl.pluralLogic(updated, locale: localeName, other: '$updatedString Bücher', one: '1 Buch');
+    return 'Serienname für $_temp0 geändert';
+  }
+
+  @override
+  String get statusSeriesRenameNoMatches => 'Keine Bücher passen zu dieser Serie';
+
+  @override
+  String get settingDeleteLongListeningSessions => 'Überlange Hörsitzungen löschen';
+
+  @override
+  String get settingDeleteLongListeningSessionsDescription =>
+      'Statistikwerkzeug hinzufügen, um überlange Hörsitzungen zu finden und zu löschen';
+
+  @override
+  String get actionFindLongSessions => 'Lange Hörsitzungen finden';
+
+  @override
+  String get headingLongListeningSessions => 'Lange Hörsitzungen';
+
+  @override
+  String get fieldThresholdHours => 'Grenzwert (Stunden)';
+
+  @override
+  String get errorEnterValidThresholdHours => 'Gib einen Grenzwert von mindestens 0 Stunden ein';
+
+  @override
+  String get optionAllUsers => 'Alle Benutzer einbeziehen';
+
+  @override
+  String get optionAllUsersDescription => 'Hörsitzungen aller Benutzer auf diesem Server durchsuchen';
+
+  @override
+  String get actionScanSessions => 'Sitzungen durchsuchen';
+
+  @override
+  String get statusScanningSessions => 'Hörsitzungen werden durchsucht…';
+
+  @override
+  String statusNoLongSessionsFound(String hours) {
+    return 'Keine Hörsitzungen überschreiten $hours Stunden';
+  }
+
+  @override
+  String statusLongSessionsFoundSummary(int count, String hours, int users) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+    final intl.NumberFormat usersNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String usersString = usersNumberFormat.format(users);
+
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$countString Sitzungen', one: '1 Sitzung');
+    String _temp1 = intl.Intl.pluralLogic(users, locale: localeName, other: '$usersString Benutzer', one: '1 Benutzer');
+    return '$_temp0 mit insgesamt $hours Stunden für $_temp1 gefunden';
+  }
+
+  @override
+  String actionDeleteAllMatching(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Alle löschen ($countString)';
+  }
+
+  @override
+  String get confirmDeleteLongSessionsTitle => 'Hörsitzungen löschen?';
+
+  @override
+  String confirmDeleteLongSessionsMessage(int count, String hours) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString Hörsitzungen',
+      one: '1 Hörsitzung',
+    );
+    return 'Möchtest du $_temp0 mit insgesamt $hours Stunden löschen? Dies kann nicht rückgängig gemacht werden';
+  }
+
+  @override
+  String statusLongSessionsDeletedSummary(int deleted, String hours) {
+    final intl.NumberFormat deletedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String deletedString = deletedNumberFormat.format(deleted);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deletedString Sitzungen',
+      one: '1 Sitzung',
+    );
+    return '$_temp0 gelöscht ($hours Stunden)';
+  }
+
+  @override
+  String statusLongSessionsDeletePartial(int deleted, int failed, String hours) {
+    final intl.NumberFormat deletedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String deletedString = deletedNumberFormat.format(deleted);
+    final intl.NumberFormat failedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String failedString = failedNumberFormat.format(failed);
+
+    return '$deletedString Sitzungen gelöscht, $failedString fehlgeschlagen ($hours Stunden entfernt)';
+  }
+
+  @override
+  String get statusNoMetadataRefreshUpdates => 'Für keine Einträge ist eine Metadatenaktualisierung erforderlich';
+
+  @override
+  String get descriptionPathTagGenreUpdate =>
+      'Durchsuche die ausgewählte Bibliothek und prüfe den Dateipfad jedes Eintrags anhand deiner Regeln. Wenn ein Pfad zum regulären Ausdruck passt, wird der Regelwert zum ausgewählten Tag- oder Genrefeld hinzugefügt. Vorhandene Werte bleiben erhalten. Zum Beispiel fügt .*Fiction.*:Fiction dem ausgewählten Feld den Wert Fiction hinzu, wenn der Pfad Fiction enthält. Mit dem Probelauf kannst du Treffer prüfen, ohne Einträge zu ändern.';
+
+  @override
+  String get headingPathRules => 'Regeln';
+
+  @override
+  String get hintPathRuleFormat => 'Format: <regex>:<value> (zum Beispiel .*Fiction.*:Fiction)';
+
+  @override
+  String get fieldPathRule => 'Regel';
+
+  @override
+  String get actionAddRule => 'Regel hinzufügen';
+
+  @override
+  String get errorInvalidPathRule => 'Gib eine Regel im Format <regex>:<value> mit einem gültigen Muster ein';
+
+  @override
+  String get errorAddAtLeastOneRule => 'Füge mindestens eine Regel hinzu';
+
+  @override
+  String get optionDryRun => 'Probelauf';
+
+  @override
+  String get optionDryRunDescription => 'Treffer anzeigen, ohne Änderungen anzuwenden';
+
+  @override
+  String statusPathTagGenreDryRunSummary(int scanned, int matched) {
+    final intl.NumberFormat scannedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String scannedString = scannedNumberFormat.format(scanned);
+    final intl.NumberFormat matchedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String matchedString = matchedNumberFormat.format(matched);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      scanned,
+      locale: localeName,
+      other: '$scannedString Einträge durchsucht',
+      one: '1 Eintrag durchsucht',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      matched,
+      locale: localeName,
+      other: '$matchedString Treffer gefunden',
+      one: '1 Treffer gefunden',
+    );
+    return 'Probelauf: $_temp0 und $_temp1';
+  }
+
+  @override
+  String statusPathTagGenreAppliedSummary(int scanned, int matched, int updated) {
+    final intl.NumberFormat scannedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String scannedString = scannedNumberFormat.format(scanned);
+    final intl.NumberFormat matchedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String matchedString = matchedNumberFormat.format(matched);
+    final intl.NumberFormat updatedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String updatedString = updatedNumberFormat.format(updated);
+
+    return '$scannedString Einträge durchsucht, $matchedString Treffer gefunden und $updatedString aktualisiert';
+  }
+
+  @override
+  String statusPathTagGenreNoMatches(int scanned) {
+    final intl.NumberFormat scannedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String scannedString = scannedNumberFormat.format(scanned);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      scanned,
+      locale: localeName,
+      other: '$scannedString Einträgen',
+      one: '1 Eintrag',
+    );
+    return 'Bei $_temp0 wurden keine neuen Treffer gefunden';
+  }
+
+  @override
+  String get headingMatchAudiobookChapters => 'Hörbuchkapitel abgleichen';
+
+  @override
+  String get actionQuickMatchChapters => 'Kapitel schnell abgleichen';
+
+  @override
+  String get fieldChapterThreshold => 'Kapitelgrenzwert';
+
+  @override
+  String get descriptionChapterThreshold =>
+      'Kapitel aktualisieren, wenn sie fehlen oder die Kapitelanzahl um mehr als diesen Wert abweicht';
+
+  @override
+  String get errorInvalidChapterThreshold => 'Gib eine ganze Zahl größer oder gleich 0 ein';
+
+  @override
+  String get optionSearchForAsin => 'Nach ASIN suchen';
+
+  @override
+  String get optionSearchForAsinDescription => 'Fehlende ASIN beim ausgewählten Metadatenanbieter suchen';
+
+  @override
+  String get optionUseTracksAsChapters => 'Tracks als Kapitel verwenden';
+
+  @override
+  String get optionUseTracksAsChaptersDescription =>
+      'Dateinamen der Audiotracks verwenden, wenn keine ASIN verfügbar ist';
+
+  @override
+  String get optionDisableRateProtection => 'Ratenbegrenzung deaktivieren';
+
+  @override
+  String get optionDisableRateProtectionDescription => 'Die zweisekündige Pause zwischen Büchern überspringen';
+
+  @override
+  String statusMatchingChaptersProgress(int processed, int total) {
+    final intl.NumberFormat processedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String processedString = processedNumberFormat.format(processed);
+    final intl.NumberFormat totalNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$processedString von $totalString Büchern verarbeitet';
+  }
+
+  @override
+  String get actionStopMatching => 'Beenden';
+
+  @override
+  String get statusStoppingMatching => 'Wird angehalten…';
+
+  @override
+  String statusMatchChaptersSummary(int updated, int skipped, int failed, int total) {
+    final intl.NumberFormat updatedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String updatedString = updatedNumberFormat.format(updated);
+    final intl.NumberFormat skippedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String skippedString = skippedNumberFormat.format(skipped);
+    final intl.NumberFormat failedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String failedString = failedNumberFormat.format(failed);
+    final intl.NumberFormat totalNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    String _temp0 = intl.Intl.pluralLogic(total, locale: localeName, other: '$totalString Bücher', one: '1 Buch');
+    return 'Für $_temp0: $updatedString aktualisiert, $skippedString übersprungen, $failedString fehlgeschlagen';
+  }
+
+  @override
+  String statusMatchChaptersCancelled(int processed, int updated, int skipped, int failed) {
+    final intl.NumberFormat processedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String processedString = processedNumberFormat.format(processed);
+    final intl.NumberFormat updatedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String updatedString = updatedNumberFormat.format(updated);
+    final intl.NumberFormat skippedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String skippedString = skippedNumberFormat.format(skipped);
+    final intl.NumberFormat failedNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String failedString = failedNumberFormat.format(failed);
+
+    return 'Nach $processedString Büchern angehalten. $updatedString aktualisiert, $skippedString übersprungen, $failedString fehlgeschlagen';
+  }
+
+  @override
+  String statusSingleBookChaptersUpdated(String title) {
+    return 'Kapitel für \"$title\" aktualisiert';
+  }
+
+  @override
+  String statusSingleBookChaptersUnchanged(String title) {
+    return 'Kapitel für \"$title\" sind bereits aktuell';
+  }
+
+  @override
+  String errorSingleBookChaptersFailed(String reason) {
+    return 'Kapitel konnten nicht abgeglichen werden: $reason';
+  }
 }

@@ -20,10 +20,10 @@ class CurrentUserListeningSessionsTab extends ConsumerStatefulWidget {
   const CurrentUserListeningSessionsTab({super.key});
 
   @override
-  ConsumerState<CurrentUserListeningSessionsTab> createState() => _CurrentUserListeningSessionsTabState();
+  ConsumerState<CurrentUserListeningSessionsTab> createState() => CurrentUserListeningSessionsTabState();
 }
 
-class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserListeningSessionsTab> {
+class CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserListeningSessionsTab> {
   static const int _defaultItemsPerPage = 20;
   static const List<int> _pageSizeOptions = <int>[20, 50, 100];
 
@@ -42,6 +42,10 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
 
   ABSApi? _api() {
     return ref.read(absApiProvider);
+  }
+
+  Future<void> refresh() async {
+    await _loadSessions();
   }
 
   Future<ListeningSessionsPage> _getListeningSessionsPage({
@@ -335,7 +339,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
           onRefresh: _loadSessions,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+            padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
             children: [
               if (_errorMessage != null && _errorMessage!.isNotEmpty)
                 centeredContent(
@@ -393,7 +397,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
                               ? const SizedBox(
                                   width: 14,
                                   height: 14,
-                                  child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                                  child: YaabsaCircularProgressIndicator(size: 14, strokeWidth: 2),
                                 )
                               : const Icon(Icons.delete_outline_rounded),
                           label: Text(context.l10n.actionDeleteSelected),

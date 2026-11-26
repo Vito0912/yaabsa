@@ -213,6 +213,73 @@ final class SettingsInitializerProvider extends $FunctionalProvider<AsyncValue<v
 
 String _$settingsInitializerHash() => r'54e713ec5361c903812a614e5b6c15cffc508e5d';
 
+@ProviderFor(globalSettingValue)
+final globalSettingValueProvider = GlobalSettingValueFamily._();
+
+final class GlobalSettingValueProvider extends $FunctionalProvider<String?, String?, String?> with $Provider<String?> {
+  GlobalSettingValueProvider._({required GlobalSettingValueFamily super.from, required String super.argument})
+    : super(
+        retry: null,
+        name: r'globalSettingValueProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$globalSettingValueHash();
+
+  @override
+  String toString() {
+    return r'globalSettingValueProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<String?> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+
+  @override
+  String? create(Ref ref) {
+    final argument = this.argument as String;
+    return globalSettingValue(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String? value) {
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<String?>(value));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GlobalSettingValueProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$globalSettingValueHash() => r'52c02bed778ba2058e06085139646880ca75de5b';
+
+final class GlobalSettingValueFamily extends $Family with $FunctionalFamilyOverride<String?, String> {
+  GlobalSettingValueFamily._()
+    : super(
+        retry: null,
+        name: r'globalSettingValueProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  GlobalSettingValueProvider call(String key) => GlobalSettingValueProvider._(argument: key, from: this);
+
+  @override
+  String toString() => r'globalSettingValueProvider';
+}
+
 @ProviderFor(userSettingValue)
 final userSettingValueProvider = UserSettingValueFamily._();
 

@@ -194,12 +194,33 @@ class _YaabsaContextMenuButtonState<T> extends State<YaabsaContextMenuButton<T>>
   Widget _buildIconButton() {
     final triggerVariant = widget.triggerVariant;
     if (triggerVariant != null) {
+      final resolvedIconSize = widget.iconSize ?? 19;
+      final customIcon = widget.icon;
+      final isPlainIcon =
+          customIcon is Icon &&
+          customIcon.icon != null &&
+          customIcon.size == null &&
+          customIcon.color == null &&
+          widget.iconColor == null;
+      final IconData? iconData = customIcon == null
+          ? Icons.more_vert_rounded
+          : isPlainIcon
+          ? customIcon.icon
+          : null;
+      final Widget? iconWidget = customIcon != null && !isPlainIcon
+          ? IconTheme.merge(
+              data: IconThemeData(size: resolvedIconSize, color: widget.iconColor),
+              child: customIcon,
+            )
+          : null;
+
       return YaabsaActionIconButton(
-        iconWidget: widget.icon ?? const Icon(Icons.more_vert_rounded),
+        icon: iconData,
+        iconWidget: iconWidget,
         tooltip: widget.tooltip ?? '',
         onPressed: widget.enabled ? _openMenu : null,
         enabled: widget.enabled,
-        iconSize: widget.iconSize ?? 19,
+        iconSize: resolvedIconSize,
         compact: widget.compact,
         buttonSize: widget.buttonSize,
         variant: triggerVariant,

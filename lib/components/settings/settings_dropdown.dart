@@ -249,62 +249,69 @@ class SettingDropdown<T> extends ConsumerWidget {
                     return AlertDialog(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                       title: Text(label),
-                      content: SizedBox(
-                        width: double.maxFinite,
-                        child: SingleChildScrollView(
-                          child: RadioGroup<T>(
-                            groupValue: currentValue,
-                            onChanged: (T? val) {
-                              if (val != null) {
-                                onValueSelected(val);
-                                Navigator.of(context).pop();
-                              }
-                            },
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                if (description != null && description!.isNotEmpty) ...[
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12.0, left: 4.0, right: 4.0),
-                                    child: Text(
-                                      description!,
-                                      style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                                    ),
-                                  ),
-                                  const Divider(height: 16),
-                                ],
-                                for (int i = 0; i < values.length; i++) ...[
-                                  ListTile(
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                    title: Text(
-                                      valueLabels[i],
-                                      style: theme.textTheme.bodyLarge?.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                        color: values[i] == currentValue ? colorScheme.primary : colorScheme.onSurface,
+                      content: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: SizedBox(
+                          width: 440,
+                          child: SingleChildScrollView(
+                            child: RadioGroup<T>(
+                              groupValue: currentValue,
+                              onChanged: (T? val) {
+                                if (val != null) {
+                                  onValueSelected(val);
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (description != null && description!.isNotEmpty) ...[
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 12.0, left: 4.0, right: 4.0),
+                                      child: Text(
+                                        description!,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ),
-                                    subtitle:
-                                        valueDescriptions != null &&
-                                            i < valueDescriptions!.length &&
-                                            valueDescriptions![i].isNotEmpty
-                                        ? Text(
-                                            valueDescriptions![i],
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: colorScheme.onSurfaceVariant,
-                                            ),
-                                          )
-                                        : null,
-                                    trailing: Radio<T>(value: values[i], activeColor: colorScheme.primary),
-                                    onTap: () {
-                                      onValueSelected(values[i]);
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  if (i < values.length - 1) const Divider(height: 8, thickness: 0.5),
+                                    const Divider(height: 16),
+                                  ],
+                                  for (int i = 0; i < values.length; i++) ...[
+                                    ListTile(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                      title: Text(
+                                        valueLabels[i],
+                                        style: theme.textTheme.bodyLarge?.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          color: values[i] == currentValue
+                                              ? colorScheme.primary
+                                              : colorScheme.onSurface,
+                                        ),
+                                      ),
+                                      subtitle:
+                                          valueDescriptions != null &&
+                                              i < valueDescriptions!.length &&
+                                              valueDescriptions![i].isNotEmpty
+                                          ? Text(
+                                              valueDescriptions![i],
+                                              style: theme.textTheme.bodySmall?.copyWith(
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            )
+                                          : null,
+                                      trailing: Radio<T>(value: values[i], activeColor: colorScheme.primary),
+                                      onTap: () {
+                                        onValueSelected(values[i]);
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    if (i < values.length - 1) const Divider(height: 8, thickness: 0.5),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -412,40 +419,43 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               title: Text(label),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (description != null && description!.isNotEmpty) ...[
-                        Text(
-                          description!,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
-                        const Divider(height: 24),
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: SizedBox(
+                  width: 440,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (description != null && description!.isNotEmpty) ...[
+                          Text(
+                            description!,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          ),
+                          const Divider(height: 24),
+                        ],
+                        for (int index = 0; index < values.length; index++) ...[
+                          CheckboxListTile(
+                            value: pendingSelection.contains(values[index]),
+                            onChanged: (isSelected) {
+                              setDialogState(() {
+                                if (isSelected ?? false) {
+                                  pendingSelection.add(values[index]);
+                                } else {
+                                  pendingSelection.remove(values[index]);
+                                }
+                              });
+                            },
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                            controlAffinity: ListTileControlAffinity.trailing,
+                            title: Text(valueLabels[index]),
+                          ),
+                          if (index < values.length - 1) const Divider(height: 8, thickness: 0.5),
+                        ],
                       ],
-                      for (int index = 0; index < values.length; index++) ...[
-                        CheckboxListTile(
-                          value: pendingSelection.contains(values[index]),
-                          onChanged: (isSelected) {
-                            setDialogState(() {
-                              if (isSelected ?? false) {
-                                pendingSelection.add(values[index]);
-                              } else {
-                                pendingSelection.remove(values[index]);
-                              }
-                            });
-                          },
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                          controlAffinity: ListTileControlAffinity.trailing,
-                          title: Text(valueLabels[index]),
-                        ),
-                        if (index < values.length - 1) const Divider(height: 8, thickness: 0.5),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
               ),

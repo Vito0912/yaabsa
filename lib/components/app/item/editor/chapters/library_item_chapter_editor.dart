@@ -14,7 +14,8 @@ import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_previe
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_persistence.dart';
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_list.dart';
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_tools.dart';
-import 'package:yaabsa/components/common/list_management_dialogs.dart';
+import 'package:yaabsa/features/settings/model/setting_definition.dart';
+import 'package:yaabsa/features/settings/model/setting_definitions.dart';
 import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -45,6 +46,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
   final Map<int, int> _visibleIndex = {};
   Timer? _searchTimer;
   var _saving = false;
+  var _quickMatching = false;
   var _conflict = false;
   var _confirmingLeave = false;
   String? _message;
@@ -55,7 +57,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     _savedChapters = widget.item.media?.bookMedia?.chapters ?? const [];
     _files = chapterEditorAudioFiles(widget.item);
     final duration = chapterEditorDuration(widget.item, _files);
-    _draft = ChapterEditorDraft(duration: duration, chapters: _values(_savedChapters));
+    _draft = ChapterEditorDraft(duration: duration, chapters: chapterEditorValues(_savedChapters));
     _draft.onStatusChanged = _updateStatus;
     _draft.onSelectionChanged = () {
       _selectionStatus.value++;
@@ -67,7 +69,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
   @override
   void didUpdateWidget(covariant LibraryItemChapterEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_saving || identical(oldWidget.item, widget.item)) {
+    if (_saving || _quickMatching || identical(oldWidget.item, widget.item)) {
       return;
     }
     final chapters = widget.item.media?.bookMedia?.chapters ?? const <Chapter>[];
@@ -81,7 +83,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     } else {
       _savedChapters = chapters;
       _draft.duration = duration;
-      _draft.reset(_values(chapters));
+      _draft.reset(chapterEditorValues(chapters));
     }
   }
 
@@ -100,10 +102,6 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     super.dispose();
   }
 
-  List<ChapterEditorValue> _values(List<Chapter> chapters) {
-    return chapters.map((chapter) => (start: chapter.start, title: chapter.title)).toList(growable: false);
-  }
-
   void _updateStatus() {
     if (_preview.activeKey.value != null) {
       unawaited(stopPreview());
@@ -112,14 +110,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
   }
 
   void _refreshVisible() {
-    final query = _search.text.trim().toLowerCase();
-    _visible = query.isEmpty
-        ? List.of(_draft.rows)
-        : _draft.rows
-              .where((row) {
-                return row.title.toLowerCase().contains(query) || '${row.position + 1}' == query;
-              })
-              .toList(growable: false);
+    _visible = filterChapterEditorRows(_draft.rows, _search.text);
     _visibleIndex
       ..clear()
       ..addEntries(_visible.indexed.map((entry) => MapEntry(entry.$2.key, entry.$1)));
@@ -134,7 +125,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
   Future<void> stopPreview() => _preview.stop();
 
   Future<bool> requestLeave() async {
-    if (_saving || _confirmingLeave) {
+    if (_saving || _quickMatching || _confirmingLeave) {
       return false;
     }
     if (!_draft.hasChanges) {
@@ -159,25 +150,24 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     return false;
   }
 
+  void _setConnectionUnavailable() {
+    setState(() {
+      _message = context.l10n.errorConnectionUnavailable;
+    });
+  }
+
   Future<bool> _save() async {
     if (_saving || !_draft.hasChanges || _draft.errorCount > 0 || _conflict) {
       return false;
     }
     final api = ref.read(absApiProvider);
     if (api == null) {
-      setState(() {
-        _message = context.l10n.errorConnectionUnavailable;
-      });
+      _setConnectionUnavailable();
       return false;
     }
 
     FocusManager.instance.primaryFocus?.unfocus();
-    final chapters = _draft
-        .values()
-        .map((value) {
-          return Chapter(id: value.id, start: value.start, end: value.end, title: value.title);
-        })
-        .toList(growable: false);
+    final l10n = context.l10n;
     setState(() {
       _saving = true;
       _message = null;
@@ -185,41 +175,40 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
 
     try {
       await stopPreview();
-      final updated = await saveChapterEditorDraft(
+      final outcome = await persistChapterEditorDraft(
         api: api,
         itemId: widget.item.id,
         baseline: _savedChapters,
         duration: _draft.duration,
-        chapters: chapters,
+        draft: _draft,
         cancelToken: _cancelToken,
+        l10n: l10n,
       );
       if (!mounted) {
         return false;
       }
-      _savedChapters = chapters;
-      _draft.reset(_values(chapters));
-      await processLibraryItemUpdate(container: ref.container, item: updated, source: 'editor.chapters.save');
-      await widget.onSaved(updated);
-      if (mounted) {
-        setState(() {
-          _message = context.l10n.statusChaptersSaved;
-        });
+
+      if (outcome.updated != null && outcome.savedChapters != null) {
+        _savedChapters = outcome.savedChapters!;
+        _draft.reset(chapterEditorValues(_savedChapters));
+        await processLibraryItemUpdate(
+          container: ref.container,
+          item: outcome.updated!,
+          source: 'editor.chapters.save',
+        );
+        await widget.onSaved(outcome.updated!);
+        if (mounted) {
+          setState(() {
+            _message = outcome.message;
+          });
+        }
+        return true;
       }
-      return true;
-    } on ChapterEditorConflict {
-      if (mounted) {
+
+      if (!_cancelToken.isCancelled || outcome.conflict) {
         setState(() {
-          _conflict = true;
-          _message = context.l10n.statusChapterSaveConflict;
-        });
-      }
-      return false;
-    } catch (error) {
-      if (mounted && !_cancelToken.isCancelled) {
-        setState(() {
-          final l10n = context.l10n;
-          final fallback = l10n.errorOperationFailed(l10n.operationSaveChapters, error.toString());
-          _message = listManagementErrorMessage(error, fallback: fallback);
+          _conflict = outcome.conflict;
+          _message = outcome.message;
         });
       }
       return false;
@@ -256,36 +245,28 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     }
   }
 
-  Future<bool> _confirmReplace(String title) {
-    return showListManagementDeleteDialog(
-      context: context,
-      title: title,
-      message: context.l10n.warningReplaceChapterDraft,
-      confirmLabel: context.l10n.actionReplace,
-    );
-  }
-
   Future<void> _fromTracks() async {
-    final confirmed = await _confirmReplace(context.l10n.confirmCreateChaptersFromTracks);
+    final confirmed = await showChapterReplaceDialog(context, context.l10n.confirmCreateChaptersFromTracks);
     if (!mounted || !confirmed) {
       return;
     }
+
     await stopPreview();
+    if (mounted) {
+      _draft.replace(chapterEditorValuesFromTracks(_files));
+    }
+  }
+
+  Future<bool> _confirmAndStopPreview(String title) async {
+    if (_draft.hasChanges && !await showChapterReplaceDialog(context, title)) {
+      return false;
+    }
     if (!mounted) {
-      return;
+      return false;
     }
-    var offset = 0.0;
-    final chapters = <ChapterEditorValue>[];
-    for (final file in _files) {
-      final duration = file.duration ?? 0;
-      if (duration <= 0 || !duration.isFinite) {
-        continue;
-      }
-      final title = file.metadata.filename.replaceFirst(RegExp(r'\.[^.]+$'), '');
-      chapters.add((start: offset, title: title));
-      offset += duration;
-    }
-    _draft.replace(chapters);
+
+    await stopPreview();
+    return mounted;
   }
 
   Future<void> _lookup() async {
@@ -298,16 +279,10 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     if (!mounted || choice == null) {
       return;
     }
-    if (_draft.hasChanges && !await _confirmReplace(context.l10n.confirmReplaceUnsavedChapterEdits)) {
+    if (!await _confirmAndStopPreview(context.l10n.confirmReplaceUnsavedChapterEdits)) {
       return;
     }
-    if (!mounted) {
-      return;
-    }
-    await stopPreview();
-    if (!mounted) {
-      return;
-    }
+
     if (choice.titlesOnly) {
       _draft.mapTitles(choice.chapters.map((chapter) => chapter.title).toList(growable: false));
     } else {
@@ -315,98 +290,121 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     }
   }
 
-  Future<void> _reset() async {
-    final confirmed = await showListManagementDeleteDialog(
-      context: context,
-      title: context.l10n.confirmDiscardChapterEdits,
-      message: context.l10n.promptRestoreChapterDraft,
-      confirmLabel: context.l10n.actionDiscardEdits,
+  Future<void> _applyServerItem(LibraryItem fresh, {required String source}) async {
+    _files = chapterEditorAudioFiles(fresh);
+    _draft.duration = chapterEditorDuration(fresh, _files);
+    _savedChapters = fresh.media?.bookMedia?.chapters ?? const [];
+    _draft.reset(chapterEditorValues(_savedChapters));
+    _conflict = false;
+    _message = null;
+    await processLibraryItemUpdate(container: ref.container, item: fresh, source: source);
+    await widget.onSaved(fresh);
+  }
+
+  void _showSnackBar(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  Future<void> _quickMatch() async {
+    if (_saving || _quickMatching) {
+      return;
+    }
+    final l10n = context.l10n;
+    if (!await _confirmAndStopPreview(l10n.confirmReplaceUnsavedChapterEdits)) {
+      return;
+    }
+
+    final api = ref.read(absApiProvider);
+    if (api == null) {
+      _setConnectionUnavailable();
+      return;
+    }
+
+    setState(() {
+      _quickMatching = true;
+      _message = null;
+    });
+
+    final outcome = await runChapterEditorQuickMatch(
+      api: api,
+      itemId: widget.item.id,
+      l10n: l10n,
+      cancelToken: _cancelToken,
     );
+    if (!mounted) {
+      return;
+    }
+    if (outcome.refreshedItem != null) {
+      await _applyServerItem(outcome.refreshedItem!, source: 'editor.chapters.quickMatch');
+      if (!mounted) {
+        return;
+      }
+    }
+    if (!outcome.isError || !_cancelToken.isCancelled) {
+      _showSnackBar(outcome.feedback);
+    }
+
+    setState(() {
+      _quickMatching = false;
+    });
+  }
+
+  Future<void> _reset() async {
+    final confirmed = await showChapterDiscardDialog(context);
     if (!mounted || !confirmed) {
       return;
     }
+
     await stopPreview();
     if (!mounted) {
       return;
     }
+
     final api = ref.read(absApiProvider);
     if (api == null) {
-      setState(() {
-        _message = context.l10n.errorConnectionUnavailable;
-      });
+      _setConnectionUnavailable();
       return;
     }
 
     setState(() {
       _saving = true;
     });
-    try {
-      final fresh = await loadChapterEditorItem(api: api, itemId: widget.item.id, cancelToken: _cancelToken);
-      if (!mounted) {
-        return;
-      }
-      _files = chapterEditorAudioFiles(fresh);
-      _draft.duration = chapterEditorDuration(fresh, _files);
-      _savedChapters = fresh.media?.bookMedia?.chapters ?? const [];
-      _draft.reset(_values(_savedChapters));
-      _conflict = false;
-      _message = null;
-      await processLibraryItemUpdate(container: ref.container, item: fresh, source: 'editor.chapters.reload');
-      await widget.onSaved(fresh);
-    } catch (error) {
-      if (mounted && !_cancelToken.isCancelled) {
-        final l10n = context.l10n;
-        final fallback = l10n.errorOperationFailed(l10n.operationReloadChapters, error.toString());
-        _message = listManagementErrorMessage(error, fallback: fallback);
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _saving = false;
-        });
-      }
+
+    final outcome = await reloadChapterEditorItem(
+      api: api,
+      itemId: widget.item.id,
+      cancelToken: _cancelToken,
+      l10n: context.l10n,
+    );
+    if (!mounted) {
+      return;
+    }
+
+    if (outcome.item != null) {
+      await _applyServerItem(outcome.item!, source: 'editor.chapters.reload');
+    } else if (!_cancelToken.isCancelled) {
+      _message = outcome.error;
+    }
+
+    if (mounted) {
+      setState(() {
+        _saving = false;
+      });
     }
   }
 
   Future<void> _play(ChapterEditorEntry row) async {
-    final api = ref.read(absApiProvider);
-    final start = row.start;
-    if (api == null || start == null || row.error != null) {
-      return;
-    }
-    final end = row.position + 1 < _draft.rows.length ? _draft.rows[row.position + 1].start : _draft.duration;
-    if (end == null) {
-      return;
-    }
-    try {
-      await _preview.play(key: row.key, start: start, end: end, itemId: widget.item.id, files: _files, api: api);
-    } catch (error) {
-      if (mounted) {
-        setState(() {
-          _message = context.l10n.errorChapterPreviewUnavailable;
-        });
-      }
-    }
-  }
-
-  Future<void> _focusNextTitle(ChapterEditorEntry row, double rowHeight) async {
-    final next = (_visibleIndex[row.key] ?? -1) + 1;
-    if (next >= _visible.length || !_scroll.hasClients) {
-      return;
-    }
-    final target = _visible[next];
-    final position = _scroll.position;
-    final top = next * rowHeight;
-    if (top < position.pixels || top + rowHeight > position.pixels + position.viewportDimension) {
-      await _scroll.animateTo(
-        top.clamp(0, position.maxScrollExtent),
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-      );
-    }
-    await WidgetsBinding.instance.endOfFrame;
-    if (mounted) {
-      target.onRequestTitleFocus?.call();
+    final ok = await _preview.playEntry(
+      row: row,
+      draft: _draft,
+      itemId: widget.item.id,
+      files: _files,
+      api: ref.read(absApiProvider),
+    );
+    if (!ok && mounted) {
+      setState(() {
+        _message = context.l10n.errorChapterPreviewUnavailable;
+      });
     }
   }
 
@@ -415,6 +413,13 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
     final mobile = context.isMobile;
     final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
     final rowHeight = (mobile ? 128.0 : 64.0) * (scale < 1 ? 1 : scale);
+    final busy = _saving || _quickMatching;
+    final currentUser = ref.watch(currentUserProvider).value;
+    final quickMatchEnabled = watchSettingDefinition(
+      ref,
+      AppSettingDefs.toolsMatchAudiobookChapters,
+      userId: currentUser?.id,
+    );
 
     return CallbackShortcuts(
       bindings: {
@@ -429,26 +434,20 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
             search: _search,
             onSearchChanged: _searchChanged,
             visibleRows: _visible,
-            enabled: !_saving,
+            enabled: !busy,
             onAdd: () => unawaited(_add()),
             onLookup: () => unawaited(_lookup()),
             onShift: () => unawaited(_shift()),
             onFromTracks: _files.isEmpty ? null : () => unawaited(_fromTracks()),
+            onQuickMatch: quickMatchEnabled ? () => unawaited(_quickMatch()) : null,
             onRemoveSelected: () {
               unawaited(stopPreview());
               FocusManager.instance.primaryFocus?.unfocus();
               _draft.removeSelected();
             },
           ),
-          if (_saving) const YaabsaLinearProgressIndicator(),
-          if (_conflict)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Chapters changed on the server. Discard edits to reload them.',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ),
+          if (busy) const YaabsaLinearProgressIndicator(),
+          if (_conflict) const ChapterEditorConflictBanner(),
           Expanded(
             child: ChapterEditorList(
               controller: _scroll,
@@ -457,14 +456,23 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
               indexByKey: _visibleIndex,
               rowHeight: rowHeight,
               mobile: mobile,
-              enabled: !_saving,
+              enabled: !busy,
               canReorder: _search.text.trim().isEmpty && _visible.length == _draft.rows.length,
               activePreview: _preview.activeKey,
               onPreview: (row) => unawaited(_play(row)),
-              onNextTitle: (row) => unawaited(_focusNextTitle(row, rowHeight)),
+              onNextTitle: (row) => unawaited(
+                focusNextChapterEditorTitle(
+                  scrollController: _scroll,
+                  visibleRows: _visible,
+                  indexByKey: _visibleIndex,
+                  row: row,
+                  rowHeight: rowHeight,
+                  isMounted: () => mounted,
+                ),
+              ),
               onReorderStart: () => unawaited(stopPreview()),
               onReorder: (oldIndex, newIndex) {
-                if (!_saving && _search.text.trim().isEmpty && _visible.length == _draft.rows.length) {
+                if (!busy && _search.text.trim().isEmpty && _visible.length == _draft.rows.length) {
                   _draft.reorder(oldIndex, newIndex);
                 }
               },
@@ -473,7 +481,7 @@ class LibraryItemChapterEditorState extends ConsumerState<LibraryItemChapterEdit
           ChapterEditorFooter(
             draft: _draft,
             status: _status,
-            saving: _saving,
+            saving: busy,
             conflict: _conflict,
             message: _message,
             onReset: () => unawaited(_reset()),

@@ -1,13 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/settings/admin_server_logs_view.dart';
-import 'package:yaabsa/screens/settings/admin_server_settings.dart';
+import 'package:yaabsa/features/settings/registry/settings_routes.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerLogsSettings extends StatelessWidget {
   const AdminServerLogsSettings({super.key});
 
-  static const String routeName = '/settings/admin-server/logs';
+  static const String routeName = SettingsRoutes.adminServerLogs;
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class AdminServerLogsSettings extends StatelessWidget {
       title: context.l10n.settingsCategoryLogs,
       embedded: true,
       showEmbeddedBackButton: true,
-      embeddedBackFallbackRoute: AdminServerSettings.routeName,
+      embeddedBackFallbackRoute: SettingsRoutes.adminServer,
       children: const [AdminServerLogsView()],
     );
   }

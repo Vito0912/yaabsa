@@ -1,6 +1,7 @@
-import 'package:yaabsa/ui/components/lists/settings_control_label.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/lists/settings_control_label.dart';
 
 class SettingButton extends StatelessWidget {
   final String label;
@@ -50,10 +51,11 @@ class SettingButton extends StatelessWidget {
           const SizedBox(width: 16),
           isLoading
               ? const SizedBox(width: 20, height: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2.5))
-              : FilledButton.icon(
+              : YaabsaButton.small(
                   onPressed: onPressed,
-                  icon: buttonIcon != null ? Icon(buttonIcon, size: 16) : const SizedBox.shrink(),
-                  label: Text(buttonText, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  icon: buttonIcon != null ? Icon(buttonIcon, size: 16) : null,
+                  label: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  variant: YaabsaButtonVariant.filled,
                   style: isDestructive
                       ? FilledButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError)
                       : null,

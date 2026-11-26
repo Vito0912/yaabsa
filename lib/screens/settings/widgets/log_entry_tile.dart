@@ -1,4 +1,7 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/l10n.dart';
+import 'package:yaabsa/util/log_exporter.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class LogEntryTile extends StatelessWidget {
@@ -6,100 +9,122 @@ class LogEntryTile extends StatelessWidget {
 
   final LogEntry entry;
 
+  void _copyEntry(BuildContext context) {
+    final formatted = formatLogEntryForExport(entry);
+    Clipboard.setData(ClipboardData(text: formatted));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(context.l10n.statusCopied)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = _colorForLevel(theme.colorScheme, entry.level);
+    final colorScheme = theme.colorScheme;
+    final levelColor = _colorForLevel(theme, entry.level);
+    final trimmedTag = entry.tag?.trim();
+    final hasTag = trimmedTag != null && trimmedTag.isNotEmpty;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.22), width: 1),
-      ),
+    return InkWell(
+      onTap: () {
+        _copyEntry(context);
+      },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(8)),
-              child: Icon(_iconForLevel(entry.level), size: 18, color: color),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(entry.message, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _MetaChip(label: _formatTimestamp(entry.timestamp)),
-                      _MetaChip(label: entry.level.name.toUpperCase()),
-                      if (entry.tag != null && entry.tag!.trim().isNotEmpty) _MetaChip(label: entry.tag!.trim()),
-                    ],
-                  ),
-                ],
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 3,
+                decoration: BoxDecoration(color: levelColor, borderRadius: BorderRadius.circular(999)),
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          _formatTime(entry.timestamp),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontFamily: 'monospace',
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _shortLevelLabel(entry.level),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.w700,
+                            color: levelColor,
+                          ),
+                        ),
+                        if (hasTag) ...[
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              trimmedTag,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontFamily: 'monospace',
+                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.78),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      entry.message,
+                      style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurface, height: 1.35),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  String _formatTimestamp(DateTime timestamp) {
-    return '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} '
-        '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}';
+  String _formatTime(DateTime timestamp) {
+    final hour = timestamp.hour.toString().padLeft(2, '0');
+    final minute = timestamp.minute.toString().padLeft(2, '0');
+    final second = timestamp.second.toString().padLeft(2, '0');
+    return '$hour:$minute:$second';
   }
 
-  IconData _iconForLevel(InfoLevel level) {
+  String _shortLevelLabel(InfoLevel level) {
     switch (level) {
       case InfoLevel.debug:
-        return Icons.bug_report_outlined;
+        return 'DBG';
       case InfoLevel.info:
-        return Icons.info_outline;
+        return 'INFO';
       case InfoLevel.warning:
-        return Icons.warning_amber_outlined;
+        return 'WARN';
       case InfoLevel.error:
-        return Icons.error_outline;
+        return 'ERR';
     }
   }
 
-  Color _colorForLevel(ColorScheme colorScheme, InfoLevel level) {
+  Color _colorForLevel(ThemeData theme, InfoLevel level) {
+    final colorScheme = theme.colorScheme;
     switch (level) {
       case InfoLevel.debug:
         return colorScheme.secondary;
       case InfoLevel.info:
         return colorScheme.primary;
       case InfoLevel.warning:
-        return const Color(0xFFB26A00);
+        return theme.brightness == Brightness.dark ? const Color(0xFFFFB74D) : const Color(0xFFB26A00);
       case InfoLevel.error:
         return colorScheme.error;
     }
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-    );
   }
 }

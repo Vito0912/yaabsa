@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart' show GlobalMaterialLocalizations;
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_de.dart';
@@ -76,17 +76,14 @@ abstract class AppLocalizations {
   /// delegates.
   ///
   /// Returns a list of localizations delegates containing this delegate along with
-  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
-  /// and GlobalWidgetsLocalizations.delegate.
+  /// GlobalMaterialLocalizations.delegates.
   ///
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
+    ...GlobalMaterialLocalizations.delegates,
   ];
 
   /// A list of this localizations delegate's supported locales.
@@ -7651,23 +7648,11 @@ abstract class AppLocalizations {
   /// **'Force metadata refresh'**
   String get settingForceMetadataRefresh;
 
-  /// Supporting text explaining force metadata refresh in settings search results and on its settings page
-  ///
-  /// In en, this message translates to:
-  /// **'Recreates metadata files for items in the selected libraries'**
-  String get settingForceMetadataRefreshDescription;
-
   /// Label for match audiobook chapters in settings search results and on its settings page
   ///
   /// In en, this message translates to:
   /// **'Match audiobook chapters'**
   String get settingMatchAudiobookChapters;
-
-  /// Supporting text explaining match audiobook chapters in settings search results and on its settings page
-  ///
-  /// In en, this message translates to:
-  /// **'Add quick and bulk chapter matching tools'**
-  String get settingMatchAudiobookChaptersDescription;
 
   /// Label for split genres/tags in settings search results and on its settings page
   ///
@@ -15768,6 +15753,516 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Both'**
   String get optionBoth;
+
+  /// Badge label indicating a setting applies to the entire yaabsa installation on this device
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get settingsScopeApp;
+
+  /// Badge label indicating a setting applies only to the active account
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsScopeAccount;
+
+  /// Badge label indicating a setting applies to server connection, server actions, or server administration
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get settingsScopeServer;
+
+  /// Settings section heading for preferences scoped to the active account
+  ///
+  /// In en, this message translates to:
+  /// **'Account ({username})'**
+  String settingsAccountScopedHeading(String username);
+
+  /// Settings section heading for connection, actions, and administration for the active server
+  ///
+  /// In en, this message translates to:
+  /// **'Server ({server})'**
+  String settingsServerScopedHeading(String server);
+
+  /// Settings section heading grouping audio player and ebook reader settings
+  ///
+  /// In en, this message translates to:
+  /// **'Playback and reader'**
+  String get settingsSectionPlaybackAndReader;
+
+  /// Settings section heading grouping appearance, caching, backup, updates, and logs
+  ///
+  /// In en, this message translates to:
+  /// **'App and system'**
+  String get settingsSectionAppAndSystem;
+
+  /// Title for settings that toggle server action visibility for the active account
+  ///
+  /// In en, this message translates to:
+  /// **'Server actions'**
+  String get settingsServerActions;
+
+  /// Supporting text explaining server action visibility settings
+  ///
+  /// In en, this message translates to:
+  /// **'Show or hide server action controls for this account'**
+  String get settingsServerActionsDescription;
+
+  /// Supporting text explaining server connection settings
+  ///
+  /// In en, this message translates to:
+  /// **'Server addresses, local connection, and custom headers'**
+  String get settingsServerConnectionDescription;
+
+  /// Supporting text explaining library tools settings
+  ///
+  /// In en, this message translates to:
+  /// **'Batch item actions and experimental server tools'**
+  String get settingsToolsDescription;
+
+  /// Supporting text explaining admin server settings
+  ///
+  /// In en, this message translates to:
+  /// **'Server-wide administration for {server}'**
+  String settingsAdminServerDescription(String server);
+
+  /// Title of the settings page for app and server update checks
+  ///
+  /// In en, this message translates to:
+  /// **'Updates'**
+  String get settingsUpdatesTitle;
+
+  /// Supporting text explaining the updates settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic update checks for yaabsa and your server'**
+  String get settingsUpdatesDescription;
+
+  /// Title of the player settings page for audio buffer, wake lock, startup playback, and background connection
+  ///
+  /// In en, this message translates to:
+  /// **'Startup, buffer, and background'**
+  String get settingsStartupAndBackgroundTitle;
+
+  /// Supporting text explaining startup, buffer, and background settings
+  ///
+  /// In en, this message translates to:
+  /// **'Audio buffer, screen wake lock, startup playback, and background sync'**
+  String get settingsStartupAndBackgroundDescription;
+
+  /// Supporting text explaining media notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Notification progress style, lock behavior, and Android controls'**
+  String get settingsMediaNotificationsDescription;
+
+  /// Supporting text explaining player compatibility settings
+  ///
+  /// In en, this message translates to:
+  /// **'Platform-specific audio decoding and seeking workarounds'**
+  String get settingsCompatibilityDescription;
+
+  /// Supporting text explaining caching settings
+  ///
+  /// In en, this message translates to:
+  /// **'Offline response cache and route caching rules'**
+  String get settingsCachingDescription;
+
+  /// Supporting text explaining logs and diagnostics settings
+  ///
+  /// In en, this message translates to:
+  /// **'Log verbosity and local diagnostic log viewer'**
+  String get settingsLogsDescription;
+
+  /// Supporting text explaining library and views settings
+  ///
+  /// In en, this message translates to:
+  /// **'Library order, navigation tabs, shelf sections, and grid display'**
+  String get settingsLibrarySettingsDescription;
+
+  /// Supporting text explaining the library order settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder libraries and mark music libraries'**
+  String get settingsLibraryOrderDescription;
+
+  /// Supporting text explaining download settings
+  ///
+  /// In en, this message translates to:
+  /// **'Download location, Wi-Fi rules, and smart downloads'**
+  String get settingsDownloadsDescription;
+
+  /// Supporting text explaining reader settings
+  ///
+  /// In en, this message translates to:
+  /// **'Typography, page layout, read aloud, and reading session tracking'**
+  String get settingsReaderDescription;
+
+  /// Supporting text explaining appearance settings
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode, preset palette, accent color, and language'**
+  String get settingsAppearanceDescription;
+
+  /// Validation error shown when a numeric setting input is outside its allowed range
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number between {min} and {max}'**
+  String settingsNumberRangeError(int min, int max);
+
+  /// Tooltip for decrementing a numeric setting
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get actionDecrease;
+
+  /// Tooltip for incrementing a numeric setting
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get actionIncrease;
+
+  /// Helper text explaining that leaving all libraries unselected applies an action to every library
+  ///
+  /// In en, this message translates to:
+  /// **'Leave unselected to include all libraries'**
+  String get hintEmptyLibrarySelectionIncludesAll;
+
+  /// Label for the experimental setting that enables renaming a series across all of its books
+  ///
+  /// In en, this message translates to:
+  /// **'Rename series'**
+  String get settingRenameSeries;
+
+  /// Supporting text explaining the rename series experimental tool setting
+  ///
+  /// In en, this message translates to:
+  /// **'Add an option to rename a series across all of its books'**
+  String get settingRenameSeriesDescription;
+
+  /// Action label and dialog title for renaming a series
+  ///
+  /// In en, this message translates to:
+  /// **'Rename series'**
+  String get actionRenameSeries;
+
+  /// Input label for entering a new name for a series
+  ///
+  /// In en, this message translates to:
+  /// **'New series name'**
+  String get fieldNewSeriesName;
+
+  /// Validation error when the new series name field is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a series name'**
+  String get errorEnterSeriesName;
+
+  /// Confirmation message shown after renaming a series across matching books
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed series across {updated, plural, =1{1 book} other{{updated} books}}'**
+  String statusSeriesRenamed(int updated);
+
+  /// Message shown when renaming a series found no matching books
+  ///
+  /// In en, this message translates to:
+  /// **'No books matched this series'**
+  String get statusSeriesRenameNoMatches;
+
+  /// Label for the experimental setting that enables finding and deleting overly long listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Delete long listening sessions'**
+  String get settingDeleteLongListeningSessions;
+
+  /// Supporting text explaining the delete long listening sessions experimental tool setting
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tool in statistics to find and delete overly long listening sessions'**
+  String get settingDeleteLongListeningSessionsDescription;
+
+  /// Button label to open the tool for finding overly long listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Find long sessions'**
+  String get actionFindLongSessions;
+
+  /// Dialog title for finding and deleting overly long listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Long listening sessions'**
+  String get headingLongListeningSessions;
+
+  /// Input label for the minimum listening session duration in hours
+  ///
+  /// In en, this message translates to:
+  /// **'Threshold (hours)'**
+  String get fieldThresholdHours;
+
+  /// Validation error when the session threshold hours input is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a threshold of 0 or more hours'**
+  String get errorEnterValidThresholdHours;
+
+  /// Toggle label for scanning listening sessions across all users on the server
+  ///
+  /// In en, this message translates to:
+  /// **'Include all users'**
+  String get optionAllUsers;
+
+  /// Supporting text explaining the include all users toggle when scanning listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Scan sessions for every user on this server'**
+  String get optionAllUsersDescription;
+
+  /// Action button label to scan listening sessions against the duration threshold
+  ///
+  /// In en, this message translates to:
+  /// **'Scan sessions'**
+  String get actionScanSessions;
+
+  /// Status message shown while scanning listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning listening sessions…'**
+  String get statusScanningSessions;
+
+  /// Message shown when no listening sessions exceed the specified duration threshold
+  ///
+  /// In en, this message translates to:
+  /// **'No listening sessions exceed {hours} hours'**
+  String statusNoLongSessionsFound(String hours);
+
+  /// Summary of overly long listening sessions found during a scan
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count, plural, =1{1 session} other{{count} sessions}} totaling {hours} hours across {users, plural, =1{1 user} other{{users} users}}'**
+  String statusLongSessionsFoundSummary(int count, String hours, int users);
+
+  /// Button label to delete all matching long listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all ({count})'**
+  String actionDeleteAllMatching(int count);
+
+  /// Confirmation dialog title before deleting long listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Delete listening sessions?'**
+  String get confirmDeleteLongSessionsTitle;
+
+  /// Confirmation dialog message before deleting long listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count, plural, =1{1 listening session} other{{count} listening sessions}} totaling {hours} hours? This cannot be undone'**
+  String confirmDeleteLongSessionsMessage(int count, String hours);
+
+  /// Summary shown after deleting long listening sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {deleted, plural, =1{1 session} other{{deleted} sessions}} ({hours} hours)'**
+  String statusLongSessionsDeletedSummary(int deleted, String hours);
+
+  /// Summary shown when some long listening sessions failed to delete
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {deleted} and failed {failed} sessions ({hours} hours removed)'**
+  String statusLongSessionsDeletePartial(int deleted, int failed, String hours);
+
+  /// Message shown when force metadata refresh finds no items to tag
+  ///
+  /// In en, this message translates to:
+  /// **'No items needed a metadata refresh'**
+  String get statusNoMetadataRefreshUpdates;
+
+  /// Description of the path, tag, and genre update tool
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the selected library and check each item path against your rules. When a path matches a regular expression, add the rule value to the selected tag or genre field while keeping existing values. For example, .*Fiction.*:Fiction adds Fiction to the selected field when the path contains Fiction. Use dry run to review matches without changing items.'**
+  String get descriptionPathTagGenreUpdate;
+
+  /// Section heading for path matching rules
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get headingPathRules;
+
+  /// Helper hint showing the syntax for a path matching rule
+  ///
+  /// In en, this message translates to:
+  /// **'Format: <regex>:<value> (for example, .*Fiction.*:Fiction)'**
+  String get hintPathRuleFormat;
+
+  /// Input label for a path matching rule
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get fieldPathRule;
+
+  /// Button label to add another path matching rule
+  ///
+  /// In en, this message translates to:
+  /// **'Add rule'**
+  String get actionAddRule;
+
+  /// Validation error when a path matching rule does not match the required syntax or has an invalid regular expression
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a rule in <regex>:<value> format with a valid pattern'**
+  String get errorInvalidPathRule;
+
+  /// Validation error when trying to run the path updater without any rules
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one rule'**
+  String get errorAddAtLeastOneRule;
+
+  /// Toggle label for running the path updater in preview mode without saving changes
+  ///
+  /// In en, this message translates to:
+  /// **'Dry run'**
+  String get optionDryRun;
+
+  /// Supporting text explaining the dry run toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Preview matching items without applying changes'**
+  String get optionDryRunDescription;
+
+  /// Summary shown after a dry run of the path, tag, and genre updater
+  ///
+  /// In en, this message translates to:
+  /// **'Dry run scanned {scanned, plural, =1{1 item} other{{scanned} items}} and matched {matched, plural, =1{1 item} other{{matched} items}}'**
+  String statusPathTagGenreDryRunSummary(int scanned, int matched);
+
+  /// Summary shown after applying updates with the path, tag, and genre updater
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned {scanned, plural, =1{1 item} other{{scanned} items}}, matched {matched}, and updated {updated}'**
+  String statusPathTagGenreAppliedSummary(int scanned, int matched, int updated);
+
+  /// Summary shown when no items needed updates in the path, tag, and genre updater
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned {scanned, plural, =1{1 item} other{{scanned} items}} with no new matches'**
+  String statusPathTagGenreNoMatches(int scanned);
+
+  /// Page and card heading for the bulk audiobook chapter matching tool
+  ///
+  /// In en, this message translates to:
+  /// **'Match audiobook chapters'**
+  String get headingMatchAudiobookChapters;
+
+  /// Action button label for quick matching chapters on a single book
+  ///
+  /// In en, this message translates to:
+  /// **'Quick match chapters'**
+  String get actionQuickMatchChapters;
+
+  /// Input label for the chapter count difference threshold
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter threshold'**
+  String get fieldChapterThreshold;
+
+  /// Supporting text explaining the chapter threshold field
+  ///
+  /// In en, this message translates to:
+  /// **'Update chapters when missing or when the chapter count differs by more than this value'**
+  String get descriptionChapterThreshold;
+
+  /// Validation error when chapter threshold is not a non-negative integer
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number of 0 or more'**
+  String get errorInvalidChapterThreshold;
+
+  /// Toggle label for searching an ASIN when a book does not have one
+  ///
+  /// In en, this message translates to:
+  /// **'Search for ASIN'**
+  String get optionSearchForAsin;
+
+  /// Supporting text explaining the search for ASIN option
+  ///
+  /// In en, this message translates to:
+  /// **'Look up a missing ASIN using the selected metadata provider'**
+  String get optionSearchForAsinDescription;
+
+  /// Toggle label for falling back to audio tracks when no ASIN is available
+  ///
+  /// In en, this message translates to:
+  /// **'Use tracks as chapters'**
+  String get optionUseTracksAsChapters;
+
+  /// Supporting text explaining the use tracks as chapters fallback option
+  ///
+  /// In en, this message translates to:
+  /// **'Fall back to audio track filenames when no ASIN is available'**
+  String get optionUseTracksAsChaptersDescription;
+
+  /// Toggle label for disabling the delay between chapter matching requests
+  ///
+  /// In en, this message translates to:
+  /// **'Disable rate protection'**
+  String get optionDisableRateProtection;
+
+  /// Supporting text explaining the disable rate protection option
+  ///
+  /// In en, this message translates to:
+  /// **'Skip the 2-second delay between books'**
+  String get optionDisableRateProtectionDescription;
+
+  /// Progress text while matching audiobook chapters across a library
+  ///
+  /// In en, this message translates to:
+  /// **'Processed {processed} of {total} books'**
+  String statusMatchingChaptersProgress(int processed, int total);
+
+  /// Button label to stop a running chapter matching job
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get actionStopMatching;
+
+  /// Status label shown while waiting for a chapter matching job to stop
+  ///
+  /// In en, this message translates to:
+  /// **'Stopping…'**
+  String get statusStoppingMatching;
+
+  /// Summary shown after bulk chapter matching completes
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {updated}, skipped {skipped}, and failed {failed} of {total, plural, =1{1 book} other{{total} books}}'**
+  String statusMatchChaptersSummary(int updated, int skipped, int failed, int total);
+
+  /// Summary shown after bulk chapter matching is cancelled
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped after processing {processed} books. Updated {updated}, skipped {skipped}, failed {failed}'**
+  String statusMatchChaptersCancelled(int processed, int updated, int skipped, int failed);
+
+  /// Confirmation message shown after quick matching chapters for a single book
+  ///
+  /// In en, this message translates to:
+  /// **'Updated chapters for \"{title}\"'**
+  String statusSingleBookChaptersUpdated(String title);
+
+  /// Message shown when quick matching chapters finds no needed updates for a book
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters for \"{title}\" are already up to date'**
+  String statusSingleBookChaptersUnchanged(String title);
+
+  /// Error message shown when quick matching chapters fails for a single book
+  ///
+  /// In en, this message translates to:
+  /// **'Could not match chapters: {reason}'**
+  String errorSingleBookChaptersFailed(String reason);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

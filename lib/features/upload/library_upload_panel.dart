@@ -24,6 +24,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/features/upload/upload_metadata_parser.dart';
 import 'package:yaabsa/features/upload/upload_draft_factory.dart';
+import 'package:yaabsa/features/upload/upload_file_access.dart';
 import 'package:yaabsa/features/upload/upload_progress_tracker.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -383,6 +384,13 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
         continue;
       }
 
+      if (Uri.tryParse(path)?.scheme == 'content') {
+        if (widget.itemDestination == null) {
+          folders.add(path);
+        }
+        continue;
+      }
+
       final entityType = await FileSystemEntity.type(path, followLinks: false);
       if (entityType == FileSystemEntityType.directory) {
         if (widget.itemDestination == null) {
@@ -423,6 +431,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
           series: destination.series,
         );
       }
+    }
+
+    if (!mounted) {
+      return;
     }
 
     if (createdItems.isEmpty) {
@@ -492,12 +504,22 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       return;
     }
 
-    final folderPath = await FilePicker.getDirectoryPath();
-    if (folderPath == null || folderPath.trim().isEmpty) {
-      return;
-    }
+    try {
+      final folderUri = await FilePicker.pickDirectory();
+      if (folderUri == null || !mounted) {
+        return;
+      }
 
-    await _appendInputPaths(<String>[folderPath]);
+      final location = folderUri.scheme == 'content' ? folderUri.toString() : folderUri.toFilePath();
+      await _appendInputPaths(<String>[location]);
+    } catch (error, stackTrace) {
+      logger('Failed to read upload folder: $error\n$stackTrace', tag: 'LibraryUploadPanel', level: InfoLevel.warning);
+      if (mounted) {
+        setState(() {
+          _panelMessage = currentAppLocalizations().uploadFailed;
+        });
+      }
+    }
   }
 
   Future<void> _handleDropDone(Iterable<Object?> files) async {
@@ -693,11 +715,21 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     return statusCode >= 500;
   }
 
-  Future<FormData> _buildUploadFormData(UploadItemDraft item, LibraryFolder folder) async {
+  Future<FormData> _buildUploadFormData(
+    UploadItemDraft item,
+    LibraryFolder folder, {
+    required CancelToken cancelToken,
+    required UploadFileAccess fileAccess,
+  }) async {
     final entries = <MapEntry<String, MultipartFile>>[];
     for (var index = 0; index < item.uploadFiles.length; index++) {
       final file = item.uploadFiles[index];
-      entries.add(MapEntry('$index', await MultipartFile.fromFile(file.absolutePath, filename: file.fileName)));
+      final multipartFile = await fileAccess.multipartFile(
+        location: file.absolutePath,
+        filename: file.fileName,
+        cancelToken: cancelToken,
+      );
+      entries.add(MapEntry('$index', multipartFile));
     }
 
     final map = <String, dynamic>{
@@ -727,6 +759,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       final cancelToken = CancelToken();
+      final fileAccess = UploadFileAccess();
       _cancelTokens[item.id] = cancelToken;
       _progressSamples[item.id] = UploadProgressTracker.start(DateTime.now());
       var latestSentBytes = 0;
@@ -748,7 +781,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       );
 
       try {
-        final formData = await _buildUploadFormData(item, folder);
+        final formData = await _buildUploadFormData(item, folder, cancelToken: cancelToken, fileAccess: fileAccess);
         await api.getUploadApi().uploadLibraryItem(
           formData: formData,
           cancelToken: cancelToken,
@@ -850,6 +883,16 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       } finally {
         _cancelTokens.remove(item.id);
         _progressSamples.remove(item.id);
+
+        try {
+          await fileAccess.close();
+        } catch (error, stackTrace) {
+          logger(
+            'Failed to close upload files: $error\n$stackTrace',
+            tag: 'LibraryUploadPanel',
+            level: InfoLevel.warning,
+          );
+        }
       }
     }
 

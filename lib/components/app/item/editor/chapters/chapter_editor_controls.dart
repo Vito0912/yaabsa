@@ -20,6 +20,7 @@ class ChapterEditorToolbar extends StatelessWidget {
     required this.onShift,
     required this.onFromTracks,
     required this.onRemoveSelected,
+    this.onQuickMatch,
   });
 
   final ChapterEditorDraft draft;
@@ -33,6 +34,7 @@ class ChapterEditorToolbar extends StatelessWidget {
   final VoidCallback onShift;
   final VoidCallback? onFromTracks;
   final VoidCallback onRemoveSelected;
+  final VoidCallback? onQuickMatch;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +109,12 @@ class ChapterEditorToolbar extends StatelessWidget {
                   onPressed: enabled ? onFromTracks : null,
                   icon: const Icon(Icons.queue_music_rounded),
                   label: Text(context.l10n.actionUseAudioTracks),
+                ),
+              if (onQuickMatch != null)
+                OutlinedButton.icon(
+                  onPressed: enabled ? onQuickMatch : null,
+                  icon: const Icon(Icons.auto_fix_high_rounded),
+                  label: Text(context.l10n.actionQuickMatchChapters),
                 ),
             ],
           ),
@@ -241,6 +249,18 @@ class ChapterEditorFooter extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+class ChapterEditorConflictBanner extends StatelessWidget {
+  const ChapterEditorConflictBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Text(context.l10n.statusChapterSaveConflict, style: TextStyle(color: Theme.of(context).colorScheme.error)),
     );
   }
 }

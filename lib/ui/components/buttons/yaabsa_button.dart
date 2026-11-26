@@ -78,7 +78,7 @@ class YaabsaButton extends StatelessWidget {
     final effectiveStyle = sizeStyle?.merge(style) ?? style;
     final effectiveOnPressed = isLoading ? null : onPressed;
     final effectiveIcon = isLoading
-        ? const SizedBox.square(dimension: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
+        ? const SizedBox.square(dimension: 16, child: YaabsaCircularProgressIndicator(size: 16, strokeWidth: 2))
         : icon;
     final button = _buildButton(onPressed: effectiveOnPressed, style: effectiveStyle, icon: effectiveIcon);
     final tooltip = this.tooltip;

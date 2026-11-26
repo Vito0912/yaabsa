@@ -6577,17 +6577,9 @@
   "@settingForceMetadataRefresh": {
     "description": "Label or dialog title for the server tool that recreates metadata files for selected libraries"
   },
-  "settingForceMetadataRefreshDescription": "Recreates metadata files for items in the selected libraries",
-  "@settingForceMetadataRefreshDescription": {
-    "description": "Supporting text explaining force metadata refresh in settings search results and on its settings page"
-  },
   "settingMatchAudiobookChapters": "Match audiobook chapters",
   "@settingMatchAudiobookChapters": {
     "description": "Label for match audiobook chapters in settings search results and on its settings page"
-  },
-  "settingMatchAudiobookChaptersDescription": "Add quick and bulk chapter matching tools",
-  "@settingMatchAudiobookChaptersDescription": {
-    "description": "Supporting text explaining match audiobook chapters in settings search results and on its settings page"
   },
   "settingSplitGenresAndTags": "Split genres/tags",
   "@settingSplitGenresAndTags": {
@@ -6733,7 +6725,7 @@
       "username": {
         "type": "String",
         "description": "Name of the signed-in user",
-        "example": "Finn"
+        "example": "DemoUser"
       }
     }
   },
@@ -6760,7 +6752,7 @@
       "username": {
         "type": "String",
         "description": "Name of the account to sign out",
-        "example": "Finn"
+        "example": "DemoUser"
       }
     }
   },
@@ -6775,7 +6767,7 @@
       "username": {
         "type": "String",
         "description": "Name of the saved account to remove",
-        "example": "Finn"
+        "example": "DemoUser"
       }
     }
   },
@@ -6786,7 +6778,7 @@
       "username": {
         "type": "String",
         "description": "Name of the removed account",
-        "example": "Finn"
+        "example": "DemoUser"
       }
     }
   },
@@ -6797,7 +6789,7 @@
       "username": {
         "type": "String",
         "description": "Name of the account that could not be removed",
-        "example": "Finn"
+        "example": "DemoUser"
       }
     }
   },
@@ -6808,7 +6800,7 @@
       "username": {
         "type": "String",
         "description": "Name of the newly active account",
-        "example": "Finn"
+        "example": "DemoUser"
       }
     }
   },
@@ -9742,7 +9734,7 @@
       "owner": {
         "type": "String",
         "description": "Current owner name or account identifier",
-        "example": "Finn"
+        "example": "DemoUser"
       }
     }
   },
@@ -13922,5 +13914,596 @@
   "optionBoth": "Both",
   "@optionBoth": {
     "description": "Option for selecting both available player timelines or media types"
+  },
+  "settingsScopeApp": "App",
+  "@settingsScopeApp": {
+    "description": "Badge label indicating a setting applies to the entire yaabsa installation on this device"
+  },
+  "settingsScopeAccount": "Account",
+  "@settingsScopeAccount": {
+    "description": "Badge label indicating a setting applies only to the active account"
+  },
+  "settingsScopeServer": "Server",
+  "@settingsScopeServer": {
+    "description": "Badge label indicating a setting applies to server connection, server actions, or server administration"
+  },
+  "settingsAccountScopedHeading": "Account ({username})",
+  "@settingsAccountScopedHeading": {
+    "description": "Settings section heading for preferences scoped to the active account",
+    "placeholders": {
+      "username": {
+        "type": "String",
+        "description": "Username of the active account",
+        "example": "DemoUser"
+      }
+    }
+  },
+  "settingsServerScopedHeading": "Server ({server})",
+  "@settingsServerScopedHeading": {
+    "description": "Settings section heading for connection, actions, and administration for the active server",
+    "placeholders": {
+      "server": {
+        "type": "String",
+        "description": "Host or URL of the active server",
+        "example": "abs.example.com"
+      }
+    }
+  },
+  "settingsSectionPlaybackAndReader": "Playback and reader",
+  "@settingsSectionPlaybackAndReader": {
+    "description": "Settings section heading grouping audio player and ebook reader settings"
+  },
+  "settingsSectionAppAndSystem": "App and system",
+  "@settingsSectionAppAndSystem": {
+    "description": "Settings section heading grouping appearance, caching, backup, updates, and logs"
+  },
+  "settingsServerActions": "Server actions",
+  "@settingsServerActions": {
+    "description": "Title for settings that toggle server action visibility for the active account"
+  },
+  "settingsServerActionsDescription": "Show or hide server action controls for this account",
+  "@settingsServerActionsDescription": {
+    "description": "Supporting text explaining server action visibility settings"
+  },
+  "settingsServerConnectionDescription": "Server addresses, local connection, and custom headers",
+  "@settingsServerConnectionDescription": {
+    "description": "Supporting text explaining server connection settings"
+  },
+  "settingsToolsDescription": "Batch item actions and experimental server tools",
+  "@settingsToolsDescription": {
+    "description": "Supporting text explaining library tools settings"
+  },
+  "settingsAdminServerDescription": "Server-wide administration for {server}",
+  "@settingsAdminServerDescription": {
+    "description": "Supporting text explaining admin server settings",
+    "placeholders": {
+      "server": {
+        "type": "String",
+        "description": "Host or URL of the active server",
+        "example": "abs.example.com"
+      }
+    }
+  },
+  "settingsUpdatesTitle": "Updates",
+  "@settingsUpdatesTitle": {
+    "description": "Title of the settings page for app and server update checks"
+  },
+  "settingsUpdatesDescription": "Automatic update checks for yaabsa and your server",
+  "@settingsUpdatesDescription": {
+    "description": "Supporting text explaining the updates settings page"
+  },
+  "settingsStartupAndBackgroundTitle": "Startup, buffer, and background",
+  "@settingsStartupAndBackgroundTitle": {
+    "description": "Title of the player settings page for audio buffer, wake lock, startup playback, and background connection"
+  },
+  "settingsStartupAndBackgroundDescription": "Audio buffer, screen wake lock, startup playback, and background sync",
+  "@settingsStartupAndBackgroundDescription": {
+    "description": "Supporting text explaining startup, buffer, and background settings"
+  },
+  "settingsMediaNotificationsDescription": "Notification progress style, lock behavior, and Android controls",
+  "@settingsMediaNotificationsDescription": {
+    "description": "Supporting text explaining media notification settings"
+  },
+  "settingsCompatibilityDescription": "Platform-specific audio decoding and seeking workarounds",
+  "@settingsCompatibilityDescription": {
+    "description": "Supporting text explaining player compatibility settings"
+  },
+  "settingsCachingDescription": "Offline response cache and route caching rules",
+  "@settingsCachingDescription": {
+    "description": "Supporting text explaining caching settings"
+  },
+  "settingsLogsDescription": "Log verbosity and local diagnostic log viewer",
+  "@settingsLogsDescription": {
+    "description": "Supporting text explaining logs and diagnostics settings"
+  },
+  "settingsLibrarySettingsDescription": "Library order, navigation tabs, shelf sections, and grid display",
+  "@settingsLibrarySettingsDescription": {
+    "description": "Supporting text explaining library and views settings"
+  },
+  "settingsLibraryOrderDescription": "Reorder libraries and mark music libraries",
+  "@settingsLibraryOrderDescription": {
+    "description": "Supporting text explaining the library order settings page"
+  },
+  "settingsDownloadsDescription": "Download location, Wi-Fi rules, and smart downloads",
+  "@settingsDownloadsDescription": {
+    "description": "Supporting text explaining download settings"
+  },
+  "settingsReaderDescription": "Typography, page layout, read aloud, and reading session tracking",
+  "@settingsReaderDescription": {
+    "description": "Supporting text explaining reader settings"
+  },
+  "settingsAppearanceDescription": "Theme mode, preset palette, accent color, and language",
+  "@settingsAppearanceDescription": {
+    "description": "Supporting text explaining appearance settings"
+  },
+  "settingsNumberRangeError": "Enter a whole number between {min} and {max}",
+  "@settingsNumberRangeError": {
+    "description": "Validation error shown when a numeric setting input is outside its allowed range",
+    "placeholders": {
+      "min": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Minimum allowed value",
+        "example": "1"
+      },
+      "max": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Maximum allowed value",
+        "example": "600"
+      }
+    }
+  },
+  "actionDecrease": "Decrease",
+  "@actionDecrease": {
+    "description": "Tooltip for decrementing a numeric setting"
+  },
+  "actionIncrease": "Increase",
+  "@actionIncrease": {
+    "description": "Tooltip for incrementing a numeric setting"
+  },
+  "hintEmptyLibrarySelectionIncludesAll": "Leave unselected to include all libraries",
+  "@hintEmptyLibrarySelectionIncludesAll": {
+    "description": "Helper text explaining that leaving all libraries unselected applies an action to every library"
+  },
+  "settingRenameSeries": "Rename series",
+  "@settingRenameSeries": {
+    "description": "Label for the experimental setting that enables renaming a series across all of its books"
+  },
+  "settingRenameSeriesDescription": "Add an option to rename a series across all of its books",
+  "@settingRenameSeriesDescription": {
+    "description": "Supporting text explaining the rename series experimental tool setting"
+  },
+  "actionRenameSeries": "Rename series",
+  "@actionRenameSeries": {
+    "description": "Action label and dialog title for renaming a series"
+  },
+  "fieldNewSeriesName": "New series name",
+  "@fieldNewSeriesName": {
+    "description": "Input label for entering a new name for a series"
+  },
+  "errorEnterSeriesName": "Enter a series name",
+  "@errorEnterSeriesName": {
+    "description": "Validation error when the new series name field is empty"
+  },
+  "statusSeriesRenamed": "Renamed series across {updated, plural, =1{1 book} other{{updated} books}}",
+  "@statusSeriesRenamed": {
+    "description": "Confirmation message shown after renaming a series across matching books",
+    "placeholders": {
+      "updated": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books updated",
+        "example": "4"
+      }
+    }
+  },
+  "statusSeriesRenameNoMatches": "No books matched this series",
+  "@statusSeriesRenameNoMatches": {
+    "description": "Message shown when renaming a series found no matching books"
+  },
+  "settingDeleteLongListeningSessions": "Delete long listening sessions",
+  "@settingDeleteLongListeningSessions": {
+    "description": "Label for the experimental setting that enables finding and deleting overly long listening sessions"
+  },
+  "settingDeleteLongListeningSessionsDescription": "Add a tool in statistics to find and delete overly long listening sessions",
+  "@settingDeleteLongListeningSessionsDescription": {
+    "description": "Supporting text explaining the delete long listening sessions experimental tool setting"
+  },
+  "actionFindLongSessions": "Find long sessions",
+  "@actionFindLongSessions": {
+    "description": "Button label to open the tool for finding overly long listening sessions"
+  },
+  "headingLongListeningSessions": "Long listening sessions",
+  "@headingLongListeningSessions": {
+    "description": "Dialog title for finding and deleting overly long listening sessions"
+  },
+  "fieldThresholdHours": "Threshold (hours)",
+  "@fieldThresholdHours": {
+    "description": "Input label for the minimum listening session duration in hours"
+  },
+  "errorEnterValidThresholdHours": "Enter a threshold of 0 or more hours",
+  "@errorEnterValidThresholdHours": {
+    "description": "Validation error when the session threshold hours input is invalid"
+  },
+  "optionAllUsers": "Include all users",
+  "@optionAllUsers": {
+    "description": "Toggle label for scanning listening sessions across all users on the server"
+  },
+  "optionAllUsersDescription": "Scan sessions for every user on this server",
+  "@optionAllUsersDescription": {
+    "description": "Supporting text explaining the include all users toggle when scanning listening sessions"
+  },
+  "actionScanSessions": "Scan sessions",
+  "@actionScanSessions": {
+    "description": "Action button label to scan listening sessions against the duration threshold"
+  },
+  "statusScanningSessions": "Scanning listening sessions…",
+  "@statusScanningSessions": {
+    "description": "Status message shown while scanning listening sessions"
+  },
+  "statusNoLongSessionsFound": "No listening sessions exceed {hours} hours",
+  "@statusNoLongSessionsFound": {
+    "description": "Message shown when no listening sessions exceed the specified duration threshold",
+    "placeholders": {
+      "hours": {
+        "type": "String",
+        "description": "Formatted threshold hours",
+        "example": "24"
+      }
+    }
+  },
+  "statusLongSessionsFoundSummary": "Found {count, plural, =1{1 session} other{{count} sessions}} totaling {hours} hours across {users, plural, =1{1 user} other{{users} users}}",
+  "@statusLongSessionsFoundSummary": {
+    "description": "Summary of overly long listening sessions found during a scan",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of matching sessions",
+        "example": "3"
+      },
+      "hours": {
+        "type": "String",
+        "description": "Total hours across matching sessions",
+        "example": "96.5"
+      },
+      "users": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of users scanned",
+        "example": "2"
+      }
+    }
+  },
+  "actionDeleteAllMatching": "Delete all ({count})",
+  "@actionDeleteAllMatching": {
+    "description": "Button label to delete all matching long listening sessions",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of matching sessions",
+        "example": "3"
+      }
+    }
+  },
+  "confirmDeleteLongSessionsTitle": "Delete listening sessions?",
+  "@confirmDeleteLongSessionsTitle": {
+    "description": "Confirmation dialog title before deleting long listening sessions"
+  },
+  "confirmDeleteLongSessionsMessage": "Delete {count, plural, =1{1 listening session} other{{count} listening sessions}} totaling {hours} hours? This cannot be undone",
+  "@confirmDeleteLongSessionsMessage": {
+    "description": "Confirmation dialog message before deleting long listening sessions",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of sessions to delete",
+        "example": "3"
+      },
+      "hours": {
+        "type": "String",
+        "description": "Total duration in hours of sessions to delete",
+        "example": "96.5"
+      }
+    }
+  },
+  "statusLongSessionsDeletedSummary": "Deleted {deleted, plural, =1{1 session} other{{deleted} sessions}} ({hours} hours)",
+  "@statusLongSessionsDeletedSummary": {
+    "description": "Summary shown after deleting long listening sessions",
+    "placeholders": {
+      "deleted": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of deleted sessions",
+        "example": "3"
+      },
+      "hours": {
+        "type": "String",
+        "description": "Total hours removed",
+        "example": "96.5"
+      }
+    }
+  },
+  "statusLongSessionsDeletePartial": "Deleted {deleted} and failed {failed} sessions ({hours} hours removed)",
+  "@statusLongSessionsDeletePartial": {
+    "description": "Summary shown when some long listening sessions failed to delete",
+    "placeholders": {
+      "deleted": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of deleted sessions",
+        "example": "2"
+      },
+      "failed": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of sessions that failed to delete",
+        "example": "1"
+      },
+      "hours": {
+        "type": "String",
+        "description": "Total hours removed",
+        "example": "64.2"
+      }
+    }
+  },
+  "statusNoMetadataRefreshUpdates": "No items needed a metadata refresh",
+  "@statusNoMetadataRefreshUpdates": {
+    "description": "Message shown when force metadata refresh finds no items to tag"
+  },
+  "descriptionPathTagGenreUpdate": "Scan the selected library and check each item path against your rules. When a path matches a regular expression, add the rule value to the selected tag or genre field while keeping existing values. For example, .*Fiction.*:Fiction adds Fiction to the selected field when the path contains Fiction. Use dry run to review matches without changing items.",
+  "@descriptionPathTagGenreUpdate": {
+    "description": "Description of the path, tag, and genre update tool"
+  },
+  "headingPathRules": "Rules",
+  "@headingPathRules": {
+    "description": "Section heading for path matching rules"
+  },
+  "hintPathRuleFormat": "Format: <regex>:<value> (for example, .*Fiction.*:Fiction)",
+  "@hintPathRuleFormat": {
+    "description": "Helper hint showing the syntax for a path matching rule"
+  },
+  "fieldPathRule": "Rule",
+  "@fieldPathRule": {
+    "description": "Input label for a path matching rule"
+  },
+  "actionAddRule": "Add rule",
+  "@actionAddRule": {
+    "description": "Button label to add another path matching rule"
+  },
+  "errorInvalidPathRule": "Enter a rule in <regex>:<value> format with a valid pattern",
+  "@errorInvalidPathRule": {
+    "description": "Validation error when a path matching rule does not match the required syntax or has an invalid regular expression"
+  },
+  "errorAddAtLeastOneRule": "Add at least one rule",
+  "@errorAddAtLeastOneRule": {
+    "description": "Validation error when trying to run the path updater without any rules"
+  },
+  "optionDryRun": "Dry run",
+  "@optionDryRun": {
+    "description": "Toggle label for running the path updater in preview mode without saving changes"
+  },
+  "optionDryRunDescription": "Preview matching items without applying changes",
+  "@optionDryRunDescription": {
+    "description": "Supporting text explaining the dry run toggle"
+  },
+  "statusPathTagGenreDryRunSummary": "Dry run scanned {scanned, plural, =1{1 item} other{{scanned} items}} and matched {matched, plural, =1{1 item} other{{matched} items}}",
+  "@statusPathTagGenreDryRunSummary": {
+    "description": "Summary shown after a dry run of the path, tag, and genre updater",
+    "placeholders": {
+      "scanned": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Total number of items scanned",
+        "example": "120"
+      },
+      "matched": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of items that would be updated",
+        "example": "15"
+      }
+    }
+  },
+  "statusPathTagGenreAppliedSummary": "Scanned {scanned, plural, =1{1 item} other{{scanned} items}}, matched {matched}, and updated {updated}",
+  "@statusPathTagGenreAppliedSummary": {
+    "description": "Summary shown after applying updates with the path, tag, and genre updater",
+    "placeholders": {
+      "scanned": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Total number of items scanned",
+        "example": "120"
+      },
+      "matched": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of items matched",
+        "example": "15"
+      },
+      "updated": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of items updated on the server",
+        "example": "15"
+      }
+    }
+  },
+  "statusPathTagGenreNoMatches": "Scanned {scanned, plural, =1{1 item} other{{scanned} items}} with no new matches",
+  "@statusPathTagGenreNoMatches": {
+    "description": "Summary shown when no items needed updates in the path, tag, and genre updater",
+    "placeholders": {
+      "scanned": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Total number of items scanned",
+        "example": "120"
+      }
+    }
+  },
+  "headingMatchAudiobookChapters": "Match audiobook chapters",
+  "@headingMatchAudiobookChapters": {
+    "description": "Page and card heading for the bulk audiobook chapter matching tool"
+  },
+  "actionQuickMatchChapters": "Quick match chapters",
+  "@actionQuickMatchChapters": {
+    "description": "Action button label for quick matching chapters on a single book"
+  },
+  "fieldChapterThreshold": "Chapter threshold",
+  "@fieldChapterThreshold": {
+    "description": "Input label for the chapter count difference threshold"
+  },
+  "descriptionChapterThreshold": "Update chapters when missing or when the chapter count differs by more than this value",
+  "@descriptionChapterThreshold": {
+    "description": "Supporting text explaining the chapter threshold field"
+  },
+  "errorInvalidChapterThreshold": "Enter a whole number of 0 or more",
+  "@errorInvalidChapterThreshold": {
+    "description": "Validation error when chapter threshold is not a non-negative integer"
+  },
+  "optionSearchForAsin": "Search for ASIN",
+  "@optionSearchForAsin": {
+    "description": "Toggle label for searching an ASIN when a book does not have one"
+  },
+  "optionSearchForAsinDescription": "Look up a missing ASIN using the selected metadata provider",
+  "@optionSearchForAsinDescription": {
+    "description": "Supporting text explaining the search for ASIN option"
+  },
+  "optionUseTracksAsChapters": "Use tracks as chapters",
+  "@optionUseTracksAsChapters": {
+    "description": "Toggle label for falling back to audio tracks when no ASIN is available"
+  },
+  "optionUseTracksAsChaptersDescription": "Fall back to audio track filenames when no ASIN is available",
+  "@optionUseTracksAsChaptersDescription": {
+    "description": "Supporting text explaining the use tracks as chapters fallback option"
+  },
+  "optionDisableRateProtection": "Disable rate protection",
+  "@optionDisableRateProtection": {
+    "description": "Toggle label for disabling the delay between chapter matching requests"
+  },
+  "optionDisableRateProtectionDescription": "Skip the 2-second delay between books",
+  "@optionDisableRateProtectionDescription": {
+    "description": "Supporting text explaining the disable rate protection option"
+  },
+  "statusMatchingChaptersProgress": "Processed {processed} of {total} books",
+  "@statusMatchingChaptersProgress": {
+    "description": "Progress text while matching audiobook chapters across a library",
+    "placeholders": {
+      "processed": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books processed so far",
+        "example": "12"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Total number of books to process",
+        "example": "100"
+      }
+    }
+  },
+  "actionStopMatching": "Stop",
+  "@actionStopMatching": {
+    "description": "Button label to stop a running chapter matching job"
+  },
+  "statusStoppingMatching": "Stopping…",
+  "@statusStoppingMatching": {
+    "description": "Status label shown while waiting for a chapter matching job to stop"
+  },
+  "statusMatchChaptersSummary": "Updated {updated}, skipped {skipped}, and failed {failed} of {total, plural, =1{1 book} other{{total} books}}",
+  "@statusMatchChaptersSummary": {
+    "description": "Summary shown after bulk chapter matching completes",
+    "placeholders": {
+      "updated": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books updated",
+        "example": "25"
+      },
+      "skipped": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books skipped",
+        "example": "70"
+      },
+      "failed": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books that failed",
+        "example": "5"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Total number of books processed",
+        "example": "100"
+      }
+    }
+  },
+  "statusMatchChaptersCancelled": "Stopped after processing {processed} books. Updated {updated}, skipped {skipped}, failed {failed}",
+  "@statusMatchChaptersCancelled": {
+    "description": "Summary shown after bulk chapter matching is cancelled",
+    "placeholders": {
+      "processed": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books processed before stopping",
+        "example": "20"
+      },
+      "updated": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books updated",
+        "example": "10"
+      },
+      "skipped": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books skipped",
+        "example": "8"
+      },
+      "failed": {
+        "type": "int",
+        "format": "decimalPattern",
+        "description": "Number of books that failed",
+        "example": "2"
+      }
+    }
+  },
+  "statusSingleBookChaptersUpdated": "Updated chapters for \"{title}\"",
+  "@statusSingleBookChaptersUpdated": {
+    "description": "Confirmation message shown after quick matching chapters for a single book",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "Title of the book",
+        "example": "Dune"
+      }
+    }
+  },
+  "statusSingleBookChaptersUnchanged": "Chapters for \"{title}\" are already up to date",
+  "@statusSingleBookChaptersUnchanged": {
+    "description": "Message shown when quick matching chapters finds no needed updates for a book",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "Title of the book",
+        "example": "Dune"
+      }
+    }
+  },
+  "errorSingleBookChaptersFailed": "Could not match chapters: {reason}",
+  "@errorSingleBookChaptersFailed": {
+    "description": "Error message shown when quick matching chapters fails for a single book",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "description": "Failure reason",
+        "example": "No chapters found"
+      }
+    }
   }
 }

@@ -1,55 +1,20 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/authentication/admin_server_authentication_view.dart';
-import 'package:yaabsa/screens/settings/admin_server_settings.dart';
+import 'package:yaabsa/features/settings/registry/settings_routes.dart';
+import 'package:yaabsa/screens/settings/admin_settings_pane_layout.dart';
 import 'package:yaabsa/util/l10n.dart';
 
 class AdminServerAuthenticationSettings extends StatelessWidget {
   const AdminServerAuthenticationSettings({super.key});
 
-  static const String routeName = '/settings/admin-server/authentication';
-
-  void _handleBack(BuildContext context) {
-    if (Navigator.of(context).canPop()) {
-      context.pop();
-      return;
-    }
-
-    context.go(AdminServerSettings.routeName);
-  }
+  static const String routeName = SettingsRoutes.adminServerAuthentication;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 12, 20, 8),
-          child: Row(
-            children: [
-              IconButton(
-                tooltip: context.l10n.actionBack,
-                onPressed: () => _handleBack(context),
-                icon: const Icon(Icons.arrow_back_rounded),
-              ),
-              Expanded(
-                child: Text(
-                  context.l10n.navAuthentication,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1040),
-              child: const AdminServerAuthenticationView(),
-            ),
-          ),
-        ),
-      ],
+    return AdminSettingsPaneLayout(
+      title: context.l10n.navAuthentication,
+      maxWidth: 1040,
+      child: const AdminServerAuthenticationView(),
     );
   }
 }

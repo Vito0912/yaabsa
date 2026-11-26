@@ -295,6 +295,18 @@ Future<void> settingsInitializer(Ref ref) async {
 }
 
 @riverpod
+String? globalSettingValue(Ref ref, String key) {
+  final cache = ref.watch(settingsCacheProvider);
+  return ref.watch(settingsManagerProvider.select((_) => cache.get<String>(key)));
+}
+
+T watchGlobalSetting<T>(WidgetRef ref, String key, {T? defaultValue}) {
+  final rawValue = ref.watch(globalSettingValueProvider(key));
+  final fallback = (defaultValue ?? defaultSettings[key]) as T;
+  return SettingsParser.decodeValue<T>(rawValue, fallback);
+}
+
+@riverpod
 String? userSettingValue(Ref ref, String? userId, String key) {
   if (userId == null) {
     return null;

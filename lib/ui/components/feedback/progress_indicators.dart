@@ -13,28 +13,31 @@ class YaabsaLoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.hasBoundedWidth ? constraints.maxWidth : size;
-        final availableHeight = constraints.hasBoundedHeight ? constraints.maxHeight : size;
-        final resolvedSize = math.max(1.0, math.min(size, math.min(availableWidth, availableHeight)));
+    final resolvedSize = math.max(1.0, size);
 
-        if (resolvedSize < 24) {
-          return M3EProgressIndicator.circular(
-            size: resolvedSize,
+    if (resolvedSize < 24) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: SizedBox.square(
+          dimension: resolvedSize,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
             color: color,
             semanticsLabel: semanticLabel,
             semanticsValue: semanticValue,
-          );
-        }
+          ),
+        ),
+      );
+    }
 
-        return M3ELoadingIndicator(
-          size: resolvedSize,
-          color: color,
-          semanticLabel: semanticLabel,
-          semanticValue: semanticValue,
-        );
-      },
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: M3ELoadingIndicator(
+        size: resolvedSize,
+        color: color,
+        semanticLabel: semanticLabel,
+        semanticValue: semanticValue,
+      ),
     );
   }
 }
@@ -63,8 +66,26 @@ class YaabsaCircularProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final indicatorSize = size ?? (value == null ? 56.0 : 40.0);
+    final indicatorSize = math.max(1.0, size ?? (value == null ? 56.0 : 40.0));
     final effectiveColor = valueColor?.value ?? color;
+
+    if (indicatorSize < 24) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: SizedBox.square(
+          dimension: indicatorSize,
+          child: CircularProgressIndicator(
+            value: value,
+            backgroundColor: backgroundColor,
+            color: effectiveColor,
+            valueColor: valueColor,
+            strokeWidth: strokeWidth ?? 2,
+            semanticsLabel: semanticsLabel,
+            semanticsValue: semanticsValue,
+          ),
+        ),
+      );
+    }
 
     if (value == null) {
       return YaabsaLoadingIndicator(
@@ -75,22 +96,17 @@ class YaabsaCircularProgressIndicator extends StatelessWidget {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.hasBoundedWidth ? constraints.maxWidth : indicatorSize;
-        final availableHeight = constraints.hasBoundedHeight ? constraints.maxHeight : indicatorSize;
-        final resolvedSize = math.max(1.0, math.min(indicatorSize, math.min(availableWidth, availableHeight)));
-
-        return M3EProgressIndicator.circular(
-          value: value,
-          size: resolvedSize,
-          strokeWidth: strokeWidth,
-          color: effectiveColor,
-          trackColor: backgroundColor,
-          semanticsLabel: semanticsLabel,
-          semanticsValue: semanticsValue,
-        );
-      },
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: M3EProgressIndicator.circular(
+        value: value,
+        size: indicatorSize,
+        strokeWidth: strokeWidth,
+        color: effectiveColor,
+        trackColor: backgroundColor,
+        semanticsLabel: semanticsLabel,
+        semanticsValue: semanticsValue,
+      ),
     );
   }
 }

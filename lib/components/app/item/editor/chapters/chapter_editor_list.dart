@@ -117,3 +117,44 @@ class ChapterEditorList extends StatelessWidget {
     );
   }
 }
+
+List<ChapterEditorEntry> filterChapterEditorRows(List<ChapterEditorEntry> rows, String rawQuery) {
+  final query = rawQuery.trim().toLowerCase();
+  if (query.isEmpty) {
+    return List.of(rows);
+  }
+
+  return rows
+      .where((row) => row.title.toLowerCase().contains(query) || '${row.position + 1}' == query)
+      .toList(growable: false);
+}
+
+Future<void> focusNextChapterEditorTitle({
+  required ScrollController scrollController,
+  required List<ChapterEditorEntry> visibleRows,
+  required Map<int, int> indexByKey,
+  required ChapterEditorEntry row,
+  required double rowHeight,
+  required bool Function() isMounted,
+}) async {
+  final next = (indexByKey[row.key] ?? -1) + 1;
+  if (next >= visibleRows.length || !scrollController.hasClients) {
+    return;
+  }
+
+  final target = visibleRows[next];
+  final position = scrollController.position;
+  final top = next * rowHeight;
+  if (top < position.pixels || top + rowHeight > position.pixels + position.viewportDimension) {
+    await scrollController.animateTo(
+      top.clamp(0, position.maxScrollExtent),
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+    );
+  }
+
+  await WidgetsBinding.instance.endOfFrame;
+  if (isMounted()) {
+    target.onRequestTitleFocus?.call();
+  }
+}

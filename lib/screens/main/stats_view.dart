@@ -6,10 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
+import 'package:yaabsa/components/sessions/long_listening_sessions_dialog.dart';
+import 'package:yaabsa/features/settings/model/setting_definition.dart';
+import 'package:yaabsa/features/settings/model/setting_definitions.dart';
 import 'package:yaabsa/features/statistics/widgets/statistics_components.dart';
 import 'package:yaabsa/models/advanced_listening_analytics_state.dart';
 import 'package:yaabsa/models/advanced_listening_stats.dart';
 import 'package:yaabsa/provider/common/stats_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_activity_section.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_activity_totals_card.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_achievements_section.dart';
@@ -19,6 +23,7 @@ import 'package:yaabsa/features/statistics/widgets/stats_summary_grid.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_weekday_breakdown.dart';
 import 'package:yaabsa/features/statistics/widgets/stats_year_rewind_section.dart';
 import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/l10n.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
@@ -116,6 +121,13 @@ class _StatsViewState extends ConsumerState<StatsView> {
     final listeningStatsAsync = ref.watch(listeningStatsProvider);
     final activityAsync = ref.watch(listeningActivityStatsProvider);
     final yearStatsAsync = _yearInRewindExpanded ? ref.watch(yearInReviewStatsProvider(_selectedYear)) : null;
+    final currentUser = ref.watch(currentUserProvider).value;
+    final deleteLongSessionsEnabled = watchSettingDefinition(
+      ref,
+      AppSettingDefs.toolsDeleteLongListeningSessions,
+      userId: currentUser?.id,
+    );
+    final showFindLongSessions = deleteLongSessionsEnabled && currentUser != null;
     final horizontalPadding = context.isMobile ? 12.0 : 24.0;
 
     return ScreenRefreshIndicator(
@@ -184,9 +196,41 @@ class _StatsViewState extends ConsumerState<StatsView> {
                             second: StatsSection(
                               title: context.l10n.headingRecentSessions,
                               icon: Icons.history_rounded,
-                              trailing: TextButton(
-                                onPressed: () => context.push(UserListeningSessionsView.routeName),
-                                child: Text(context.l10n.actionViewAll),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (showFindLongSessions) ...[
+                                    if (context.isMobile)
+                                      YaabsaButton.iconSmall(
+                                        variant: YaabsaButtonVariant.outlined,
+                                        icon: const Icon(Icons.cleaning_services_outlined),
+                                        tooltip: context.l10n.actionFindLongSessions,
+                                        onPressed: () async {
+                                          final deleted = await showLongListeningSessionsDialog(context, ref);
+                                          if (deleted && mounted) {
+                                            await _refreshAll();
+                                          }
+                                        },
+                                      )
+                                    else
+                                      YaabsaButton.small(
+                                        variant: YaabsaButtonVariant.outlined,
+                                        icon: const Icon(Icons.cleaning_services_outlined),
+                                        label: Text(context.l10n.actionFindLongSessions),
+                                        onPressed: () async {
+                                          final deleted = await showLongListeningSessionsDialog(context, ref);
+                                          if (deleted && mounted) {
+                                            await _refreshAll();
+                                          }
+                                        },
+                                      ),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  TextButton(
+                                    onPressed: () => context.push(UserListeningSessionsView.routeName),
+                                    child: Text(context.l10n.actionViewAll),
+                                  ),
+                                ],
                               ),
                               child: StatsRecentSessionsList(
                                 sessions: recentSessions,

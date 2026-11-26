@@ -62,7 +62,8 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
         );
         nextValue = pickedUri?.toString();
       } else if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
-        final directoryPath = await FilePicker.getDirectoryPath(dialogTitle: l10n.actionChooseFolder);
+        final directoryUri = await FilePicker.pickDirectory(dialogTitle: l10n.actionChooseFolder);
+        final directoryPath = directoryUri?.toFilePath();
         if (directoryPath != null && directoryPath.trim().isNotEmpty) {
           nextValue = encodeDesktopDownloadLocation(directoryPath);
         }

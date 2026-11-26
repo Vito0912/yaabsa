@@ -38,26 +38,31 @@ class ReaderAppearancePreview extends ConsumerWidget {
 
     final localizations = context.l10n;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      child: Semantics(
-        label: localizations.readerAppearancePreviewLabel,
-        child: Text(
-          localizations.readerAppearancePreviewText,
-          style: TextStyle(
-            color: foreground,
-            fontSize: 16 * settings.getGlobalSetting<double>(SettingKeys.readerFontSizeMultiplier),
-            height: settings.getGlobalSetting<double>(SettingKeys.readerLineHeight),
-            fontFamily: font == 'sans' ? 'sans-serif' : 'serif',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: constraints.hasBoundedWidth ? double.infinity : null,
+          margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           ),
-        ),
-      ),
+          child: Semantics(
+            label: localizations.readerAppearancePreviewLabel,
+            child: Text(
+              localizations.readerAppearancePreviewText,
+              style: TextStyle(
+                color: foreground,
+                fontSize: 16 * settings.getGlobalSetting<double>(SettingKeys.readerFontSizeMultiplier),
+                height: settings.getGlobalSetting<double>(SettingKeys.readerLineHeight),
+                fontFamily: font == 'sans' ? 'sans-serif' : 'serif',
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -78,50 +83,106 @@ class ReaderPageColorPicker extends ConsumerWidget {
       ('dark', localizations.readerThemeNight, const Color(0xFF121212), const Color(0xFFE0E0E0)),
     ];
 
+    final cards = <Widget>[
+      for (final (value, label, background, foreground) in themes)
+        _buildThemeCard(
+          context,
+          label: label,
+          background: background,
+          foreground: foreground,
+          isSelected: selected == value,
+          semanticsLabel: localizations.readerPageColorOption(label),
+          onTap: () {
+            unawaited(settings.setGlobalSetting<String>(SettingKeys.readerTheme, value));
+          },
+        ),
+    ];
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          for (final (value, label, background, foreground) in themes)
-            Semantics(
-              selected: selected == value,
-              label: localizations.readerPageColorOption(label),
-              child: Material(
-                color: background,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: selected == value
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.outlineVariant,
-                    width: selected == value ? 3 : 1,
-                  ),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => unawaited(settings.setGlobalSetting<String>(SettingKeys.readerTheme, value)),
-                  child: SizedBox(
-                    width: 66,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Aa',
-                            style: TextStyle(fontFamily: 'serif', fontSize: 24, color: foreground),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(label, style: TextStyle(fontSize: 12, color: foreground)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= 280) {
+            return Row(
+              children: [
+                for (var index = 0; index < cards.length; index++) ...[
+                  if (index > 0) const SizedBox(width: 12),
+                  Expanded(child: cards[index]),
+                ],
+              ],
+            );
+          }
+
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(child: cards[0]),
+                  const SizedBox(width: 12),
+                  Expanded(child: cards[1]),
+                ],
               ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(child: cards[2]),
+                  const SizedBox(width: 12),
+                  Expanded(child: cards[3]),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildThemeCard(
+    BuildContext context, {
+    required String label,
+    required Color background,
+    required Color foreground,
+    required bool isSelected,
+    required String semanticsLabel,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      selected: isSelected,
+      label: semanticsLabel,
+      child: Material(
+        color: background,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+            width: isSelected ? 3 : 1,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Aa',
+                  style: TextStyle(fontFamily: 'serif', fontSize: 24, color: foreground),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: foreground),
+                ),
+              ],
             ),
-        ],
+          ),
+        ),
       ),
     );
   }

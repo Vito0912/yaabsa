@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_draft.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class ChapterEditorPreview {
@@ -13,6 +14,31 @@ class ChapterEditorPreview {
   Timer? _timer;
   var _generation = 0;
   var _disposed = false;
+
+  Future<bool> playEntry({
+    required ChapterEditorEntry row,
+    required ChapterEditorDraft draft,
+    required String itemId,
+    required List<AudioFile> files,
+    required ABSApi? api,
+  }) async {
+    final start = row.start;
+    if (api == null || start == null || row.error != null) {
+      return true;
+    }
+
+    final end = row.position + 1 < draft.rows.length ? draft.rows[row.position + 1].start : draft.duration;
+    if (end == null) {
+      return true;
+    }
+
+    try {
+      await play(key: row.key, start: start, end: end, itemId: itemId, files: files, api: api);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<void> play({
     required int key,

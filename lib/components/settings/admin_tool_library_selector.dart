@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/library.dart';
-import 'package:yaabsa/ui/components/lists/multi_select_list_card.dart';
-import 'package:yaabsa/util/l10n.dart';
+import 'package:yaabsa/components/common/library_selection_list.dart';
 
 class AdminToolLibrarySelector extends StatelessWidget {
   const AdminToolLibrarySelector({
@@ -21,18 +20,12 @@ class AdminToolLibrarySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final options = libraries
-        .map((library) => YaabsaMultiSelectOption(id: library.id, label: library.name, subtitle: library.mediaType))
-        .toList(growable: false);
-
-    return YaabsaMultiSelectListCard(
-      title: context.l10n.fieldTargetLibraries,
-      options: options,
-      selectedIds: selectedLibraryIds,
+    return LibrarySelectionList.multiSelect(
+      libraries: libraries,
+      selectedLibraryIds: selectedLibraryIds,
       onSelectionChanged: onSelectionChanged,
       enabled: enabled,
       maxHeight: maxHeight,
-      emptyMessage: context.l10n.statusNoLibrariesFound,
     );
   }
 }

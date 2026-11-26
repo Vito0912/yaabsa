@@ -73,7 +73,7 @@ class SettingsNavigationSection extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     final List<Widget> allItems = [
-      for (var index = 0; index < items.length; index++) _SettingsNavigationTile(item: items[index]),
+      for (var index = 0; index < items.length; index++) SettingsNavigationTile(item: items[index]),
       ...settings,
       ...children,
     ];
@@ -87,6 +87,7 @@ class SettingsNavigationSection extends StatelessWidget {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (var index = 0; index < allItems.length; index++)
                 Padding(
@@ -107,8 +108,8 @@ class SettingsNavigationSection extends StatelessWidget {
   }
 }
 
-class _SettingsNavigationTile extends StatelessWidget {
-  const _SettingsNavigationTile({required this.item});
+class SettingsNavigationTile extends StatelessWidget {
+  const SettingsNavigationTile({super.key, required this.item});
 
   final SettingsNavigationItem item;
 

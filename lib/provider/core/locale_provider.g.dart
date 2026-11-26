@@ -107,7 +107,7 @@ final class LocaleEffectsProvider extends $NotifierProvider<LocaleEffects, void>
   }
 }
 
-String _$localeEffectsHash() => r'7bc6e41c92ce2f69e995de7e9031195cd0216907';
+String _$localeEffectsHash() => r'd5bfa28b06f00ea0dcc54bd57236e36196f36624';
 
 abstract class _$LocaleEffects extends $Notifier<void> {
   void build();
